@@ -313,8 +313,7 @@ void WebWindow::AttachWebView()
 	}
 	else
 	{
-		// Block until it's ready. This simplifies things for the caller, so they
-		// don't need to regard this process as async.
+		// Block until it's ready. This simplifies things for the caller, so they don't need to regard this process as async.
 		MSG msg = { };
 		while (flag.test_and_set() && GetMessage(&msg, NULL, 0, 0))
 		{
