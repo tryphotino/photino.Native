@@ -1,5 +1,5 @@
-#ifndef WEBWINDOW_H
-#define WEBWINDOW_H
+#ifndef Photino_H
+#define Photino_H
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -33,7 +33,7 @@ typedef int (*GetAllMonitorsCallback)(const Monitor* monitor);
 typedef void (*ResizedCallback)(int width, int height);
 typedef void (*MovedCallback)(int x, int y);
 
-class WebWindow
+class Photino
 {
 private:
 	WebMessageReceivedCallback _webMessageReceivedCallback;
@@ -42,7 +42,7 @@ private:
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
-	WebWindow* _parent;
+	Photino* _parent;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
@@ -67,8 +67,8 @@ public:
 	static void Register();
 #endif
 
-	WebWindow(AutoString title, WebWindow* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height);
-	~WebWindow();
+	Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height);
+	~Photino();
 	void SetTitle(AutoString title);
 	void Show();
 	void WaitForExit();
@@ -93,4 +93,4 @@ public:
 	void SetIconFile(AutoString filename);
 };
 
-#endif // !WEBWINDOW_H
+#endif // !Photino_H

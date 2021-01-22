@@ -1,4 +1,4 @@
-#include "WebWindow.h"
+#include "Photino.h"
 #include <stdio.h>
 #include <map>
 #include <mutex>
@@ -6,6 +6,7 @@
 #include <comdef.h>
 #include <atomic>
 #include <Shlwapi.h>
+#include <wrl.h>
 
 #define WM_USER_SHOWMESSAGE (WM_USER + 0x0001)
 #define WM_USER_INVOKE (WM_USER + 0x0002)
@@ -13,11 +14,11 @@
 using namespace Microsoft::WRL;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LPCWSTR CLASS_NAME = L"WebWindow";
+LPCWSTR CLASS_NAME = L"Photino";
 std::mutex invokeLockMutex;
-HINSTANCE WebWindow::_hInstance;
+HINSTANCE Photino::_hInstance;
 HWND messageLoopRootWindowHandle;
-std::map<HWND, WebWindow*> hwndToWebWindow;
+std::map<HWND, Photino*> hwndToPhotino;
 
 struct InvokeWaitInfo
 {
@@ -32,7 +33,7 @@ struct ShowMessageParams
 	UINT type;
 };
 
-void WebWindow::Register(HINSTANCE hInstance)
+void Photino::Register(HINSTANCE hInstance)
 {
 	_hInstance = hInstance;
 
@@ -46,7 +47,7 @@ void WebWindow::Register(HINSTANCE hInstance)
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
-WebWindow::WebWindow(AutoString title, WebWindow* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int width = CW_USEDEFAULT, int height = CW_USEDEFAULT)
+Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int width = CW_USEDEFAULT, int height = CW_USEDEFAULT)
 {
 	// Create the window
 	_webMessageReceivedCallback = webMessageReceivedCallback;
@@ -74,13 +75,13 @@ WebWindow::WebWindow(AutoString title, WebWindow* parent, WebMessageReceivedCall
 		_hInstance, // Instance handle
 		this        // Additional application data
 	);
-	hwndToWebWindow[_hWnd] = this;
+	hwndToPhotino[_hWnd] = this;
 }
 
 // Needn't to release the handles.
-WebWindow::~WebWindow() {}
+Photino::~Photino() {}
 
-HWND WebWindow::getHwnd()
+HWND Photino::getHwnd()
 {
 	return _hWnd;
 }
@@ -93,7 +94,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		// Only terminate the message loop if the window being closed is the one that
 		// started the message loop
-		hwndToWebWindow.erase(hwnd);
+		hwndToPhotino.erase(hwnd);
 		if (hwnd == messageLoopRootWindowHandle)
 		{
 			PostQuitMessage(0);
@@ -122,24 +123,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_SIZE:
 	{
-		WebWindow* webWindow = hwndToWebWindow[hwnd];
-		if (webWindow)
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (Photino)
 		{
-			webWindow->RefitContent();
+			Photino->RefitContent();
 			int width, height;
-			webWindow->GetSize(&width, &height);
-			webWindow->InvokeResized(width, height);
+			Photino->GetSize(&width, &height);
+			Photino->InvokeResized(width, height);
 		}
 		return 0;
 	}
 	case WM_MOVE:
 	{
-		WebWindow* webWindow = hwndToWebWindow[hwnd];
-		if (webWindow)
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (Photino)
 		{
 			int x, y;
-			webWindow->GetPosition(&x, &y);
-			webWindow->InvokeMoved(x, y);
+			Photino->GetPosition(&x, &y);
+			Photino->InvokeMoved(x, y);
 		}
 		return 0;
 	}
@@ -149,7 +150,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void WebWindow::RefitContent()
+void Photino::RefitContent()
 {
 	if (_webviewController)
 	{
@@ -159,12 +160,12 @@ void WebWindow::RefitContent()
 	}
 }
 
-void WebWindow::SetTitle(AutoString title)
+void Photino::SetTitle(AutoString title)
 {
 	SetWindowText(_hWnd, title);
 }
 
-void WebWindow::Show()
+void Photino::Show()
 {
 	ShowWindow(_hWnd, SW_SHOWDEFAULT);
 
@@ -177,7 +178,7 @@ void WebWindow::Show()
 	}
 }
 
-void WebWindow::WaitForExit()
+void Photino::WaitForExit()
 {
 	messageLoopRootWindowHandle = _hWnd;
 
@@ -190,7 +191,7 @@ void WebWindow::WaitForExit()
 	}
 }
 
-void WebWindow::ShowMessage(AutoString title, AutoString body, UINT type)
+void Photino::ShowMessage(AutoString title, AutoString body, UINT type)
 {
 	ShowMessageParams* params = new ShowMessageParams;
 	params->title = title;
@@ -199,7 +200,7 @@ void WebWindow::ShowMessage(AutoString title, AutoString body, UINT type)
 	PostMessage(_hWnd, WM_USER_SHOWMESSAGE, (WPARAM)params, 0);
 }
 
-void WebWindow::Invoke(ACTION callback)
+void Photino::Invoke(ACTION callback)
 {
 	InvokeWaitInfo waitInfo = {};
 	PostMessage(_hWnd, WM_USER_INVOKE, (WPARAM)callback, (LPARAM)&waitInfo);
@@ -210,7 +211,7 @@ void WebWindow::Invoke(ACTION callback)
 	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
 }
 
-void WebWindow::AttachWebView()
+void Photino::AttachWebView()
 {
 	std::atomic_flag flag = ATOMIC_FLAG_INIT;
 	flag.test_and_set();
@@ -323,27 +324,27 @@ void WebWindow::AttachWebView()
 	}
 }
 
-void WebWindow::NavigateToUrl(AutoString url)
+void Photino::NavigateToUrl(AutoString url)
 {
 	_webviewWindow->Navigate(url);
 }
 
-void WebWindow::NavigateToString(AutoString content)
+void Photino::NavigateToString(AutoString content)
 {
 	_webviewWindow->NavigateToString(content);
 }
 
-void WebWindow::SendMessage(AutoString message)
+void Photino::SendMessage(AutoString message)
 {
 	_webviewWindow->PostWebMessageAsString(message);
 }
 
-void WebWindow::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
+void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
 {
 	_schemeToRequestHandler[scheme] = requestHandler;
 }
 
-void WebWindow::SetResizable(bool resizable)
+void Photino::SetResizable(bool resizable)
 {
 	LONG_PTR style = GetWindowLongPtr(_hWnd, GWL_STYLE);
 	if (resizable) style |= WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
@@ -351,7 +352,7 @@ void WebWindow::SetResizable(bool resizable)
 	SetWindowLongPtr(_hWnd, GWL_STYLE, style);
 }
 
-void WebWindow::GetSize(int* width, int* height)
+void Photino::GetSize(int* width, int* height)
 {
 	RECT rect = {};
 	GetWindowRect(_hWnd, &rect);
@@ -359,7 +360,7 @@ void WebWindow::GetSize(int* width, int* height)
 	if (height) *height = rect.bottom - rect.top;
 }
 
-void WebWindow::SetSize(int width, int height)
+void Photino::SetSize(int width, int height)
 {
 	SetWindowPos(_hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
 }
@@ -382,7 +383,7 @@ BOOL MonitorEnum(HMONITOR monitor, HDC, LPRECT, LPARAM arg)
 	return callback(&props) ? TRUE : FALSE;
 }
 
-void WebWindow::GetAllMonitors(GetAllMonitorsCallback callback)
+void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 {
 	if (callback)
 	{
@@ -390,12 +391,12 @@ void WebWindow::GetAllMonitors(GetAllMonitorsCallback callback)
 	}
 }
 
-unsigned int WebWindow::GetScreenDpi()
+unsigned int Photino::GetScreenDpi()
 {
 	return GetDpiForWindow(_hWnd);
 }
 
-void WebWindow::GetPosition(int* x, int* y)
+void Photino::GetPosition(int* x, int* y)
 {
 	RECT rect = {};
 	GetWindowRect(_hWnd, &rect);
@@ -403,17 +404,17 @@ void WebWindow::GetPosition(int* x, int* y)
 	if (y) *y = rect.top;
 }
 
-void WebWindow::SetPosition(int x, int y)
+void Photino::SetPosition(int x, int y)
 {
 	SetWindowPos(_hWnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
 
-void WebWindow::SetTopmost(bool topmost)
+void Photino::SetTopmost(bool topmost)
 {
 	SetWindowPos(_hWnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
-void WebWindow::SetIconFile(AutoString filename)
+void Photino::SetIconFile(AutoString filename)
 {
 	HICON icon = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	if (icon)

@@ -1,4 +1,4 @@
-#include "WebWindow.h"
+#include "Photino.h"
 
 #ifdef _WIN32
 # define EXPORTED __declspec(dllexport)
@@ -9,128 +9,128 @@
 extern "C"
 {
 #ifdef _WIN32
-	EXPORTED void WebWindow_register_win32(HINSTANCE hInstance)
+	EXPORTED void Photino_register_win32(HINSTANCE hInstance)
 	{
-		WebWindow::Register(hInstance);
+		Photino::Register(hInstance);
 	}
 
-	EXPORTED HWND WebWindow_getHwnd_win32(WebWindow* instance)
+	EXPORTED HWND Photino_getHwnd_win32(Photino* instance)
 	{
 		return instance->getHwnd();
 	}
 #elif OS_MAC
-	EXPORTED void WebWindow_register_mac()
+	EXPORTED void Photino_register_mac()
 	{
-		WebWindow::Register();
+		Photino::Register();
 	}
 #endif
 
-	EXPORTED WebWindow* WebWindow_ctor(AutoString title, WebWindow* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
+	EXPORTED Photino* Photino_ctor(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
 	{
-		return new WebWindow(title, parent, webMessageReceivedCallback, fullscreen, x, y, width, height);
+		return new Photino(title, parent, webMessageReceivedCallback, fullscreen, x, y, width, height);
 	}
 
-	EXPORTED void WebWindow_dtor(WebWindow* instance)
+	EXPORTED void Photino_dtor(Photino* instance)
 	{
 		delete instance;
 	}
 
-	EXPORTED void WebWindow_SetTitle(WebWindow* instance, AutoString title)
+	EXPORTED void Photino_SetTitle(Photino* instance, AutoString title)
 	{
 		instance->SetTitle(title);
 	}
 
-	EXPORTED void WebWindow_Show(WebWindow* instance)
+	EXPORTED void Photino_Show(Photino* instance)
 	{
 		instance->Show();
 	}
 
-	EXPORTED void WebWindow_WaitForExit(WebWindow* instance)
+	EXPORTED void Photino_WaitForExit(Photino* instance)
 	{
 		instance->WaitForExit();
 	}
 
-	EXPORTED void WebWindow_ShowMessage(WebWindow* instance, AutoString title, AutoString body, unsigned int type)
+	EXPORTED void Photino_ShowMessage(Photino* instance, AutoString title, AutoString body, unsigned int type)
 	{
 		instance->ShowMessage(title, body, type);
 	}
 
-	EXPORTED void WebWindow_Invoke(WebWindow* instance, ACTION callback)
+	EXPORTED void Photino_Invoke(Photino* instance, ACTION callback)
 	{
 		instance->Invoke(callback);
 	}
 
-	EXPORTED void WebWindow_NavigateToString(WebWindow* instance, AutoString content)
+	EXPORTED void Photino_NavigateToString(Photino* instance, AutoString content)
 	{
 		instance->NavigateToString(content);
 	}
 
-	EXPORTED void WebWindow_NavigateToUrl(WebWindow* instance, AutoString url)
+	EXPORTED void Photino_NavigateToUrl(Photino* instance, AutoString url)
 	{
 		instance->NavigateToUrl(url);
 	}
 
-	EXPORTED void WebWindow_SendMessage(WebWindow* instance, AutoString message)
+	EXPORTED void Photino_SendMessage(Photino* instance, AutoString message)
 	{
 		instance->SendMessage(message);
 	}
 
-	EXPORTED void WebWindow_AddCustomScheme(WebWindow* instance, AutoString scheme, WebResourceRequestedCallback requestHandler)
+	EXPORTED void Photino_AddCustomScheme(Photino* instance, AutoString scheme, WebResourceRequestedCallback requestHandler)
 	{
 		instance->AddCustomScheme(scheme, requestHandler);
 	}
 
-	EXPORTED void WebWindow_SetResizable(WebWindow* instance, int resizable)
+	EXPORTED void Photino_SetResizable(Photino* instance, int resizable)
 	{
 		instance->SetResizable(resizable);
 	}
 
-	EXPORTED void WebWindow_GetSize(WebWindow* instance, int* width, int* height)
+	EXPORTED void Photino_GetSize(Photino* instance, int* width, int* height)
 	{
 		instance->GetSize(width, height);
 	}
 
-	EXPORTED void WebWindow_SetSize(WebWindow* instance, int width, int height)
+	EXPORTED void Photino_SetSize(Photino* instance, int width, int height)
 	{
 		instance->SetSize(width, height);
 	}
 
-	EXPORTED void WebWindow_SetResizedCallback(WebWindow* instance, ResizedCallback callback)
+	EXPORTED void Photino_SetResizedCallback(Photino* instance, ResizedCallback callback)
 	{
 		instance->SetResizedCallback(callback);
 	}
 
-	EXPORTED void WebWindow_GetAllMonitors(WebWindow* instance, GetAllMonitorsCallback callback)
+	EXPORTED void Photino_GetAllMonitors(Photino* instance, GetAllMonitorsCallback callback)
 	{
 		instance->GetAllMonitors(callback);
 	}
 
-	EXPORTED unsigned int WebWindow_GetScreenDpi(WebWindow* instance)
+	EXPORTED unsigned int Photino_GetScreenDpi(Photino* instance)
 	{
 		return instance->GetScreenDpi();
 	}
 
-	EXPORTED void WebWindow_GetPosition(WebWindow* instance, int* x, int* y)
+	EXPORTED void Photino_GetPosition(Photino* instance, int* x, int* y)
 	{
 		instance->GetPosition(x, y);
 	}
 
-	EXPORTED void WebWindow_SetPosition(WebWindow* instance, int x, int y)
+	EXPORTED void Photino_SetPosition(Photino* instance, int x, int y)
 	{
 		instance->SetPosition(x, y);
 	}
 
-	EXPORTED void WebWindow_SetMovedCallback(WebWindow* instance, MovedCallback callback)
+	EXPORTED void Photino_SetMovedCallback(Photino* instance, MovedCallback callback)
 	{
 		instance->SetMovedCallback(callback);
 	}
 
-	EXPORTED void WebWindow_SetTopmost(WebWindow* instance, int topmost)
+	EXPORTED void Photino_SetTopmost(Photino* instance, int topmost)
 	{
 		instance->SetTopmost(topmost);
 	}
 
-	EXPORTED void WebWindow_SetIconFile(WebWindow* instance, AutoString filename)
+	EXPORTED void Photino_SetIconFile(Photino* instance, AutoString filename)
 	{
 		instance->SetIconFile(filename);
 	}

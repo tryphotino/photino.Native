@@ -1,7 +1,7 @@
 // For this to build on WSL (Ubuntu 18.04) you need to:
 //  sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev
 #ifdef OS_LINUX
-#include "WebWindow.h"
+#include "Photino.h"
 #include <mutex>
 #include <condition_variable>
 #include <X11/Xlib.h>
@@ -27,7 +27,7 @@ struct InvokeJSWaitInfo
 void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self);
 gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
 
-WebWindow::WebWindow(AutoString title, WebWindow* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height) : _webview(nullptr)
+Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height) : _webview(nullptr)
 {
 	_webMessageReceivedCallback = webMessageReceivedCallback;
 
@@ -71,7 +71,7 @@ WebWindow::WebWindow(AutoString title, WebWindow* parent, WebMessageReceivedCall
 	}
 }
 
-WebWindow::~WebWindow()
+Photino::~Photino()
 {
 	gtk_widget_destroy(_window);
 }
@@ -90,7 +90,7 @@ void HandleWebMessage(WebKitUserContentManager* contentManager, WebKitJavascript
 	webkit_javascript_result_unref(jsResult);
 }
 
-void WebWindow::Show()
+void Photino::Show()
 {
 	if (!_webview)
 	{
@@ -105,7 +105,7 @@ void WebWindow::Show()
 			"};"
 			"window.external = {"
 			"	sendMessage: function(message) {"
-			"		window.webkit.messageHandlers.webwindowinterop.postMessage(message);"
+			"		window.webkit.messageHandlers.Photinointerop.postMessage(message);"
 			"	},"
 			"	receiveMessage: function(callback) {"
 			"		window.__receiveMessageCallbacks.push(callback);"
@@ -114,9 +114,9 @@ void WebWindow::Show()
 		webkit_user_content_manager_add_script(contentManager, script);
 		webkit_user_script_unref(script);
 
-		g_signal_connect(contentManager, "script-message-received::webwindowinterop",
+		g_signal_connect(contentManager, "script-message-received::Photinointerop",
 			G_CALLBACK(HandleWebMessage), (void*)_webMessageReceivedCallback);
-		webkit_user_content_manager_register_script_message_handler(contentManager, "webwindowinterop");
+		webkit_user_content_manager_register_script_message_handler(contentManager, "Photinointerop");
 	}
 
 	gtk_widget_show_all(_window);
@@ -125,12 +125,12 @@ void WebWindow::Show()
 	webkit_web_inspector_show(WEBKIT_WEB_INSPECTOR(inspector));
 }
 
-void WebWindow::SetTitle(AutoString title)
+void Photino::SetTitle(AutoString title)
 {
 	gtk_window_set_title(GTK_WINDOW(_window), title);
 }
 
-void WebWindow::WaitForExit()
+void Photino::WaitForExit()
 {
 	gtk_main();
 }
@@ -147,7 +147,7 @@ static gboolean invokeCallback(gpointer data)
 	return false;
 }
 
-void WebWindow::Invoke(ACTION callback)
+void Photino::Invoke(ACTION callback)
 {
 	InvokeWaitInfo waitInfo = { };
 	waitInfo.callback = callback;
@@ -159,7 +159,7 @@ void WebWindow::Invoke(ACTION callback)
 	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
 }
 
-void WebWindow::ShowMessage(AutoString title, AutoString body, unsigned int type)
+void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 {
 	GtkWidget* dialog = gtk_message_dialog_new(GTK_WINDOW(_window),
 		GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -172,12 +172,12 @@ void WebWindow::ShowMessage(AutoString title, AutoString body, unsigned int type
 	gtk_widget_destroy(dialog);
 }
 
-void WebWindow::NavigateToUrl(AutoString url)
+void Photino::NavigateToUrl(AutoString url)
 {
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(_webview), url);
 }
 
-void WebWindow::NavigateToString(AutoString content)
+void Photino::NavigateToString(AutoString content)
 {
 	webkit_web_view_load_html(WEBKIT_WEB_VIEW(_webview), content, NULL);
 }
@@ -212,7 +212,7 @@ static void webview_eval_finished(GObject* object, GAsyncResult* result, gpointe
 	waitInfo->isCompleted = true;
 }
 
-void WebWindow::SendMessage(AutoString message)
+void Photino::SendMessage(AutoString message)
 {
 	std::string js;
 	js.append("__dispatchMessageCallback(\"");
@@ -241,7 +241,7 @@ void HandleCustomSchemeRequest(WebKitURISchemeRequest* request, gpointer user_da
 	delete[] contentType;
 }
 
-void WebWindow::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
+void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
 {
 	WebKitWebContext* context = webkit_web_context_get_default();
 	webkit_web_context_register_uri_scheme(context, scheme,
@@ -249,17 +249,17 @@ void WebWindow::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback 
 		(void*)requestHandler, NULL);
 }
 
-void WebWindow::SetResizable(bool resizable)
+void Photino::SetResizable(bool resizable)
 {
 	gtk_window_set_resizable(GTK_WINDOW(_window), resizable ? TRUE : FALSE);
 }
 
-void WebWindow::GetSize(int* width, int* height)
+void Photino::GetSize(int* width, int* height)
 {
 	gtk_window_get_size(GTK_WINDOW(_window), width, height);
 }
 
-void WebWindow::SetSize(int width, int height)
+void Photino::SetSize(int width, int height)
 {
 	gtk_window_resize(GTK_WINDOW(_window), width, height);
 }
@@ -268,10 +268,10 @@ void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self
 {
 	int width, height;
 	gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
-	((WebWindow*)self)->InvokeResized(width, height);
+	((Photino*)self)->InvokeResized(width, height);
 }
 
-void WebWindow::GetAllMonitors(GetAllMonitorsCallback callback)
+void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 {
     if (callback)
     {
@@ -289,7 +289,7 @@ void WebWindow::GetAllMonitors(GetAllMonitorsCallback callback)
     }
 }
 
-unsigned int WebWindow::GetScreenDpi()
+unsigned int Photino::GetScreenDpi()
 {
 	GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
 	gdouble dpi = gdk_screen_get_resolution(screen);
@@ -297,12 +297,12 @@ unsigned int WebWindow::GetScreenDpi()
 	else return (unsigned int)dpi;
 }
 
-void WebWindow::GetPosition(int* x, int* y)
+void Photino::GetPosition(int* x, int* y)
 {
 	gtk_window_get_position(GTK_WINDOW(_window), x, y);
 }
 
-void WebWindow::SetPosition(int x, int y)
+void Photino::SetPosition(int x, int y)
 {
 	gtk_window_move(GTK_WINDOW(_window), x, y);
 }
@@ -311,17 +311,17 @@ gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self)
 {
 	if (event->type == GDK_CONFIGURE)
 	{
-		((WebWindow*)self)->InvokeMoved(event->configure.x, event->configure.y);
+		((Photino*)self)->InvokeMoved(event->configure.x, event->configure.y);
 	}
 	return FALSE;
 }
 
-void WebWindow::SetTopmost(bool topmost)
+void Photino::SetTopmost(bool topmost)
 {
 	gtk_window_set_keep_above(GTK_WINDOW(_window), topmost ? TRUE : FALSE);
 }
 
-void WebWindow::SetIconFile(AutoString filename)
+void Photino::SetIconFile(AutoString filename)
 {
 	gtk_window_set_icon_from_file(GTK_WINDOW(_window), filename, NULL);
 }
