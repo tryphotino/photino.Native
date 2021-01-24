@@ -53,10 +53,14 @@ jobs:
         configuration: '$(buildConfiguration)'
 
     - task: CmdLine@2
-      displayName: 'List downloaded files'
+      displayName: 'Current folder'
       inputs:
-        workingDirectory: '$(Pipeline.Workspace)'
         script: 'pwd'
+
+    - task: CmdLine@2
+      displayName: 'Dir current folder'
+      inputs:
+        script: 'dir'
 
     - task: CmdLine@2
       displayName: 'Create output folder for Linux'
@@ -177,6 +181,6 @@ jobs:
       inputs:
         command: push
         feedsToUse: 'select'
-        publishVstsFeed: 'Photino/PhotinoPackages'
+        publishVstsFeed: 'Photino.Native/PhotinoPackages'
         packagesToPush: '$(Pipeline.Workspace)/**/*.nupkg'
         allowPackageConflicts: true
