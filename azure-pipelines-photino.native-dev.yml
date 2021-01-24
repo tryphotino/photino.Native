@@ -53,6 +53,12 @@ jobs:
         configuration: '$(buildConfiguration)'
 
     - task: CmdLine@2
+      displayName: 'List downloaded files'
+      inputs:
+        workingDirectory: '$(Pipeline.Workspace)'
+        script: 'pwd'
+
+    - task: CmdLine@2
       displayName: 'Create output folder for Linux'
       condition: eq(variables.rid, 'linux-x64')
       inputs:
