@@ -26,8 +26,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="WEST.Native.nuspec" />
     <None Include="packages.config" />
+    <None Include="Photino.Native.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Photino.h">
