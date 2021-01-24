@@ -1,4 +1,4 @@
-#import "WebWindow.Mac.UrlSchemeHandler.h"
+#import "Photino.Mac.UrlSchemeHandler.h"
 
 @implementation MyUrlSchemeHandler : NSObject
 

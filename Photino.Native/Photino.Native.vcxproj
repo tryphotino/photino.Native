@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{B326B50A-F623-40F1-92F7-1EC6A5A48DAC}</ProjectGuid>
-    <RootNamespace>WebWindowEdge</RootNamespace>
+    <RootNamespace>PhotinoEdge</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>Photino.Native</ProjectName>

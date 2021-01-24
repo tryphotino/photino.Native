@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
-#include "WebWindow.h"
+#include "Photino.h"
 
 typedef void (*WebMessageReceivedCallback) (char* message);
 

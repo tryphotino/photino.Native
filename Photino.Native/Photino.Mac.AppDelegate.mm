@@ -1,4 +1,4 @@
-#import "WebWindow.Mac.AppDelegate.h"
+#import "Photino.Mac.AppDelegate.h"
 
 @implementation MyApplicationDelegate : NSObject
 - (id)init {

@@ -1,4 +1,4 @@
-#import "WebWindow.Mac.UiDelegate.h"
+#import "Photino.Mac.UiDelegate.h"
 
 @implementation MyUiDelegate : NSObject
 

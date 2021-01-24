@@ -1,8 +1,8 @@
 #ifdef OS_MAC
-#include "WebWindow.h"
-#import "WebWindow.Mac.AppDelegate.h"
-#import "WebWindow.Mac.UiDelegate.h"
-#import "WebWindow.Mac.UrlSchemeHandler.h"
+#include "Photino.h"
+#import "Photino.Mac.AppDelegate.h"
+#import "Photino.Mac.UiDelegate.h"
+#import "Photino.Mac.UrlSchemeHandler.h"
 #include <cstdio>
 #include <map>
 #import <Cocoa/Cocoa.h>

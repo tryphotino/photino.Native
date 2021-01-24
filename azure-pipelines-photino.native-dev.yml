@@ -1,0 +1,176 @@
+# Build Photino.Native project from dev branch in GitHub
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- dev
+
+variables:
+  versionprefix: 0.1.0
+
+jobs:
+  - job: 'BuildNative'
+    strategy:
+      matrix:
+        linux:
+          imageName: 'ubuntu-latest'
+          rid: 'linux-x64'
+        mac:
+          imageName: 'macos-latest'
+          rid: 'osx-x64'
+        windows:
+          rid: 'windows-x64'
+          imageName: 'windows-latest'
+
+    pool:
+      vmImage: $(imageName)
+
+    variables:
+      buildConfiguration: 'Release'
+
+    steps:
+    #Install dependencies
+    - task: CmdLine@2
+      displayName: 'Install linux dependencies'
+      condition: eq(variables.rid, 'linux-x64')
+      inputs:
+        script: 'sudo apt-get update && sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev'
+
+    - task: NuGetCommand@2
+      displayName: 'NuGet package restore for Windows native packages'
+      condition: eq(variables.rid, 'windows-x64')
+      inputs:
+        command: 'restore'
+        restoreSolution: 'Photino.Native.sln'
+        feedsToUse: 'select'
+        
+    #Build
+    - task: VSBuild@1
+      displayName: 'Build Windows native assets'
+      condition: eq(variables.rid, 'windows-x64')
+      inputs:
+        solution: 'Photino.Native.sln'
+        platform: 'x64'
+        configuration: '$(buildConfiguration)'
+
+    - task: CmdLine@2
+      displayName: 'Create output folder for Linux'
+      condition: eq(variables.rid, 'linux-x64')
+      inputs:
+        workingDirectory: './src/Photino.Native'
+        script: 'mkdir x64; cd x64; mkdir $(buildConfiguration)'
+
+    - task: CmdLine@2
+      displayName: 'Build Linux native assets'
+      condition: eq(variables.rid, 'linux-x64')
+      inputs:
+        workingDirectory: './src/Photino.Native'
+        script: 'gcc -std=c++11 -shared -DOS_LINUX Exports.cpp Photino.Linux.cpp -o x64/$(buildConfiguration)/Photino.Native.so `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -fPIC'
+
+    - task: CmdLine@2
+      displayName: 'Create output folder for MacOS'
+      condition: eq(variables.rid, 'osx-x64')
+      inputs:
+        workingDirectory: './src/Photino.Native'
+        script: 'mkdir x64; cd x64; mkdir $(buildConfiguration)'
+
+    - task: CmdLine@2
+      displayName: 'Build macOS native assets'
+      condition: eq(variables.rid, 'osx-x64')
+      inputs:
+        workingDirectory: './src/Photino.Native'
+        script: 'gcc -shared -lstdc++ -DOS_MAC -framework Cocoa -framework WebKit Photino.Mac.mm Exports.cpp Photino.Mac.AppDelegate.mm Photino.Mac.UiDelegate.mm Photino.Mac.UrlSchemeHandler.m -o x64/$(buildConfiguration)/Photino.Native.dylib'
+
+    #Publish native output to Artifacts
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.dll (windows) to artifacts'
+      condition: eq(variables.rid, 'windows-x64')
+      inputs:
+        targetPath: './src/Photino.Native/x64/$(buildConfiguration)/Photino.Native.dll'
+        artifactName: 'Photino.Native.dll'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish WebView2Loader.dll (windows) to artifacts'
+      condition: eq(variables.rid, 'windows-x64')
+      inputs:
+        targetPath: './src/Photino.Native/x64/$(buildConfiguration)/WebView2Loader.dll'
+        artifactName: 'WebView2Loader.dll'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.nuspec (windows) to artifacts'
+      condition: eq(variables.rid, 'windows-x64')
+      inputs:
+        targetPath: './src/Photino.Native/Photino.Native.nuspec'
+        artifactName: 'Photino.Native.nuspec'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.so (linux) to artifacts'
+      condition: eq(variables.rid, 'linux-x64')
+      inputs:
+        targetPath: './src/Photino.Native/x64/$(buildConfiguration)/Photino.Native.so'
+        artifactName: 'Photino.Native.so'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.dylib (mac) to artifacts'
+      condition: eq(variables.rid, 'osx-x64')
+      inputs:
+        targetPath: './src/Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib'
+        artifactName: 'Photino.Native.dylib'
+
+
+  #1 instance to download all native files, create NuGet package and publish to Artifacts
+  - job: 'PublishPackage'
+    dependsOn: 'BuildNative'
+    
+    pool:
+      vmImage: 'windows-latest'
+    
+    variables:
+      buildConfiguration: 'Release'
+    
+    steps:
+    #Download native files from Artifacts
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: 'Photino.Native.dll'
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: 'WebView2Loader.dll'
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: 'Photino.Native.nuspec'
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: 'Photino.Native.so'
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: 'Photino.Native.dylib'
+
+    #- task: CmdLine@2
+    #  displayName: 'List downloaded files'
+    ##  inputs:
+    #    workingDirectory: '$(Pipeline.Workspace)'
+    #    script: 'dir'
+
+    #Create NuGet package
+    - task: CmdLine@2
+      displayName: 'Create NuGet package'
+      inputs:
+        workingDirectory: '$(Pipeline.Workspace)'
+        script: 'nuget.exe pack Photino.Native.nuspec -Version $(versionprefix)-$(Build.BuildNumber) -NonInteractive -Properties version=$(versionprefix)-$(Build.BuildNumber)'
+
+    #Publish NuGet package to Artifacts
+    - task: NuGetAuthenticate@0
+      displayName: 'NuGet Authenticate'
+
+    - task: NuGetCommand@2
+      displayName: 'NuGet push'
+      inputs:
+        command: push
+        feedsToUse: 'select'
+        publishVstsFeed: 'Photino/PhotinoPackages'
+        packagesToPush: '$(Pipeline.Workspace)/**/*.nupkg'
+        allowPackageConflicts: true
