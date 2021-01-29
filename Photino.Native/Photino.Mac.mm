@@ -34,7 +34,7 @@ void Photino::Register()
     [application setDelegate:appDelegate];
 }
 
-Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback)
+Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
 {
     _webMessageReceivedCallback = webMessageReceivedCallback;
     NSRect frame = NSMakeRect(0, 0, 900, 600);
