@@ -61,14 +61,14 @@
 
 - (void)windowDidResize:(NSNotification *)notification {
     int width, height;
-    webWindow->GetSize(&width, &height);
-    webWindow->InvokeResized(width, height);
+    photino->GetSize(&width, &height);
+    photino->InvokeResized(width, height);
 }
 
 - (void)windowDidMove:(NSNotification *)notification {
     int x, y;
-    webWindow->GetPosition(&x, &y);
-    webWindow->InvokeMoved(x, y);
+    photino->GetPosition(&x, &y);
+    photino->InvokeMoved(x, y);
 }
 
 @end
