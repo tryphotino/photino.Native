@@ -1,11 +1,14 @@
-# Build Photino.Native project from dev branch in GitHub
+# Build Photino.Native project from production branch in GitHub
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- debug
+- master
 
 variables:
-  versionprefix: 0.1.0
+  major: 1
+  minor: 0
+  patch: $[counter(variables['minor'], 0)] #this will reset when we bump minor
+  buildConfiguration: 'Release'
 
 jobs:
   - job: 'BuildNative'
@@ -23,9 +26,6 @@ jobs:
 
     pool:
       vmImage: $(imageName)
-
-    variables:
-      buildConfiguration: 'Release'
 
     steps:
     #Install dependencies
@@ -160,17 +160,20 @@ jobs:
       displayName: 'Create NuGet package'
       inputs:
         workingDirectory: '$(Pipeline.Workspace)'
-        script: 'nuget.exe pack Photino.Native.nuspec -Version $(versionprefix)-$(Build.BuildNumber) -NonInteractive -Properties version=$(versionprefix)-$(Build.BuildNumber)'
+        script: 'nuget.exe pack Photino.Native.nuspec -Version $(major).$(minor).$(patch) -NonInteractive -Properties version=$(major).$(minor).$(patch)'
 
-    #Publish NuGet package to Artifacts
-    - task: NuGetAuthenticate@0
-      displayName: 'NuGet Authenticate'
-
+    # Uploads the NuGet package file to nuget.org
+    # Important notes:
+    # 1. For this to work, you need to create a 'service connection' with the same name
+    #    as the 'publishFeedCredentials' value.
+    # 2. For security, you *must* ensure that 'Make secrets available to builds of forks'
+    #    is disabled in your PR validation settings (inside build -> Edit -> Triggers).
+    #    Otherwise, PRs would be able to push new packages even without being merged.
     - task: NuGetCommand@2
-      displayName: 'NuGet push'
+      displayName: 'Publish to nuget.org'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
       inputs:
         command: push
-        feedsToUse: 'select'
-        publishVstsFeed: 'Photino.Native/PhotinoPackages'
         packagesToPush: '$(Pipeline.Workspace)/**/*.nupkg'
-        allowPackageConflicts: true
+        nuGetFeedType: external
+        publishFeedCredentials: 'PhotinoNuGet'
