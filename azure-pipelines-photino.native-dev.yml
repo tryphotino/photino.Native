@@ -1,4 +1,4 @@
-# Build Photino.Native project from dev branch in GitHub 
+# Build Photino.Native project from dev branch in GitHub
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
