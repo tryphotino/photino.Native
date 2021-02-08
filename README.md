@@ -11,7 +11,7 @@ Photino is the lightest cross-platform framework. Compared to Electron, a Photin
 # Photino.Native
 Clone and contribute to this project if you would like to expand and enhance the core functionality of Photino. The native C++ projects handles system calls and exposes native OS operations to the parent Photino .NET 5 wrapper, which can be found here:
 https://github.com/tryphotino/photino.NET
-If you would like to bring photino into another, currently not supported environment OS, or provide support for other languages such as Java, Rust, or Go, you will also likely need to build this repo
+If you would like to bring photino into another, currently not supported environment OS, or provide support for other languages such as Java, Rust, or Go, you will also likely need to build this repo.
 
 All features contributed to the Photino.Native project require implementation for Windows, macOS, and Linux.
 
