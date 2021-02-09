@@ -37,15 +37,19 @@ void Photino::Register()
 Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
 {
     _webMessageReceivedCallback = webMessageReceivedCallback;
+    
+    // Create Window
     NSRect frame = NSMakeRect(x, y, width, height);
     NSWindow *window = [[NSWindow alloc]
         initWithContentRect:frame
         styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
         backing: NSBackingStoreBuffered
         defer: false];
+    
+    [window fullscreen:bool(fullscreen)];
+    
     _window = window;
 
-    [window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
     SetTitle(title);
 
     WKWebViewConfiguration *webViewConfiguration = [[WKWebViewConfiguration alloc] init];
