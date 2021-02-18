@@ -46,7 +46,10 @@ Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback w
         backing: NSBackingStoreBuffered
         defer: false];
     
-    [window fullscreen:bool(fullscreen)];
+    if (fullscreen != nil)
+    {
+        [window fullscreen:bool(fullscreen)];
+    }
     
     _window = window;
 
