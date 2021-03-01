@@ -79,7 +79,7 @@ public:
 	void Invoke(ACTION callback);
 	void NavigateToUrl(AutoString url);
 	void NavigateToString(AutoString content);
-	void SendMessage(AutoString message);
+	void SendWebMessage(AutoString message);
 	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
 	void SetResizable(bool resizable);
 	void GetSize(int* width, int* height);

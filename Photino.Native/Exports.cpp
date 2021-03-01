@@ -77,7 +77,7 @@ extern "C"
 
 	EXPORTED void Photino_SendMessage(Photino* instance, AutoString message)
 	{
-		instance->SendMessage(message);
+		instance->SendWebMessage(message);
 	}
 
 	EXPORTED void Photino_AddCustomScheme(Photino* instance, AutoString scheme, WebResourceRequestedCallback requestHandler)

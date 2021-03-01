@@ -187,7 +187,7 @@ void Photino::NavigateToUrl(AutoString url)
     [webView loadRequest:nsrequest];
 }
 
-void Photino::SendMessage(AutoString message)
+void Photino::SendWebMessage(AutoString message)
 {
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String:message];

@@ -98,15 +98,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if (Photino)
 			{
 				Photino->InvokeClosing();
-				//ACTION callback = (ACTION)wParam;
-				//callback();
 				InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
 				{
 					std::lock_guard<std::mutex> guard(invokeLockMutex);
 					waitInfo->isCompleted = true;
 				}
 				waitInfo->completionNotifier.notify_one();
-				// Else: User canceled. Do nothing.
 				DestroyWindow(hwnd);
 			}
 		}
@@ -202,7 +199,7 @@ void Photino::Show()
 void Photino::Close()
 {
 	InvokeWaitInfo waitInfo = {};
-	SendMessageA(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
+	PostMessage(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
 
 	// Block until the callback is actually executed and completed
 	// TODO: Add return values, exception handling, etc.
@@ -366,7 +363,7 @@ void Photino::NavigateToString(AutoString content)
 	_webviewWindow->NavigateToString(content);
 }
 
-void Photino::SendMessage(AutoString message)
+void Photino::SendWebMessage(AutoString message)
 {
 	_webviewWindow->PostWebMessageAsString(message);
 }
@@ -451,6 +448,6 @@ void Photino::SetIconFile(AutoString filename)
 	HICON icon = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	if (icon)
 	{
-		::SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
+		::SendWebMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 	}
 }
