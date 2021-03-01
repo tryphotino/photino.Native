@@ -32,6 +32,7 @@ typedef void* (*WebResourceRequestedCallback)(AutoString url, int* outNumBytes, 
 typedef int (*GetAllMonitorsCallback)(const Monitor* monitor);
 typedef void (*ResizedCallback)(int width, int height);
 typedef void (*MovedCallback)(int x, int y);
+typedef void (*ClosingCallback)();
 
 class Photino
 {
@@ -39,6 +40,7 @@ private:
 	WebMessageReceivedCallback _webMessageReceivedCallback;
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
+	ClosingCallback _closingCallback;
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
@@ -88,6 +90,7 @@ public:
 	void GetPosition(int* x, int* y);
 	void SetPosition(int x, int y);
 	void SetMovedCallback(MovedCallback callback) { _movedCallback = callback; }
+	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
 	void InvokeMoved(int x, int y) { if (_movedCallback) _movedCallback(x, y); }
 	void SetTopmost(bool topmost);
 	void SetIconFile(AutoString filename);

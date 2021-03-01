@@ -125,6 +125,11 @@ extern "C"
 		instance->SetMovedCallback(callback);
 	}
 
+	EXPORTED void Photino_SetClosingCallback(Photino* instance, ClosingCallback callback)
+	{
+		instance->SetClosingCallback(callback);
+	}
+
 	EXPORTED void Photino_SetTopmost(Photino* instance, int topmost)
 	{
 		instance->SetTopmost(topmost);
