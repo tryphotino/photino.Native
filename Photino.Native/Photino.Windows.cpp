@@ -94,16 +94,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK)
 		{
-			ACTION callback = (ACTION)wParam;
-			callback();
-			InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
+			Photino* Photino = hwndToPhotino[hwnd];
+			if (Photino)
 			{
-				std::lock_guard<std::mutex> guard(invokeLockMutex);
-				waitInfo->isCompleted = true;
+				Photino->InvokeClosing();
+				//ACTION callback = (ACTION)wParam;
+				//callback();
+				//InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
+				//{
+				//	std::lock_guard<std::mutex> guard(invokeLockMutex);
+				//	waitInfo->isCompleted = true;
+				//}
+				//waitInfo->completionNotifier.notify_one();
+				// Else: User canceled. Do nothing.
+				DestroyWindow(hwnd);
 			}
-			waitInfo->completionNotifier.notify_one();
-			// Else: User canceled. Do nothing.
-			DestroyWindow(hwnd);
 		}
 		return 0;
 	}
