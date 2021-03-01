@@ -92,6 +92,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CLOSE:
 	{
+		exit(0);
 		if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK)
 		{
 			Photino* Photino = hwndToPhotino[hwnd];
@@ -448,6 +449,6 @@ void Photino::SetIconFile(AutoString filename)
 	HICON icon = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	if (icon)
 	{
-		::SendWebMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
+		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 	}
 }

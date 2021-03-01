@@ -222,7 +222,7 @@ static void webview_eval_finished(GObject* object, GAsyncResult* result, gpointe
 	waitInfo->isCompleted = true;
 }
 
-void Photino::SendMessage(AutoString message)
+void Photino::SendWebMessage(AutoString message)
 {
 	std::string js;
 	js.append("__dispatchMessageCallback(\"");

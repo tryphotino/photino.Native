@@ -75,7 +75,7 @@ extern "C"
 		instance->NavigateToUrl(url);
 	}
 
-	EXPORTED void Photino_SendMessage(Photino* instance, AutoString message)
+	EXPORTED void Photino_SendWebMessage(Photino* instance, AutoString message)
 	{
 		instance->SendWebMessage(message);
 	}
