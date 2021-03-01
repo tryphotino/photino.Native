@@ -262,6 +262,7 @@ void Photino::AttachWebView()
 		// Create a WebView, whose parent is the main window hWnd
 		env->CreateCoreWebView2Controller(_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
 			[&, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+				MessageBox(_hWnd, L"C2", L"My application", MB_OKCANCEL);
 
 			if (result != S_OK) { return result; }
 			MessageBox(_hWnd, L"D", L"My application", MB_OKCANCEL);
@@ -356,6 +357,7 @@ void Photino::AttachWebView()
 		}).Get());
 		return S_OK;
 	}).Get());
+	MessageBox(_hWnd, L"C3", L"My application", MB_OKCANCEL);
 
 	if (envResult != S_OK)
 	{
