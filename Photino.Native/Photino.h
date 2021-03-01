@@ -73,6 +73,7 @@ public:
 	~Photino();
 	void SetTitle(AutoString title);
 	void Show();
+	void Close();
 	void WaitForExit();
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void Invoke(ACTION callback);

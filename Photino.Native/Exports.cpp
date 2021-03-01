@@ -45,6 +45,11 @@ extern "C"
 		instance->Show();
 	}
 
+	EXPORTED void Photino_Clise(Photino* instance)
+	{
+		instance->Close();
+	}
+
 	EXPORTED void Photino_WaitForExit(Photino* instance)
 	{
 		instance->WaitForExit();

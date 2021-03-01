@@ -194,6 +194,11 @@ void Photino::Show()
 	}
 }
 
+void Photino::Close()
+{
+	CloseWindow(_hWnd);
+}
+
 void Photino::WaitForExit()
 {
 	messageLoopRootWindowHandle = _hWnd;
