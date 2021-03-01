@@ -92,7 +92,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CLOSE:
 	{
-		exit(0);
 		if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK)
 		{
 			Photino* Photino = hwndToPhotino[hwnd];
@@ -200,7 +199,7 @@ void Photino::Show()
 void Photino::Close()
 {
 	InvokeWaitInfo waitInfo = {};
-	PostMessage(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
+	SendMessage(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
 
 	// Block until the callback is actually executed and completed
 	// TODO: Add return values, exception handling, etc.
