@@ -98,7 +98,7 @@ void Photino::Show()
 		_webview = webkit_web_view_new_with_user_content_manager(contentManager);
 
 		/* Enable the developer extras */
-		WebKitSettings* setting = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+		WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
 		g_object_set(G_OBJECT(settings), "enable-developer-extras", TRUE, NULL);
 
 		gtk_container_add(GTK_CONTAINER(_window), _webview);
