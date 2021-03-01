@@ -100,12 +100,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				Photino->InvokeClosing();
 				//ACTION callback = (ACTION)wParam;
 				//callback();
-				//InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
-				//{
-				//	std::lock_guard<std::mutex> guard(invokeLockMutex);
-				//	waitInfo->isCompleted = true;
-				//}
-				//waitInfo->completionNotifier.notify_one();
+				InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
+				{
+					std::lock_guard<std::mutex> guard(invokeLockMutex);
+					waitInfo->isCompleted = true;
+				}
+				waitInfo->completionNotifier.notify_one();
 				// Else: User canceled. Do nothing.
 				DestroyWindow(hwnd);
 			}
