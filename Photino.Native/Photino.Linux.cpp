@@ -125,6 +125,11 @@ void Photino::Show()
 	webkit_web_inspector_show(WEBKIT_WEB_INSPECTOR(inspector));
 }
 
+void Photino::Close()
+{
+	//???
+}
+
 void Photino::SetTitle(AutoString title)
 {
 	gtk_window_set_title(GTK_WINDOW(_window), title);

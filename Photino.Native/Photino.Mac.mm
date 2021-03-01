@@ -123,6 +123,11 @@ void Photino::Show()
     [window makeKeyAndOrderFront:nil];
 }
 
+void Photino::Close()
+{
+	//
+}
+
 void Photino::SetTitle(AutoString title)
 {
     NSWindow* window = (NSWindow*)_window;
