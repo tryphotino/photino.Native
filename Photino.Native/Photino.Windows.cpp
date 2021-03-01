@@ -202,7 +202,7 @@ void Photino::Show()
 void Photino::Close()
 {
 	InvokeWaitInfo waitInfo = {};
-	SendMessageA(0, WM_CLOSE, 0, (LPARAM)&waitInfo);
+	SendMessageA(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
 
 	// Block until the callback is actually executed and completed
 	// TODO: Add return values, exception handling, etc.
