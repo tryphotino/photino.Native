@@ -201,7 +201,15 @@ void Photino::Show()
 
 void Photino::Close()
 {
-	CloseWindow(_hWnd);
+	//CloseWindow(_hWnd);
+
+	InvokeWaitInfo waitInfo = {};
+	PostMessage(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
+
+	// Block until the callback is actually executed and completed
+	// TODO: Add return values, exception handling, etc.
+	std::unique_lock<std::mutex> uLock(invokeLockMutex);
+	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
 }
 
 void Photino::WaitForExit()
