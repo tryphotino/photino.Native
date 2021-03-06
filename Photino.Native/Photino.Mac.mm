@@ -37,15 +37,22 @@ void Photino::Register()
 Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
 {
     _webMessageReceivedCallback = webMessageReceivedCallback;
+    
+    // Create Window
     NSRect frame = NSMakeRect(x, y, width, height);
     NSWindow *window = [[NSWindow alloc]
         initWithContentRect:frame
         styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
         backing: NSBackingStoreBuffered
         defer: false];
+    
+    if (fullscreen != nil)
+    {
+        [window fullscreen:bool(fullscreen)];
+    }
+    
     _window = window;
 
-    [window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
     SetTitle(title);
 
     WKWebViewConfiguration *webViewConfiguration = [[WKWebViewConfiguration alloc] init];
@@ -116,6 +123,11 @@ void Photino::Show()
     [window makeKeyAndOrderFront:nil];
 }
 
+void Photino::Close()
+{
+	//
+}
+
 void Photino::SetTitle(AutoString title)
 {
     NSWindow* window = (NSWindow*)_window;
@@ -175,7 +187,7 @@ void Photino::NavigateToUrl(AutoString url)
     [webView loadRequest:nsrequest];
 }
 
-void Photino::SendMessage(AutoString message)
+void Photino::SendWebMessage(AutoString message)
 {
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String:message];

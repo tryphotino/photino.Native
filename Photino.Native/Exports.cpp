@@ -45,6 +45,11 @@ extern "C"
 		instance->Show();
 	}
 
+	EXPORTED void Photino_Close(Photino* instance)
+	{
+		instance->Close();
+	}
+
 	EXPORTED void Photino_WaitForExit(Photino* instance)
 	{
 		instance->WaitForExit();
@@ -70,9 +75,9 @@ extern "C"
 		instance->NavigateToUrl(url);
 	}
 
-	EXPORTED void Photino_SendMessage(Photino* instance, AutoString message)
+	EXPORTED void Photino_SendWebMessage(Photino* instance, AutoString message)
 	{
-		instance->SendMessage(message);
+		instance->SendWebMessage(message);
 	}
 
 	EXPORTED void Photino_AddCustomScheme(Photino* instance, AutoString scheme, WebResourceRequestedCallback requestHandler)
@@ -123,6 +128,11 @@ extern "C"
 	EXPORTED void Photino_SetMovedCallback(Photino* instance, MovedCallback callback)
 	{
 		instance->SetMovedCallback(callback);
+	}
+
+	EXPORTED void Photino_SetClosingCallback(Photino* instance, ClosingCallback callback)
+	{
+		instance->SetClosingCallback(callback);
 	}
 
 	EXPORTED void Photino_SetTopmost(Photino* instance, int topmost)

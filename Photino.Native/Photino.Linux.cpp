@@ -96,6 +96,11 @@ void Photino::Show()
 	{
 		WebKitUserContentManager* contentManager = webkit_user_content_manager_new();
 		_webview = webkit_web_view_new_with_user_content_manager(contentManager);
+
+		/* Enable the developer extras */
+		WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+		g_object_set(G_OBJECT(settings), "enable-developer-extras", TRUE, NULL);
+
 		gtk_container_add(GTK_CONTAINER(_window), _webview);
 
 		WebKitUserScript* script = webkit_user_script_new(
@@ -123,6 +128,11 @@ void Photino::Show()
 
 	WebKitWebInspector* inspector = webkit_web_view_get_inspector(WEBKIT_WEB_VIEW(_webview));
 	webkit_web_inspector_show(WEBKIT_WEB_INSPECTOR(inspector));
+}
+
+void Photino::Close()
+{
+	//???
 }
 
 void Photino::SetTitle(AutoString title)
@@ -212,7 +222,7 @@ static void webview_eval_finished(GObject* object, GAsyncResult* result, gpointe
 	waitInfo->isCompleted = true;
 }
 
-void Photino::SendMessage(AutoString message)
+void Photino::SendWebMessage(AutoString message)
 {
 	std::string js;
 	js.append("__dispatchMessageCallback(\"");
