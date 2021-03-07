@@ -50,6 +50,8 @@ private:
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
 	std::map<std::wstring, WebResourceRequestedCallback> _schemeToRequestHandler;
 	void AttachWebView();
+	bool EnsureWebViewIsInstalled();
+	bool InstallWebView2();
 #elif OS_LINUX
 	GtkWidget* _window;
 	GtkWidget* _webview;
