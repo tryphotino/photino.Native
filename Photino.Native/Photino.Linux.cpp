@@ -1,6 +1,6 @@
 // For this to build on WSL (Ubuntu 18.04) you need to:
 //  sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev
-#ifdef OS_LINUX
+#ifdef __linux__
 #include "Photino.h"
 #include <mutex>
 #include <condition_variable>
@@ -99,7 +99,7 @@ void Photino::Show()
 
 		/* Enable the developer extras */
 		WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
-		g_object_set(G_OBJECT(settings), "enable-developer-extras", TRUE, NULL);
+		webkit_settings_set_enable_developer_extras(settings, TRUE);
 
 		/* Embed the inspector somewhere */
 		//WebKitWebInspector* inspector = webkit_web_view_get_inspector(WEBKIT_WEB_VIEW(_webview));
@@ -133,9 +133,6 @@ void Photino::Show()
 	}
 
 	gtk_widget_show_all(_window);
-
-	WebKitWebInspector* inspector = webkit_web_view_get_inspector(WEBKIT_WEB_VIEW(_webview));
-	webkit_web_inspector_show(WEBKIT_WEB_INSPECTOR(inspector));
 }
 
 void Photino::Close()
