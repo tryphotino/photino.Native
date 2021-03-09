@@ -93,25 +93,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_CLOSE:
-	{
-		//if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK)
-		//{
-		Photino* Photino = hwndToPhotino[hwnd];
-		if (Photino)
-		{
-			Photino->InvokeClosing();
-			InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
-			{
-				std::lock_guard<std::mutex> guard(invokeLockMutex);
-				waitInfo->isCompleted = true;
-			}
-			waitInfo->completionNotifier.notify_one();
-			DestroyWindow(hwnd);
-		}
-		//}
-		return 0;
-	}
+	//case WM_CLOSE:
+	//{
+	//	//if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK)
+	//	//{
+	//	Photino* Photino = hwndToPhotino[hwnd];
+	//	if (Photino)
+	//	{
+	//		Photino->InvokeClosing();
+	//		InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
+	//		{
+	//			std::lock_guard<std::mutex> guard(invokeLockMutex);
+	//			waitInfo->isCompleted = true;
+	//		}
+	//		waitInfo->completionNotifier.notify_one();
+	//		DestroyWindow(hwnd);
+	//	}
+	//	//}
+	//	return 0;
+	//}
 	case WM_DESTROY:
 	{
 		// Only terminate the message loop if the window being closed is the one that
