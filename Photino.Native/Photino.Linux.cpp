@@ -101,14 +101,6 @@ void Photino::Show()
 		WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
 		webkit_settings_set_enable_developer_extras(settings, TRUE);
 
-		/* Embed the inspector somewhere */
-		//WebKitWebInspector* inspector = webkit_web_view_get_inspector(WEBKIT_WEB_VIEW(_webview));
-		//g_signal_connect(G_OBJECT(inspector), "inspect-web-view", G_CALLBACK(create_gtk_window_around_it), NULL);
-		//g_signal_connect(G_OBJECT(inspector), "show-window", G_CALLBACK(show_inpector_window), NULL));
-		//g_signal_connect(G_OBJECT(inspector), "notify::inspected-uri", G_CALLBACK(inspected_uri_changed_do_stuff), NULL);
-
-		//webkit_web_inspector_close(inspector);
-
 		gtk_container_add(GTK_CONTAINER(_window), _webview);
 
 		WebKitUserScript* script = webkit_user_script_new(
