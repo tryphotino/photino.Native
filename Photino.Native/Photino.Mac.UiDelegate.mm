@@ -12,7 +12,7 @@
 {
     NSAlert* alert = [[NSAlert alloc] init];
 
-    [alert setMessageText:[NSString stringWithFormat:@"Alert: %@.", [frame.request.URL absoluteString]]];
+    [alert setMessageText: @"Alert"];
     [alert setInformativeText:message];
     [alert addButtonWithTitle:@"OK"];
 
@@ -26,7 +26,7 @@
 {
     NSAlert* alert = [[NSAlert alloc] init];
 
-    [alert setMessageText:[NSString stringWithFormat:@"Confirm: %@.", [frame.request.URL  absoluteString]]];
+    [alert setMessageText: @"Confirm"];
     [alert setInformativeText:message];
     
     [alert addButtonWithTitle:@"OK"];
@@ -42,7 +42,7 @@
 {
     NSAlert* alert = [[NSAlert alloc] init];
 
-    [alert setMessageText:[NSString stringWithFormat:@"Prompt: %@.", [frame.request.URL absoluteString]]];
+    [alert setMessageText: @"Prompt"];
     [alert setInformativeText:prompt];
     
     [alert addButtonWithTitle:@"OK"];
