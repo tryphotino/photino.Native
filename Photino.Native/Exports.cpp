@@ -1,9 +1,9 @@
 #include "Photino.h"
 
 #ifdef _WIN32
-# define EXPORTED __declspec(dllexport)
+#define EXPORTED __declspec(dllexport)
 #else
-# define EXPORTED
+#define EXPORTED
 #endif
 
 extern "C"
@@ -18,7 +18,7 @@ extern "C"
 	{
 		return instance->getHwnd();
 	}
-#elif OS_MAC
+#elif __APPLE__
 	EXPORTED void Photino_register_mac()
 	{
 		Photino::Register();
