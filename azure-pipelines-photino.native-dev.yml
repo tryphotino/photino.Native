@@ -78,7 +78,7 @@ jobs:
       condition: eq(variables.rid, 'osx-x64')
       inputs:
         workingDirectory: '.'
-        script: 'make build-photino-mac-dev && mv ./lib/dev/Photino.Native.dylib ./x64/$(buildConfiguration)/Photino.Native.dylib'
+        script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./x64/$(buildConfiguration)/Photino.Native.dylib'
 
     #Publish native output to Artifacts
     - task: PublishPipelineArtifact@1
