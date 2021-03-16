@@ -496,9 +496,12 @@ void Photino::SetTopmost(bool topmost)
 
 void Photino::SetIconFile(AutoString filename)
 {
-	HICON icon = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-	if (icon)
+	HICON iconSmall = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 16, 16, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
+	HICON iconBig = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 32, 32, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
+
+	if (iconSmall && iconBig)
 	{
-		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
+		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
+		SendMessage(_hWnd, WM_SETICON, ICON_BIG, (LPARAM)iconBig);
 	}
 }
