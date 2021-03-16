@@ -1,6 +1,6 @@
 #import "Photino.Mac.UiDelegate.h"
 
-@implementation MyUiDelegate : NSObject
+@implementation UiDelegate : NSObject
 
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message
 {

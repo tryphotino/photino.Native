@@ -1,10 +1,7 @@
-#import <Cocoa/Cocoa.h>
-#import <WebKit/WebKit.h>
+#pragma once
 #include "Photino.h"
 
-typedef void (*WebMessageReceivedCallback) (char* message);
-
-@interface MyUiDelegate : NSObject <WKUIDelegate, WKScriptMessageHandler> {
+@interface UiDelegate : NSObject <WKUIDelegate, WKScriptMessageHandler> {
     @public
     NSWindow * window;
     Photino * photino;

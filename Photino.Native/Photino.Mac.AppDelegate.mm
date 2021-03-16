@@ -1,6 +1,6 @@
 #import "Photino.Mac.AppDelegate.h"
 
-@implementation MyApplicationDelegate : NSObject
+@implementation AppDelegate : NSObject
 - (id)init {
     if (self = [super init]) {
         // allocate and initialize window and stuff here ..

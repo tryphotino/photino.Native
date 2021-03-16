@@ -1,21 +1,32 @@
-#ifndef Photino_H
-#define Photino_H
+#pragma once
 
 #ifdef _WIN32
 #include <Windows.h>
 #include <stdlib.h>
 #include <wrl.h>
-#include <map>
-#include <string>
 #include <wil/com.h>
 #include <WebView2.h>
+
+// AutoString for Windows
 typedef const wchar_t* AutoString;
 #else
-#ifdef OS_LINUX
-#include <gtk/gtk.h>
-#endif
+// AutoString for macOS/Linux
 typedef char* AutoString;
 #endif
+
+#ifdef __APPLE__
+#include <Cocoa/Cocoa.h>
+#include <WebKit/WebKit.h>
+#endif
+
+#ifdef __linux__
+#include <gtk/gtk.h>
+#endif
+
+#include <map>
+#include <string>
+#include <vector>
+
 
 struct Monitor
 {
@@ -52,14 +63,16 @@ private:
 	void AttachWebView();
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
-#elif OS_LINUX
+#elif __linux__
 	GtkWidget* _window;
 	GtkWidget* _webview;
-#elif OS_MAC
-	void* _window;
-	void* _webview;
-	void* _webviewConfiguration;
+#elif __APPLE__
+    // NSApplication *_app;
+    NSWindow *_window;
+    WKWebView *_webview;
+	WKWebViewConfiguration *_webviewConfiguration;
 	void AttachWebView();
+    std::vector<Monitor *> GetMonitors();
 #endif
 
 public:
@@ -67,7 +80,7 @@ public:
 	static void Register(HINSTANCE hInstance);
 	HWND getHwnd();
 	void RefitContent();
-#elif OS_MAC
+#elif __APPLE__
 	static void Register();
 #endif
 
@@ -99,5 +112,3 @@ public:
 	void SetTopmost(bool topmost);
 	void SetIconFile(AutoString filename);
 };
-
-#endif // !Photino_H
