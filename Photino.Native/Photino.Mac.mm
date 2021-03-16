@@ -24,8 +24,12 @@ void Photino::Register()
     id appMenu = [[NSMenu new] autorelease];
     id appName = [[NSProcessInfo processInfo] processName];
     id quitTitle = [@"Quit " stringByAppendingString:appName];
-    id quitMenuItem = [[[NSMenuItem alloc] initWithTitle:quitTitle
-        action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+    id quitMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle:quitTitle
+        action:@selector(terminate:)
+        keyEquivalent:@"q"
+    ] autorelease];
     [appMenu addItem:quitMenuItem];
     [appMenuItem setSubmenu:appMenu];
 
@@ -45,11 +49,6 @@ Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback w
         styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
         backing: NSBackingStoreBuffered
         defer: false];
-    
-    if (fullscreen != nil)
-    {
-        [window fullscreen:bool(fullscreen)];
-    }
     
     _window = window;
 
@@ -131,7 +130,7 @@ void Photino::Close()
 void Photino::SetTitle(AutoString title)
 {
     NSWindow* window = (NSWindow*)_window;
-    NSString* nstitle = [[NSString stringWithUTF8String:title] autorelease];
+    NSString* nstitle = [NSString stringWithUTF8String:title];
     [window setTitle:nstitle];
 }
 
@@ -160,30 +159,38 @@ void EnsureInvoke(dispatch_block_t block)
 
 void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 {
-
     EnsureInvoke(^{
-        NSString* nstitle = [[NSString stringWithUTF8String:title] autorelease];
-        NSString* nsbody= [[NSString stringWithUTF8String:body] autorelease];
-        NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-        [[alert window] setTitle:nstitle];
-        [alert setMessageText:nsbody];
-        [alert runModal];
+        NSWindow *window = (NSWindow *)_window;
+        NSAlert *alert = [[NSAlert alloc] init];
+
+        NSString *nstitle = [NSString stringWithUTF8String: title];
+        NSString *nsbody= [NSString stringWithUTF8String: body];
+
+        [alert setMessageText: nstitle];
+        [alert setInformativeText: nsbody];
+        [alert addButtonWithTitle: @"OK"];
+
+        [alert
+            beginSheetModalForWindow: window
+            completionHandler: ^void (NSModalResponse response) {
+                [alert release];
+            }];
     });
 }
 
 void Photino::NavigateToString(AutoString content)
 {
     WKWebView *webView = (WKWebView *)_webview;
-    NSString* nscontent = [[NSString stringWithUTF8String:content] autorelease];
+    NSString* nscontent = [NSString stringWithUTF8String:content];
     [webView loadHTMLString:nscontent baseURL:nil];
 }
 
 void Photino::NavigateToUrl(AutoString url)
 {
     WKWebView *webView = (WKWebView *)_webview;
-    NSString* nsurlstring = [[NSString stringWithUTF8String:url] autorelease];
-    NSURL *nsurl= [[NSURL URLWithString:nsurlstring] autorelease];
-    NSURLRequest *nsrequest= [[NSURLRequest requestWithURL:nsurl] autorelease];
+    NSString* nsurlstring = [NSString stringWithUTF8String:url];
+    NSURL *nsurl= [NSURL URLWithString:nsurlstring];
+    NSURLRequest *nsrequest= [NSURLRequest requestWithURL:nsurl];
     [webView loadRequest:nsrequest];
 }
 
@@ -192,9 +199,9 @@ void Photino::SendWebMessage(AutoString message)
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String:message];
     NSData* data = [NSJSONSerialization dataWithJSONObject:@[nsmessage] options:0 error:nil];
-    NSString *nsmessageJson = [[[NSString alloc]
+    NSString *nsmessageJson = [[NSString alloc]
         initWithData:data
-        encoding:NSUTF8StringEncoding] autorelease];
+        encoding:NSUTF8StringEncoding];
     nsmessageJson = [[nsmessageJson substringToIndex:([nsmessageJson length]-1)] substringFromIndex:1];
 
     WKWebView *webView = (WKWebView *)_webview;
@@ -295,7 +302,7 @@ void Photino::SetTopmost(bool topmost)
 
 void Photino::SetIconFile(AutoString filename)
 {
-	NSString* path = [[NSString stringWithUTF8String:filename] autorelease];
+	NSString* path = [NSString stringWithUTF8String:filename];
     NSImage* icon = [[NSImage alloc] initWithContentsOfFile:path];
     if (icon != nil)
     {
