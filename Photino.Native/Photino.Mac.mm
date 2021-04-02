@@ -56,7 +56,12 @@ Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback w
     SetPosition(x, y);
     SetSize(width, height);
 
-    AttachWebView();
+    _webviewConfiguration = [[WKWebViewConfiguration alloc] init];
+    [_webviewConfiguration.preferences
+        setValue: @YES
+        forKey: @"developerExtrasEnabled"];
+
+    _webview = nil;
 }
 
 Photino::~Photino()
@@ -90,12 +95,7 @@ void Photino::AttachWebView()
 
     WKUserContentController *userContentController = [WKUserContentController new];
     [userContentController addUserScript:initScript];
-
-    _webviewConfiguration = [[WKWebViewConfiguration alloc] init];
     _webviewConfiguration.userContentController = userContentController;
-    [_webviewConfiguration.preferences
-        setValue: @YES
-        forKey: @"developerExtrasEnabled"];
 
     _webview = [
         [WKWebView alloc]
@@ -133,6 +133,10 @@ void Photino::AttachWebView()
 
 void Photino::Show()
 {
+    if (_webview == nil) {
+        AttachWebView();
+    }
+
     [_window makeKeyAndOrderFront: _window];
     [_window orderFrontRegardless];
 }
@@ -217,10 +221,10 @@ void Photino::SendWebMessage(AutoString message)
         options: 0
         error: nil];
 
-    NSString *nsmessageJson = [
+    NSString *nsmessageJson = [[
         [NSString alloc]
         initWithData: data
-        encoding: NSUTF8StringEncoding];
+        encoding: NSUTF8StringEncoding] autorelease];
 
     // Remove curly braces?
     nsmessageJson = [
