@@ -141,7 +141,17 @@ void Photino::Minimize()
 	//???
 }
 
+void Photino::GetMinimized(bool* isMinimized)
+{
+	//???
+}
+
 void Photino::Maximize()
+{
+	//???
+}
+
+void Photino::GetMaximized(bool* isMaximized)
 {
 	//???
 }

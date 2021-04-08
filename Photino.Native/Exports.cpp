@@ -59,7 +59,17 @@ extern "C"
 		instance->Minimize();
 	}
 
+	EXPORTED void Photino_IsMinimized(Photino* instance, bool* isMinimized)
+	{
+		instance->Minimize();
+	}
+
 	EXPORTED void Photino_Maximize(Photino* instance)
+	{
+		instance->Maximize();
+	}
+
+	EXPORTED void Photino_IsMaximized(Photino* instance, bool* isMaximized)
 	{
 		instance->Maximize();
 	}

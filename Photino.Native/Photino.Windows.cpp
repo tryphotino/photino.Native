@@ -59,7 +59,7 @@ Photino::Photino(
 	int y = CW_USEDEFAULT, 
 	int width = CW_USEDEFAULT, 
 	int height = CW_USEDEFAULT,
-	AutoString windowIconFile)
+	AutoString windowIconFile = L"")
 {
 	// Create the window
 	_webMessageReceivedCallback = webMessageReceivedCallback;
@@ -219,9 +219,21 @@ void Photino::Minimize()
 	ShowWindow(_hWnd, SW_MINIMIZE);
 }
 
+void Photino::GetMinimized(bool* isMinimized)
+{
+	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	if (lStyles & WS_MINIMIZE) *isMinimized = true;
+}
+
 void Photino::Maximize()
 {
 	ShowWindow(_hWnd, SW_MAXIMIZE);
+}
+
+void Photino::GetMaximized(bool* isMaximized)
+{
+	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	if (lStyles & WS_MAXIMIZE) *isMaximized = true;
 }
 
 void Photino::Restore()

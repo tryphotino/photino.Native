@@ -99,7 +99,9 @@ public:
 	void Show();
 	void Close();
 	void Minimize();
+	void GetMinimized(bool* isMinimized);
 	void Maximize();
+	void GetMaximized(bool* isMaximized);
 	void Restore();
 	void WaitForExit();
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
