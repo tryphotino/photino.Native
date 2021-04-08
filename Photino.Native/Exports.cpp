@@ -25,7 +25,16 @@ extern "C"
 	}
 #endif
 
-	EXPORTED Photino* Photino_ctor(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
+	EXPORTED Photino* Photino_ctor(
+		AutoString title, 
+		Photino* parent, 
+		WebMessageReceivedCallback webMessageReceivedCallback, 
+		bool fullscreen, 
+		int x, 
+		int y, 
+		int width, 
+		int height, 
+		AutoString windowIcon)
 	{
 		return new Photino(title, parent, webMessageReceivedCallback, fullscreen, x, y, width, height);
 	}

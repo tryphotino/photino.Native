@@ -84,7 +84,16 @@ public:
 	static void Register();
 #endif
 
-	Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height);
+	Photino(
+		AutoString title, 
+		Photino* parent, 
+		WebMessageReceivedCallback webMessageReceivedCallback, 
+		bool fullscreen, 
+		int x, 
+		int y, 
+		int width, 
+		int height, 
+		AutoString windowIconFile);
 	~Photino();
 	void SetTitle(AutoString title);
 	void Show();

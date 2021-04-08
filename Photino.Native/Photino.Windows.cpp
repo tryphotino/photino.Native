@@ -50,7 +50,16 @@ void Photino::Register(HINSTANCE hInstance)
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
-Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int width = CW_USEDEFAULT, int height = CW_USEDEFAULT)
+Photino::Photino(
+	AutoString title, 
+	Photino* parent, 
+	WebMessageReceivedCallback webMessageReceivedCallback, 
+	bool fullscreen, 
+	int x = CW_USEDEFAULT, 
+	int y = CW_USEDEFAULT, 
+	int width = CW_USEDEFAULT, 
+	int height = CW_USEDEFAULT,
+	AutoString windowIconFile)
 {
 	// Create the window
 	_webMessageReceivedCallback = webMessageReceivedCallback;
@@ -79,6 +88,9 @@ Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback w
 		this        // Additional application data
 	);
 	hwndToPhotino[_hWnd] = this;
+
+	if (windowIconFile != NULL && windowIconFile != L"")
+		Photino::SetIconFile(windowIconFile);
 }
 
 // Needn't to release the handles.
