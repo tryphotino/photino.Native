@@ -98,6 +98,9 @@ public:
 	void SetTitle(AutoString title);
 	void Show();
 	void Close();
+	void Minimize();
+	void Maximize();
+	void Restore();
 	void WaitForExit();
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void Invoke(ACTION callback);

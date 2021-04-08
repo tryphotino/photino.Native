@@ -214,6 +214,21 @@ void Photino::Show()
 	}
 }
 
+void Photino::Minimize()
+{
+	ShowWindow(_hWnd, SW_MINIMIZE);
+}
+
+void Photino::Maximize()
+{
+	ShowWindow(_hWnd, SW_MAXIMIZE);
+}
+
+void Photino::Restore()
+{
+	ShowWindow(_hWnd, SW_RESTORE);
+}
+
 void Photino::Close()
 {
 	InvokeWaitInfo waitInfo = {};

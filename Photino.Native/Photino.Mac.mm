@@ -36,7 +36,16 @@ void Photino::Register()
     [NSApp setMainMenu: mainMenu];
 }
 
-Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
+Photino::Photino(
+    AutoString title, 
+    Photino* parent, 
+    WebMessageReceivedCallback webMessageReceivedCallback, 
+    bool fullscreen, 
+    int x, 
+    int y, 
+    int width, 
+    int height, 
+    AutoString windowIconFile)
 {
     _webMessageReceivedCallback = webMessageReceivedCallback;
     
@@ -139,6 +148,21 @@ void Photino::Show()
 
     [_window makeKeyAndOrderFront: _window];
     [_window orderFrontRegardless];
+}
+
+void Photino::Minimize()
+{
+	//???
+}
+
+void Photino::Maximize()
+{
+	//???
+}
+
+void Photino::Restore()
+{
+	//???
 }
 
 void Photino::Close()
