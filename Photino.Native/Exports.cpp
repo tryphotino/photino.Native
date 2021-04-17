@@ -35,9 +35,10 @@ extern "C"
 		int y, 
 		int width, 
 		int height, 
-		AutoString windowIcon)
+		AutoString windowIcon,
+		bool chromeless)
 	{
-		return new Photino(title, starturl, parent, webMessageReceivedCallback, fullscreen, x, y, width, height, windowIcon);
+		return new Photino(title, starturl, parent, webMessageReceivedCallback, fullscreen, x, y, width, height, windowIcon, chromeless);
 	}
 
 	EXPORTED void Photino_dtor(Photino* instance)

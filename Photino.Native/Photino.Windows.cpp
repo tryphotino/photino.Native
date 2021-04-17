@@ -1,6 +1,5 @@
 #include "Photino.h"
-#include <stdio.h>
-#include <map>
+//#include <map>
 #include <mutex>
 #include <condition_variable>
 #include <comdef.h>
@@ -60,7 +59,8 @@ Photino::Photino(
 	int y = CW_USEDEFAULT, 
 	int width = CW_USEDEFAULT, 
 	int height = CW_USEDEFAULT,
-	AutoString windowIconFile = L"")
+	AutoString windowIconFile = L"",
+	bool chromeless = false)
 {
 	// Create the window
 	_startUrl = starturl;
@@ -79,7 +79,7 @@ Photino::Photino(
 		0,                              // Optional window styles.
 		CLASS_NAME,                     // Window class
 		title,							// Window text
-		fullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	// Window style
+		chromeless || fullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	// Window style
 
 		// Size and position
 		x, y, width, height,

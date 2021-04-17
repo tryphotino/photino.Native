@@ -2,12 +2,8 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-#include <stdlib.h>
-#include <wrl.h>
 #include <wil/com.h>
 #include <WebView2.h>
-
-// AutoString for Windows
 typedef const wchar_t* AutoString;
 #else
 // AutoString for macOS/Linux
@@ -25,8 +21,6 @@ typedef char* AutoString;
 
 #include <map>
 #include <string>
-#include <vector>
-
 
 struct Monitor
 {
@@ -52,18 +46,18 @@ private:
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
 	ClosingCallback _closingCallback;
+	AutoString _startUrl;
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
-	AutoString _startUrl;
 	Photino* _parent;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
 	std::map<std::wstring, WebResourceRequestedCallback> _schemeToRequestHandler;
-	void AttachWebView();
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
+	void AttachWebView();
 #elif __linux__
 	GtkWidget* _window;
 	GtkWidget* _webview;
