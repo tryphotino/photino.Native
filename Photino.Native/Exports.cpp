@@ -1,9 +1,9 @@
 #include "Photino.h"
 
 #ifdef _WIN32
-# define EXPORTED __declspec(dllexport)
+#define EXPORTED __declspec(dllexport)
 #else
-# define EXPORTED
+#define EXPORTED
 #endif
 
 extern "C"
@@ -18,16 +18,27 @@ extern "C"
 	{
 		return instance->getHwnd();
 	}
-#elif OS_MAC
+#elif __APPLE__
 	EXPORTED void Photino_register_mac()
 	{
 		Photino::Register();
 	}
 #endif
 
-	EXPORTED Photino* Photino_ctor(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
+	EXPORTED Photino* Photino_ctor(
+		AutoString title, 
+		AutoString starturl,
+		Photino* parent, 
+		WebMessageReceivedCallback webMessageReceivedCallback, 
+		bool fullscreen, 
+		int x, 
+		int y, 
+		int width, 
+		int height, 
+		AutoString windowIcon,
+		bool chromeless)
 	{
-		return new Photino(title, parent, webMessageReceivedCallback, fullscreen, x, y, width, height);
+		return new Photino(title, starturl, parent, webMessageReceivedCallback, fullscreen, x, y, width, height, windowIcon, chromeless);
 	}
 
 	EXPORTED void Photino_dtor(Photino* instance)
@@ -43,6 +54,31 @@ extern "C"
 	EXPORTED void Photino_Show(Photino* instance)
 	{
 		instance->Show();
+	}
+
+	EXPORTED void Photino_Minimize(Photino* instance)
+	{
+		instance->Minimize();
+	}
+
+	EXPORTED void Photino_IsMinimized(Photino* instance, bool* isMinimized)
+	{
+		instance->Minimize();
+	}
+
+	EXPORTED void Photino_Maximize(Photino* instance)
+	{
+		instance->Maximize();
+	}
+
+	EXPORTED void Photino_IsMaximized(Photino* instance, bool* isMaximized)
+	{
+		instance->Maximize();
+	}
+
+	EXPORTED void Photino_Restore(Photino* instance)
+	{
+		instance->Restore();
 	}
 
 	EXPORTED void Photino_Close(Photino* instance)

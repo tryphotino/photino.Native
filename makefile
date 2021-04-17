@@ -1,5 +1,6 @@
-CC=gcc
-CFLAGS=-I
+CC=c++
+CFLAGS=-std=c++2a -Wall -O2 -shared -fPIC
+# CFLAGS=-std=c++2a -Wall -O0 -g -shared -fPIC
 
 SRC=./Photino.Native
 SRC_SHARED=$(SRC)/Shared
@@ -34,15 +35,17 @@ build-photino-mac:
 	# "build-photino-mac is not defined"
 
 build-photino-mac-dev:
+	cp $(SRC)/Exports.cpp $(SRC)/Exports.mm &&\
 	$(CC) -o $(DEST_PATH_DEV)/$(DEST_FILE).dylib\
-		  -shared -lstdc++ -DOS_MAC\
+		  $(CFLAGS)\
 		  -framework Cocoa\
 		  -framework WebKit\
-		  $(SRC)/Exports.cpp\
 		  $(SRC)/Photino.Mac.AppDelegate.mm\
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
-		  $(SRC)/Photino.Mac.UrlSchemeHandler.m\
-		  $(SRC)/Photino.Mac.mm
+		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
+		  $(SRC)/Photino.Mac.mm\
+		  $(SRC)/Exports.mm &&\
+	rm $(SRC)/Exports.mm
 
 install-linux-dependencies:
 	sudo apt-get update\
@@ -53,9 +56,9 @@ build-photino-linux:
 
 build-photino-linux-dev:
 	$(CC) -o $(DEST_PATH_DEV)/$(DEST_FILE).so\
-		  -std=c++11 -shared -fPIC -DOS_LINUX\
-		  $(SRC)/Exports.cpp\
+		  $(CFLAGS)\
 		  $(SRC)/Photino.Linux.cpp\
+		  $(SRC)/Exports.cpp\
 		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0`
 
 clean:

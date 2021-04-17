@@ -1,6 +1,7 @@
-#import <Cocoa/Cocoa.h>
+#pragma once
+#include <Cocoa/Cocoa.h>
 
-@interface MyApplicationDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate> {
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate> {
     NSWindow * window;
 }
 @end

@@ -1,21 +1,26 @@
-#ifndef Photino_H
-#define Photino_H
+#pragma once
 
 #ifdef _WIN32
 #include <Windows.h>
-#include <stdlib.h>
-#include <wrl.h>
-#include <map>
-#include <string>
 #include <wil/com.h>
 #include <WebView2.h>
 typedef const wchar_t* AutoString;
 #else
-#ifdef OS_LINUX
-#include <gtk/gtk.h>
-#endif
+// AutoString for macOS/Linux
 typedef char* AutoString;
 #endif
+
+#ifdef __APPLE__
+#include <Cocoa/Cocoa.h>
+#include <WebKit/WebKit.h>
+#endif
+
+#ifdef __linux__
+#include <gtk/gtk.h>
+#endif
+
+#include <map>
+#include <string>
 
 struct Monitor
 {
@@ -41,6 +46,7 @@ private:
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
 	ClosingCallback _closingCallback;
+	AutoString _startUrl;
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
@@ -49,17 +55,19 @@ private:
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
 	std::map<std::wstring, WebResourceRequestedCallback> _schemeToRequestHandler;
-	void AttachWebView();
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
-#elif OS_LINUX
+	void AttachWebView();
+#elif __linux__
 	GtkWidget* _window;
 	GtkWidget* _webview;
-#elif OS_MAC
-	void* _window;
-	void* _webview;
-	void* _webviewConfiguration;
+#elif __APPLE__
+    // NSApplication *_app;
+    NSWindow *_window;
+    WKWebView *_webview;
+	WKWebViewConfiguration *_webviewConfiguration;
 	void AttachWebView();
+    std::vector<Monitor *> GetMonitors();
 #endif
 
 public:
@@ -67,15 +75,31 @@ public:
 	static void Register(HINSTANCE hInstance);
 	HWND getHwnd();
 	void RefitContent();
-#elif OS_MAC
+#elif __APPLE__
 	static void Register();
 #endif
 
-	Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height);
+	Photino(
+		AutoString title, 
+		AutoString starturl,
+		Photino* parent, 
+		WebMessageReceivedCallback webMessageReceivedCallback, 
+		bool fullscreen, 
+		int x, 
+		int y, 
+		int width, 
+		int height, 
+		AutoString windowIconFile,
+		bool chromeless);
 	~Photino();
 	void SetTitle(AutoString title);
 	void Show();
 	void Close();
+	void Minimize();
+	void GetMinimized(bool* isMinimized);
+	void Maximize();
+	void GetMaximized(bool* isMaximized);
+	void Restore();
 	void WaitForExit();
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void Invoke(ACTION callback);
@@ -99,5 +123,3 @@ public:
 	void SetTopmost(bool topmost);
 	void SetIconFile(AutoString filename);
 };
-
-#endif // !Photino_H

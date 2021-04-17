@@ -1,6 +1,5 @@
 #include "Photino.h"
-#include <stdio.h>
-#include <map>
+//#include <map>
 #include <mutex>
 #include <condition_variable>
 #include <comdef.h>
@@ -50,9 +49,21 @@ void Photino::Register(HINSTANCE hInstance)
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
-Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int width = CW_USEDEFAULT, int height = CW_USEDEFAULT)
+Photino::Photino(
+	AutoString title, 
+	AutoString starturl,
+	Photino* parent, 
+	WebMessageReceivedCallback webMessageReceivedCallback, 
+	bool fullscreen, 
+	int x = CW_USEDEFAULT, 
+	int y = CW_USEDEFAULT, 
+	int width = CW_USEDEFAULT, 
+	int height = CW_USEDEFAULT,
+	AutoString windowIconFile = L"",
+	bool chromeless = false)
 {
 	// Create the window
+	_startUrl = starturl;
 	_webMessageReceivedCallback = webMessageReceivedCallback;
 	_parent = parent;
 
@@ -68,7 +79,7 @@ Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback w
 		0,                              // Optional window styles.
 		CLASS_NAME,                     // Window class
 		title,							// Window text
-		fullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	// Window style
+		chromeless || fullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	// Window style
 
 		// Size and position
 		x, y, width, height,
@@ -79,6 +90,11 @@ Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback w
 		this        // Additional application data
 	);
 	hwndToPhotino[_hWnd] = this;
+
+	if (windowIconFile != NULL && windowIconFile != L"")
+		Photino::SetIconFile(windowIconFile);
+
+	Show();
 }
 
 // Needn't to release the handles.
@@ -202,6 +218,33 @@ void Photino::Show()
 	}
 }
 
+void Photino::Minimize()
+{
+	ShowWindow(_hWnd, SW_MINIMIZE);
+}
+
+void Photino::GetMinimized(bool* isMinimized)
+{
+	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	if (lStyles & WS_MINIMIZE) *isMinimized = true;
+}
+
+void Photino::Maximize()
+{
+	ShowWindow(_hWnd, SW_MAXIMIZE);
+}
+
+void Photino::GetMaximized(bool* isMaximized)
+{
+	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	if (lStyles & WS_MAXIMIZE) *isMaximized = true;
+}
+
+void Photino::Restore()
+{
+	ShowWindow(_hWnd, SW_RESTORE);
+}
+
 void Photino::Close()
 {
 	InvokeWaitInfo waitInfo = {};
@@ -293,34 +336,22 @@ bool Photino::InstallWebView2()
 
 void Photino::AttachWebView()
 {
-	std::atomic_flag flag = ATOMIC_FLAG_INIT;
-	flag.test_and_set();
-
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&, this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }
 				HRESULT envResult = env->QueryInterface(&_webviewEnvironment);
-				if (envResult != S_OK)
-				{
-					return envResult;
-				}
+				if (envResult != S_OK) { return envResult; }
 
-				// Create a WebView, whose parent is the main window hWnd
 				env->CreateCoreWebView2Controller(_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
 					[&, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 
 						if (result != S_OK) { return result; }
 
 						HRESULT envResult = controller->QueryInterface(&_webviewController);
-						if (envResult != S_OK)
-						{
-							return envResult;
-						}
+						if (envResult != S_OK) { return envResult; }
 						_webviewController->get_CoreWebView2(&_webviewWindow);
 
-						// Add a few settings for the webview
-						// this is a redundant demo step as they are the default settings values
 						ICoreWebView2Settings* Settings;
 						_webviewWindow->get_Settings(&Settings);
 						Settings->put_IsScriptEnabled(TRUE);
@@ -378,9 +409,10 @@ void Photino::AttachWebView()
 							}
 						).Get(), &webResourceRequestedToken);
 
+						NavigateToUrl(_startUrl);		//TODO: What if it needs to NavigateToString()?
+
 						RefitContent();
 
-						flag.clear();
 						return S_OK;
 					}).Get());
 				return S_OK;
@@ -391,16 +423,6 @@ void Photino::AttachWebView()
 		_com_error err(envResult);
 		LPCTSTR errMsg = err.ErrorMessage();
 		MessageBox(_hWnd, errMsg, L"Error instantiating webview", MB_OK);
-	}
-	else
-	{
-		// Block until it's ready. This simplifies things for the caller, so they don't need to regard this process as async.
-		MSG msg = { };
-		while (flag.test_and_set() && GetMessage(&msg, NULL, 0, 0))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
 	}
 }
 
@@ -496,9 +518,12 @@ void Photino::SetTopmost(bool topmost)
 
 void Photino::SetIconFile(AutoString filename)
 {
-	HICON icon = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-	if (icon)
+	HICON iconSmall = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 16, 16, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
+	HICON iconBig = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 32, 32, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
+
+	if (iconSmall && iconBig)
 	{
-		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
+		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
+		SendMessage(_hWnd, WM_SETICON, ICON_BIG, (LPARAM)iconBig);
 	}
 }

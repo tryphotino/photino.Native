@@ -1,81 +1,92 @@
-#ifdef OS_MAC
 #include "Photino.h"
-#import "Photino.Mac.AppDelegate.h"
-#import "Photino.Mac.UiDelegate.h"
-#import "Photino.Mac.UrlSchemeHandler.h"
-#include <cstdio>
-#include <map>
-#import <Cocoa/Cocoa.h>
-#import <WebKit/WebKit.h>
+#include "Photino.Mac.AppDelegate.h"
+#include "Photino.Mac.UiDelegate.h"
+#include "Photino.Mac.UrlSchemeHandler.h"
+#include <vector>
 
 using namespace std;
-
-map<NSWindow*, Photino*> nsWindowToPhotino;
 
 void Photino::Register()
 {
     [NSAutoreleasePool new];
-    [NSApplication sharedApplication];
-    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-    id menubar = [[NSMenu new] autorelease];
-    id appMenuItem = [[NSMenuItem new] autorelease];
-    [menubar addItem:appMenuItem];
-    [NSApp setMainMenu:menubar];
-    id appMenu = [[NSMenu new] autorelease];
-    id appName = [[NSProcessInfo processInfo] processName];
-    id quitTitle = [@"Quit " stringByAppendingString:appName];
-    id quitMenuItem = [[[NSMenuItem alloc] initWithTitle:quitTitle
-        action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
-    [appMenu addItem:quitMenuItem];
-    [appMenuItem setSubmenu:appMenu];
 
-    MyApplicationDelegate * appDelegate = [[[MyApplicationDelegate alloc] init] autorelease];
-    NSApplication * application = [NSApplication sharedApplication];
-    [application setDelegate:appDelegate];
+    AppDelegate *appDelegate = [[[AppDelegate alloc] init] autorelease];
+
+    NSApplication *application = [NSApplication sharedApplication];
+    [application setDelegate: appDelegate];
+    [application setActivationPolicy: NSApplicationActivationPolicyRegular];
+
+    NSString *appName = [[NSProcessInfo processInfo] processName];
+
+    NSString *quitTitle = [@"Quit " stringByAppendingString: appName];
+    NSMenuItem *quitMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: quitTitle
+        action: @selector(terminate:)
+        keyEquivalent: @"q"
+    ] autorelease];
+    
+    NSMenu *mainMenu = [[NSMenu new] autorelease];
+    NSMenuItem *mainMenuItem = [[NSMenuItem new] autorelease];
+    NSMenu *subMenu = [[NSMenu new] autorelease];
+
+    [mainMenu addItem: mainMenuItem];
+    [mainMenuItem setSubmenu: subMenu];
+    [subMenu addItem: quitMenuItem];
+
+    [NSApp setMainMenu: mainMenu];
 }
 
-Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height)
+Photino::Photino(
+    AutoString title,
+    AutoString starturl,
+    Photino* parent, 
+    WebMessageReceivedCallback webMessageReceivedCallback, 
+    bool fullscreen, 
+    int x, 
+    int y, 
+    int width, 
+    int height, 
+    AutoString windowIconFile,
+    bool chromeless)
 {
+    _startUrl = starturl;
     _webMessageReceivedCallback = webMessageReceivedCallback;
     
     // Create Window
-    NSRect frame = NSMakeRect(x, y, width, height);
-    NSWindow *window = [[NSWindow alloc]
-        initWithContentRect:frame
-        styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
+    NSRect frame = NSMakeRect(0, 0, 0, 0);
+
+    _window = [[NSWindow alloc]
+        initWithContentRect: frame
+        styleMask: NSWindowStyleMaskTitled
+                 | NSWindowStyleMaskClosable
+                 | NSWindowStyleMaskResizable
+                 | NSWindowStyleMaskMiniaturizable
         backing: NSBackingStoreBuffered
-        defer: false];
+        defer: true];
     
-    if (fullscreen != nil)
-    {
-        [window fullscreen:bool(fullscreen)];
-    }
-    
-    _window = window;
-
     SetTitle(title);
+    SetPosition(x, y);
+    SetSize(width, height);
 
-    WKWebViewConfiguration *webViewConfiguration = [[WKWebViewConfiguration alloc] init];
-    [webViewConfiguration.preferences setValue:@YES forKey:@"developerExtrasEnabled"];
-    _webviewConfiguration = webViewConfiguration;
+    _webviewConfiguration = [[WKWebViewConfiguration alloc] init];
+    [_webviewConfiguration.preferences
+        setValue: @YES
+        forKey: @"developerExtrasEnabled"];
+
     _webview = nil;
 }
 
 Photino::~Photino()
 {
-    WKWebViewConfiguration *webViewConfiguration = (WKWebViewConfiguration*)_webviewConfiguration;
-    [webViewConfiguration release];
-    WKWebView *webView = (WKWebView*)_webview;
-    [webView release];
-    NSWindow* window = (NSWindow*)_window;
-    [window close];
+    [_webviewConfiguration release];
+    [_webview release];
+    [_window close];
+    [NSApp release];
 }
 
 void Photino::AttachWebView()
 {
-    MyUiDelegate *uiDelegate = [[[MyUiDelegate alloc] init] autorelease];
-    uiDelegate->photino = this;
-
     NSString *initScriptSource = @"window.__receiveMessageCallbacks = [];"
 			"window.__dispatchMessageCallback = function(message) {"
 			"	window.__receiveMessageCallbacks.forEach(function(callback) { callback(message); });"
@@ -88,29 +99,49 @@ void Photino::AttachWebView()
 			"		window.__receiveMessageCallbacks.push(callback);"
 			"	}"
 			"};";
-    WKUserScript *initScript = [[WKUserScript alloc] initWithSource:initScriptSource injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
+
+    WKUserScript *initScript = [
+        [WKUserScript alloc]
+        initWithSource: initScriptSource
+        injectionTime: WKUserScriptInjectionTimeAtDocumentStart
+        forMainFrameOnly: true];
+
     WKUserContentController *userContentController = [WKUserContentController new];
-    WKWebViewConfiguration *webviewConfiguration = (WKWebViewConfiguration *)_webviewConfiguration;
-    webviewConfiguration.userContentController = userContentController;
     [userContentController addUserScript:initScript];
+    _webviewConfiguration.userContentController = userContentController;
 
-    NSWindow *window = (NSWindow*)_window;
-    WKWebView *webView = [[WKWebView alloc] initWithFrame:window.contentView.frame configuration:webviewConfiguration];
-    [webView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-    [window.contentView addSubview:webView];
-    [window.contentView setAutoresizesSubviews:YES];
+    _webview = [
+        [WKWebView alloc]
+        initWithFrame: _window.contentView.frame
+        configuration: _webviewConfiguration];
 
-    uiDelegate->window = window;
-    webView.UIDelegate = uiDelegate;
+    [_webview setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
+    [_window.contentView addSubview: _webview];
+    [_window.contentView setAutoresizesSubviews: true];
 
+    UiDelegate *uiDelegate = [[[UiDelegate alloc] init] autorelease];
+    uiDelegate->photino = this;
+    uiDelegate->window = _window;
     uiDelegate->webMessageReceivedCallback = _webMessageReceivedCallback;
-    [userContentController addScriptMessageHandler:uiDelegate name:@"photinointerop"];
 
-    // TODO: Remove these observers when the window is closed
-    [[NSNotificationCenter defaultCenter] addObserver:uiDelegate selector:@selector(windowDidResize:) name:NSWindowDidResizeNotification object:window];
-    [[NSNotificationCenter defaultCenter] addObserver:uiDelegate selector:@selector(windowDidMove:) name:NSWindowDidMoveNotification object:window];
+    [userContentController
+        addScriptMessageHandler: uiDelegate
+        name:@"photinointerop"];
 
-    _webview = webView;
+    _webview.UIDelegate = uiDelegate;
+
+    // TODO: Replace with WindowDelegate
+    [[NSNotificationCenter defaultCenter]
+        addObserver: uiDelegate
+        selector: @selector(windowDidResize:)
+        name: NSWindowDidResizeNotification
+        object: _window];
+    
+    [[NSNotificationCenter defaultCenter]
+        addObserver: uiDelegate
+        selector: @selector(windowDidMove:)
+        name: NSWindowDidMoveNotification
+        object: _window];
 }
 
 void Photino::Show()
@@ -119,20 +150,43 @@ void Photino::Show()
         AttachWebView();
     }
 
-    NSWindow * window = (NSWindow*)_window;
-    [window makeKeyAndOrderFront:nil];
+    [_window makeKeyAndOrderFront: _window];
+    [_window orderFrontRegardless];
+}
+
+void Photino::Minimize()
+{
+	//???
+}
+
+void Photino::GetMinimized(bool* isMinimized)
+{
+	//???
+}
+
+void Photino::Maximize()
+{
+	//???
+}
+
+void Photino::GetMaximized(bool* isMaximized)
+{
+	//???
+}
+
+void Photino::Restore()
+{
+	//???
 }
 
 void Photino::Close()
 {
-	//
+	[_window performClose: _window];
 }
 
 void Photino::SetTitle(AutoString title)
 {
-    NSWindow* window = (NSWindow*)_window;
-    NSString* nstitle = [[NSString stringWithUTF8String:title] autorelease];
-    [window setTitle:nstitle];
+    [_window setTitle: [NSString stringWithUTF8String:title]];
 }
 
 void Photino::WaitForExit()
@@ -160,86 +214,115 @@ void EnsureInvoke(dispatch_block_t block)
 
 void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 {
-
     EnsureInvoke(^{
-        NSString* nstitle = [[NSString stringWithUTF8String:title] autorelease];
-        NSString* nsbody= [[NSString stringWithUTF8String:body] autorelease];
-        NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-        [[alert window] setTitle:nstitle];
-        [alert setMessageText:nsbody];
-        [alert runModal];
+        NSAlert *alert = [[NSAlert alloc] init];
+
+        NSString *nstitle = [NSString stringWithUTF8String: title];
+        NSString *nsbody= [NSString stringWithUTF8String: body];
+
+        [alert setMessageText: nstitle];
+        [alert setInformativeText: nsbody];
+        [alert addButtonWithTitle: @"OK"];
+
+        [alert
+            beginSheetModalForWindow: _window
+            completionHandler: ^void (NSModalResponse response) {
+                [alert release];
+            }];
     });
 }
 
 void Photino::NavigateToString(AutoString content)
 {
-    WKWebView *webView = (WKWebView *)_webview;
-    NSString* nscontent = [[NSString stringWithUTF8String:content] autorelease];
-    [webView loadHTMLString:nscontent baseURL:nil];
+    [_webview
+        loadHTMLString: [NSString stringWithUTF8String: content]
+        baseURL: nil];
 }
 
 void Photino::NavigateToUrl(AutoString url)
 {
-    WKWebView *webView = (WKWebView *)_webview;
-    NSString* nsurlstring = [[NSString stringWithUTF8String:url] autorelease];
-    NSURL *nsurl= [[NSURL URLWithString:nsurlstring] autorelease];
-    NSURLRequest *nsrequest= [[NSURLRequest requestWithURL:nsurl] autorelease];
-    [webView loadRequest:nsrequest];
+    NSString* nsurlstring = [NSString stringWithUTF8String: url];
+    NSURL *nsurl= [NSURL URLWithString: nsurlstring];
+    NSURLRequest *nsrequest= [NSURLRequest requestWithURL: nsurl];
+    
+    [_webview loadRequest: nsrequest];
 }
 
 void Photino::SendWebMessage(AutoString message)
 {
     // JSON-encode the message
-    NSString* nsmessage = [NSString stringWithUTF8String:message];
-    NSData* data = [NSJSONSerialization dataWithJSONObject:@[nsmessage] options:0 error:nil];
-    NSString *nsmessageJson = [[[NSString alloc]
-        initWithData:data
-        encoding:NSUTF8StringEncoding] autorelease];
-    nsmessageJson = [[nsmessageJson substringToIndex:([nsmessageJson length]-1)] substringFromIndex:1];
+    NSString* nsmessage = [NSString stringWithUTF8String: message];
 
-    WKWebView *webView = (WKWebView *)_webview;
-    NSString *javaScriptToEval = [NSString stringWithFormat:@"__dispatchMessageCallback(%@)", nsmessageJson];
-    [webView evaluateJavaScript:javaScriptToEval completionHandler:nil];
+    NSData* data = [
+        NSJSONSerialization
+        dataWithJSONObject: @[nsmessage]
+        options: 0
+        error: nil];
+
+    NSString *nsmessageJson = [[
+        [NSString alloc]
+        initWithData: data
+        encoding: NSUTF8StringEncoding] autorelease];
+
+    // Remove curly braces?
+    nsmessageJson = [
+        [nsmessageJson substringToIndex: ([nsmessageJson length] - 1)]
+        substringFromIndex: 1
+    ];
+
+    NSString *javaScriptToEval = [NSString stringWithFormat: @"__dispatchMessageCallback(%@)", nsmessageJson];
+
+    [_webview
+        evaluateJavaScript: javaScriptToEval
+        completionHandler: nil];
 }
 
 void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
 {
     // Note that this can only be done *before* the WKWebView is instantiated, so we only let this
     // get called from the options callback in the constructor
-    MyUrlSchemeHandler* schemeHandler = [[[MyUrlSchemeHandler alloc] init] autorelease];
+    UrlSchemeHandler* schemeHandler = [[[UrlSchemeHandler alloc] init] autorelease];
     schemeHandler->requestHandler = requestHandler;
 
-    WKWebViewConfiguration *webviewConfiguration = (WKWebViewConfiguration *)_webviewConfiguration;
-    NSString* nsscheme = [NSString stringWithUTF8String:scheme];
-    [webviewConfiguration setURLSchemeHandler:schemeHandler forURLScheme:nsscheme];
+    [_webviewConfiguration
+        setURLSchemeHandler: schemeHandler
+        forURLScheme: [NSString stringWithUTF8String: scheme]];
 }
 
 void Photino::SetResizable(bool resizable)
 {
-    NSWindow* window = (NSWindow*)_window;
-    if (resizable) window.styleMask |= NSWindowStyleMaskResizable;
-    else window.styleMask &= ~NSWindowStyleMaskResizable;
+    if (resizable)
+    {
+        _window.styleMask |= NSWindowStyleMaskResizable;
+    }
+    else
+    {
+        _window.styleMask &= ~NSWindowStyleMaskResizable;
+    }
 }
 
 void Photino::GetSize(int* width, int* height)
 {
-    NSWindow* window = (NSWindow*)_window;
-    NSSize size = [window frame].size;
+    NSSize size = [_window frame].size;
     if (width) *width = (int)roundf(size.width);
     if (height) *height = (int)roundf(size.height);
 }
 
 void Photino::SetSize(int width, int height)
 {
+    NSRect frame = [_window frame];
+    
     CGFloat fw = (CGFloat)width;
     CGFloat fh = (CGFloat)height;
-    NSWindow* window = (NSWindow*)_window;
-    NSRect frame = [window frame];
+    
     CGFloat oldHeight = frame.size.height;
-    CGFloat heightDelta = fh - oldHeight;  
+
     frame.size = CGSizeMake(fw, fh);
-    frame.origin.y -= heightDelta;
-    [window setFrame: frame display: YES];
+    frame.origin.y -= fh - oldHeight;
+
+    [_window
+        setFrame: frame
+        display: true];
 }
 
 void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
@@ -249,19 +332,52 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
         for (NSScreen* screen in [NSScreen screens])
         {
             Monitor props = {};
+
             NSRect frame = [screen frame];
             props.monitor.x = (int)roundf(frame.origin.x);
             props.monitor.y = (int)roundf(frame.origin.y);
             props.monitor.width = (int)roundf(frame.size.width);
             props.monitor.height = (int)roundf(frame.size.height);
+
             NSRect vframe = [screen visibleFrame];
             props.work.x = (int)roundf(vframe.origin.x);
             props.work.y = (int)roundf(vframe.origin.y);
             props.work.width = (int)roundf(vframe.size.width);
             props.work.height = (int)roundf(vframe.size.height);
+
             callback(&props);
         }
     }
+}
+
+std::vector<Monitor *> Photino::GetMonitors()
+{
+    std::vector<Monitor *> monitors;
+
+    for (NSScreen *screen : [NSScreen screens])
+    {
+        NSRect monitorFrame = [screen frame];
+        Monitor::MonitorRect monitorArea;
+        monitorArea.x = (int)roundf(monitorFrame.origin.x);
+        monitorArea.y = (int)roundf(monitorFrame.origin.y);
+        monitorArea.width = (int)roundf(monitorFrame.size.width);
+        monitorArea.height = (int)roundf(monitorFrame.size.height);
+
+        NSRect workFrame = [screen visibleFrame];
+        Monitor::MonitorRect workArea;
+        workArea.x = (int)roundf(workFrame.origin.x);
+        workArea.y = (int)roundf(workFrame.origin.y);
+        workArea.width = (int)roundf(workFrame.size.width);
+        workArea.height = (int)roundf(workFrame.size.height);
+
+        Monitor *monitor = new Monitor();
+        monitor->monitor = monitorArea;
+        monitor->work = workArea;
+
+        monitors.push_back(monitor);
+    }
+
+    return monitors;
 }
 
 unsigned int Photino::GetScreenDpi()
@@ -271,37 +387,47 @@ unsigned int Photino::GetScreenDpi()
 
 void Photino::GetPosition(int* x, int* y)
 {
-    NSWindow* window = (NSWindow*)_window;
-    NSRect frame = [window frame];
-    if (x) *x = (int)roundf(frame.origin.x);
-    if (y) *y = (int)roundf(-frame.size.height - frame.origin.y); // It will be negative, because macOS measures from bottom-left. For x-plat consistency, we want increasing this value to mean moving down.
+    NSRect frame = [_window frame];
+
+    std::vector<Monitor*> monitors = GetMonitors();
+    Monitor monitor = *monitors[0];
+
+    int height = (int)roundf(frame.size.height);
+
+    *x = (int)roundf(frame.origin.x);
+    *y = (int)(monitor.work.height - ((int)roundf(frame.origin.y) + height)); // Assuming window is on monitor 0
 }
 
 void Photino::SetPosition(int x, int y)
 {
-    NSWindow* window = (NSWindow*)_window;
-    NSRect frame = [window frame];
-    frame.origin.x = (CGFloat)x;
-    frame.origin.y = -frame.size.height - (CGFloat)y;
-    [window setFrame: frame display: YES];
+    NSRect frame = [_window frame];
+
+    std::vector<Monitor*> monitors = GetMonitors();
+    Monitor monitor = *monitors[0];
+
+    int height = (int)roundf(frame.size.height);
+
+    CGFloat left = (CGFloat)x;
+    CGFloat top = (CGFloat)(monitor.work.height - (y + height)); // Assuming window is on monitor 0
+
+    CGPoint position = CGPointMake(left, top);
+
+    [_window setFrameOrigin: position];
 }
 
 void Photino::SetTopmost(bool topmost)
 {
-    NSWindow* window = (NSWindow*)_window;
-    if (topmost) [window setLevel:NSFloatingWindowLevel];
-    else [window setLevel:NSNormalWindowLevel];
+    if (topmost) [_window setLevel: NSFloatingWindowLevel];
+    else [_window setLevel: NSNormalWindowLevel];
 }
 
 void Photino::SetIconFile(AutoString filename)
 {
-	NSString* path = [[NSString stringWithUTF8String:filename] autorelease];
-    NSImage* icon = [[NSImage alloc] initWithContentsOfFile:path];
+	NSString* path = [NSString stringWithUTF8String: filename];
+    NSImage* icon = [[NSImage alloc] initWithContentsOfFile: path];
+
     if (icon != nil)
     {
-        NSWindow* window = (NSWindow*)_window;
-        [[window standardWindowButton:NSWindowDocumentIconButton] setImage:icon];
+        [[_window standardWindowButton: NSWindowDocumentIconButton] setImage:icon];
     }
 }
-
-#endif
