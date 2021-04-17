@@ -37,7 +37,8 @@ void Photino::Register()
 }
 
 Photino::Photino(
-    AutoString title, 
+    AutoString title,
+    AutoString starturl,
     Photino* parent, 
     WebMessageReceivedCallback webMessageReceivedCallback, 
     bool fullscreen, 
@@ -45,8 +46,10 @@ Photino::Photino(
     int y, 
     int width, 
     int height, 
-    AutoString windowIconFile)
+    AutoString windowIconFile,
+    bool chromeless)
 {
+    _startUrl = starturl;
     _webMessageReceivedCallback = webMessageReceivedCallback;
     
     // Create Window

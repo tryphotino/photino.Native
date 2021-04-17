@@ -28,7 +28,8 @@ void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self
 gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
 
 Photino::Photino(
-	AutoString title, 
+	AutoString title,
+	AutoString starturl,
 	Photino* parent, 
 	WebMessageReceivedCallback webMessageReceivedCallback, 
 	bool fullscreen, 
@@ -36,8 +37,10 @@ Photino::Photino(
 	int y, 
 	int width, 
 	int height 
-	AutoString windowIconFile) : _webview(nullptr)
+	AutoString windowIconFile,
+	bool chromeless) : _webview(nullptr)
 {
+	_startUrl = starturl;
 	_webMessageReceivedCallback = webMessageReceivedCallback;
 
 	// It makes xlib thread safe.
