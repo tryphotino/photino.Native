@@ -27,6 +27,7 @@ extern "C"
 
 	EXPORTED Photino* Photino_ctor(
 		AutoString title, 
+		AutoString starturl,
 		Photino* parent, 
 		WebMessageReceivedCallback webMessageReceivedCallback, 
 		bool fullscreen, 
@@ -36,7 +37,7 @@ extern "C"
 		int height, 
 		AutoString windowIcon)
 	{
-		return new Photino(title, parent, webMessageReceivedCallback, fullscreen, x, y, width, height, windowIcon);
+		return new Photino(title, starturl, parent, webMessageReceivedCallback, fullscreen, x, y, width, height, windowIcon);
 	}
 
 	EXPORTED void Photino_dtor(Photino* instance)

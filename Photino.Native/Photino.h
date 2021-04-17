@@ -55,6 +55,7 @@ private:
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
+	AutoString _startUrl;
 	Photino* _parent;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
@@ -86,6 +87,7 @@ public:
 
 	Photino(
 		AutoString title, 
+		AutoString starturl,
 		Photino* parent, 
 		WebMessageReceivedCallback webMessageReceivedCallback, 
 		bool fullscreen, 

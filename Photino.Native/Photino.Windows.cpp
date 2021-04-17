@@ -52,6 +52,7 @@ void Photino::Register(HINSTANCE hInstance)
 
 Photino::Photino(
 	AutoString title, 
+	AutoString starturl,
 	Photino* parent, 
 	WebMessageReceivedCallback webMessageReceivedCallback, 
 	bool fullscreen, 
@@ -62,6 +63,7 @@ Photino::Photino(
 	AutoString windowIconFile = L"")
 {
 	// Create the window
+	_startUrl = starturl;
 	_webMessageReceivedCallback = webMessageReceivedCallback;
 	_parent = parent;
 
@@ -91,6 +93,8 @@ Photino::Photino(
 
 	if (windowIconFile != NULL && windowIconFile != L"")
 		Photino::SetIconFile(windowIconFile);
+
+	Show();
 }
 
 // Needn't to release the handles.
@@ -332,34 +336,22 @@ bool Photino::InstallWebView2()
 
 void Photino::AttachWebView()
 {
-	std::atomic_flag flag = ATOMIC_FLAG_INIT;
-	flag.test_and_set();
-
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&, this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }
 				HRESULT envResult = env->QueryInterface(&_webviewEnvironment);
-				if (envResult != S_OK)
-				{
-					return envResult;
-				}
+				if (envResult != S_OK) { return envResult; }
 
-				// Create a WebView, whose parent is the main window hWnd
 				env->CreateCoreWebView2Controller(_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
 					[&, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 
 						if (result != S_OK) { return result; }
 
 						HRESULT envResult = controller->QueryInterface(&_webviewController);
-						if (envResult != S_OK)
-						{
-							return envResult;
-						}
+						if (envResult != S_OK) { return envResult; }
 						_webviewController->get_CoreWebView2(&_webviewWindow);
 
-						// Add a few settings for the webview
-						// this is a redundant demo step as they are the default settings values
 						ICoreWebView2Settings* Settings;
 						_webviewWindow->get_Settings(&Settings);
 						Settings->put_IsScriptEnabled(TRUE);
@@ -417,9 +409,10 @@ void Photino::AttachWebView()
 							}
 						).Get(), &webResourceRequestedToken);
 
+						NavigateToUrl(_startUrl);		//TODO: What if it needs to NavigateToString()?
+
 						RefitContent();
 
-						flag.clear();
 						return S_OK;
 					}).Get());
 				return S_OK;
@@ -430,16 +423,6 @@ void Photino::AttachWebView()
 		_com_error err(envResult);
 		LPCTSTR errMsg = err.ErrorMessage();
 		MessageBox(_hWnd, errMsg, L"Error instantiating webview", MB_OK);
-	}
-	else
-	{
-		// Block until it's ready. This simplifies things for the caller, so they don't need to regard this process as async.
-		MSG msg = { };
-		while (flag.test_and_set() && GetMessage(&msg, NULL, 0, 0))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
 	}
 }
 
