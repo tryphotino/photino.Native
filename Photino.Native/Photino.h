@@ -95,7 +95,8 @@ public:
 		int y, 
 		int width, 
 		int height, 
-		AutoString windowIconFile);
+		AutoString windowIconFile,
+		bool chromeless);
 	~Photino();
 	void SetTitle(AutoString title);
 	void Show();
