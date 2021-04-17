@@ -2,6 +2,7 @@
 #include "Photino.Mac.AppDelegate.h"
 #include "Photino.Mac.UiDelegate.h"
 #include "Photino.Mac.UrlSchemeHandler.h"
+#include <vector>
 
 using namespace std;
 

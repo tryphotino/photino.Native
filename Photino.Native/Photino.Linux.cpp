@@ -36,7 +36,7 @@ Photino::Photino(
 	int x, 
 	int y, 
 	int width, 
-	int height 
+	int height, 
 	AutoString windowIconFile,
 	bool chromeless) : _webview(nullptr)
 {
