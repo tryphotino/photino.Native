@@ -55,6 +55,7 @@ private:
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
+	AutoString _startUrl;
 	Photino* _parent;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
@@ -84,11 +85,26 @@ public:
 	static void Register();
 #endif
 
-	Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height);
+	Photino(
+		AutoString title, 
+		AutoString starturl,
+		Photino* parent, 
+		WebMessageReceivedCallback webMessageReceivedCallback, 
+		bool fullscreen, 
+		int x, 
+		int y, 
+		int width, 
+		int height, 
+		AutoString windowIconFile);
 	~Photino();
 	void SetTitle(AutoString title);
 	void Show();
 	void Close();
+	void Minimize();
+	void GetMinimized(bool* isMinimized);
+	void Maximize();
+	void GetMaximized(bool* isMaximized);
+	void Restore();
 	void WaitForExit();
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void Invoke(ACTION callback);

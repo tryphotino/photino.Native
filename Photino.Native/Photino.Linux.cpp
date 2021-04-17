@@ -27,7 +27,16 @@ struct InvokeJSWaitInfo
 void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self);
 gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
 
-Photino::Photino(AutoString title, Photino* parent, WebMessageReceivedCallback webMessageReceivedCallback, bool fullscreen, int x, int y, int width, int height) : _webview(nullptr)
+Photino::Photino(
+	AutoString title, 
+	Photino* parent, 
+	WebMessageReceivedCallback webMessageReceivedCallback, 
+	bool fullscreen, 
+	int x, 
+	int y, 
+	int width, 
+	int height 
+	AutoString windowIconFile) : _webview(nullptr)
 {
 	_webMessageReceivedCallback = webMessageReceivedCallback;
 
@@ -125,6 +134,31 @@ void Photino::Show()
 	}
 
 	gtk_widget_show_all(_window);
+}
+
+void Photino::Minimize()
+{
+	//???
+}
+
+void Photino::GetMinimized(bool* isMinimized)
+{
+	//???
+}
+
+void Photino::Maximize()
+{
+	//???
+}
+
+void Photino::GetMaximized(bool* isMaximized)
+{
+	//???
+}
+
+void Photino::Restore()
+{
+	//???
 }
 
 void Photino::Close()
