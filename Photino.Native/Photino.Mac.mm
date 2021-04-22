@@ -56,12 +56,20 @@ Photino::Photino(
     // Create Window
     NSRect frame = NSMakeRect(0, 0, 0, 0);
 
+    NSWindowStyleMask style;
+    if (chromeless) {
+        style = NSWindowStyleMaskBorderless;
+    }
+    else {
+        style = NSWindowStyleMaskTitled
+              | NSWindowStyleMaskClosable
+              | NSWindowStyleMaskResizable
+              | NSWindowStyleMaskMiniaturizable;
+    }
+
     _window = [[NSWindow alloc]
         initWithContentRect: frame
-        styleMask: NSWindowStyleMaskTitled
-                 | NSWindowStyleMaskClosable
-                 | NSWindowStyleMaskResizable
-                 | NSWindowStyleMaskMiniaturizable
+        styleMask: style
         backing: NSBackingStoreBuffered
         defer: true];
     
