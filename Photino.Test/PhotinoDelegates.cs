@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace PhotinoNET
@@ -13,8 +14,10 @@ namespace PhotinoNET
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void ClosingDelegate();
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void ResizedDelegate(int width, int height);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void MovedDelegate(int x, int y);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void GetAllMonitorsDelegate(string message);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void GetAllMonitorsDelegate(in NativeMonitor monitor);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void WebMessageReceivedDelegate(string message);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void WebResourceRequestedDelegate(string url, out int outNumBytes, out string outContentType);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate IntPtr WebResourceRequestedDelegate(string url, out int outNumBytes, out string outContentType);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate Stream CustomSchemeDelegate(string url, out string contentType);
+
+    //[UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate void InvokeCallback();
 }
