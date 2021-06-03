@@ -10,9 +10,9 @@ namespace PhotinoNET
     // Auto charset is UTF-16 on Windows and UTF-8 on Unix(.NET Core 3.0 and later and Mono).
     // As we target .NET Standard 2.1, we assume it runs on .NET Core 3.0 and later.
     // We should specify using auto charset because the default value is ANSI.
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void ClosingDelegate(string message);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void ResizedDelegate(string message);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void MovedDelegate(string message);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void ClosingDelegate();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void ResizedDelegate(int width, int height);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void MovedDelegate(int x, int y);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void GetAllMonitorsDelegate(string message);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void WebMessageReceivedDelegate(string message);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)] public delegate void WebResourceRequestedDelegate(string url, out int outNumBytes, out string outContentType);
