@@ -25,20 +25,9 @@ extern "C"
 	}
 #endif
 
-	EXPORTED Photino* Photino_ctor(
-		AutoString title, 
-		AutoString starturl,
-		Photino* parent, 
-		WebMessageReceivedCallback webMessageReceivedCallback, 
-		bool fullscreen, 
-		int x, 
-		int y, 
-		int width, 
-		int height, 
-		AutoString windowIcon,
-		bool chromeless)
+	EXPORTED Photino* Photino_ctor(PhotinoInitParams* initParams)
 	{
-		return new Photino(title, starturl, parent, webMessageReceivedCallback, fullscreen, x, y, width, height, windowIcon, chromeless);
+		return new Photino(initParams);
 	}
 
 	EXPORTED void Photino_dtor(Photino* instance)
@@ -49,11 +38,6 @@ extern "C"
 	EXPORTED void Photino_SetTitle(Photino* instance, AutoString title)
 	{
 		instance->SetTitle(title);
-	}
-
-	EXPORTED void Photino_Show(Photino* instance)
-	{
-		instance->Show();
 	}
 
 	EXPORTED void Photino_Minimize(Photino* instance)

@@ -49,52 +49,60 @@ void Photino::Register(HINSTANCE hInstance)
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
-Photino::Photino(
-	AutoString title, 
-	AutoString starturl,
-	Photino* parent, 
-	WebMessageReceivedCallback webMessageReceivedCallback, 
-	bool fullscreen, 
-	int x = CW_USEDEFAULT, 
-	int y = CW_USEDEFAULT, 
-	int width = CW_USEDEFAULT, 
-	int height = CW_USEDEFAULT,
-	AutoString windowIconFile = L"",
-	bool chromeless = false)
+//#include <iostream>
+//#include <fstream>
+//using namespace std;
+//#pragma pack(show)
+Photino::Photino(PhotinoInitParams* initParams)
 {
-	// Create the window
-	_startUrl = starturl;
-	_webMessageReceivedCallback = webMessageReceivedCallback;
-	_parent = parent;
+	//wofstream f;
+	//AutoString f1 = L"Hello";
+	//f.open("Photino.txt");
+	//f << initParams->Mike << endl;
+	//f << initParams->Levent << endl;
+	//f << text << endl;
+	//f << initParams->StartString << endl;
+	//f << initParams->Beth[2] << endl;
+	//f << initParams->CustomSchemaNames[0] << endl;
+	//f.close();
+	
 
-	if (fullscreen)
+	_startUrl = initParams->StartUrl;
+	_startString = initParams->StartString;
+	//_webMessageReceivedCallback = initParams->WebMessageReceivedHandlers[0];
+	//TODO: Set other handlers
+	//_parenthWnd = initParams->ParentInstance;
+
+	if (initParams->FullScreen)
 	{
-		x = 0;
-		y = 0;
-		width = GetSystemMetrics(SM_CXSCREEN);
-		height = GetSystemMetrics(SM_CYSCREEN);
+		initParams->Left = 0;
+		initParams->Top = 0;
+		initParams->Width = GetSystemMetrics(SM_CXSCREEN);
+		initParams->Height = GetSystemMetrics(SM_CYSCREEN);
 	}
 
+	//TODO: Minimized, Maximized, Resizable, Topmost
+	//Create the window
 	_hWnd = CreateWindowEx(
-		0,                              // Optional window styles.
-		CLASS_NAME,                     // Window class
-		title,							// Window text
-		chromeless || fullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	// Window style
+		0,                      //Optional window styles.
+		CLASS_NAME,             //Window class
+		initParams->Title,		//Window text
+		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
 
 		// Size and position
-		x, y, width, height,
+		initParams->Left, initParams->Top, initParams->Width, initParams->Height,
 
-		parent ? parent->_hWnd : NULL,       // Parent window
-		NULL,       // Menu
-		_hInstance, // Instance handle
-		this        // Additional application data
+		NULL,		//initParams.ParentHandle == nullptr ? initParams.ParentHandle : NULL,   //Parent window handle
+		NULL,       //Menu
+		_hInstance, //Instance handle
+		this        //Additional application data
 	);
 	hwndToPhotino[_hWnd] = this;
 
-	if (windowIconFile != NULL && windowIconFile != L"")
-		Photino::SetIconFile(windowIconFile);
+	//if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != L"")
+	//	Photino::SetIconFile(initParams->WindowIconFile);
 
-	Show();
+	Photino::Show();
 }
 
 // Needn't to release the handles.
@@ -211,8 +219,8 @@ void Photino::Show()
 	// until the window is shown.
 	if (!_webviewController)
 	{
-		if (EnsureWebViewIsInstalled())
-			AttachWebView();
+		if (Photino::EnsureWebViewIsInstalled())
+			Photino::AttachWebView();
 		else
 			exit(0);
 	}
@@ -345,6 +353,8 @@ void Photino::AttachWebView()
 
 				env->CreateCoreWebView2Controller(_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
 					[&, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+
+						MessageBox(_hWnd, _startUrl, L"Debug...", MB_OK);
 
 						if (result != S_OK) { return result; }
 

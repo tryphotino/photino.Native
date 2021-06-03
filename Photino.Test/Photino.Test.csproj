@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Photino.Native\Photino.Native.vcxproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="wwwroot\main.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="wwwroot\second.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+
+  </Target>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="COPY ..\Photino.Native\x64\Debug\Photino.Native.dll .\bin\Debug\net5.0\&#xD;&#xA;COPY ..\Photino.Native\x64\Debug\Photino.Native.pdb .\bin\Debug\net5.0\&#xD;&#xA;COPY ..\Photino.Native\x64\Debug\WebView2Loader.dll .\bin\Debug\net5.0\" />
+  </Target>
+
+</Project>

@@ -1,0 +1,11 @@
+<h1>Main Window</h1>
+<button class="primary random center">Open Second Window</button>
+
+<script>
+    (() => {
+        document.querySelector('.random')
+            .addEventListener('click', event => {
+                window.external.sendMessage('random-window');
+            });
+    })();
+</script>
