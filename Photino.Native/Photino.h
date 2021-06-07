@@ -116,9 +116,7 @@ public:
 	Photino(PhotinoInitParams* initParams);
 	~Photino();
 
-	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
 	void Close();
-	void GetAllMonitors(GetAllMonitorsCallback callback);
 	void GetMaximized(bool* isMaximized);
 	void GetMinimized(bool* isMinimized);
 	void GetPosition(int* x, int* y);
@@ -140,6 +138,8 @@ public:
 	void WaitForExit();
 
 	//Callbacks
+	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
+	void GetAllMonitors(GetAllMonitorsCallback callback);
 	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
 	void SetMovedCallback(MovedCallback callback) { _movedCallback = callback; }
 	void SetResizedCallback(ResizedCallback callback) { _resizedCallback = callback; }

@@ -28,7 +28,7 @@ namespace PhotinoNET
 		public MovedDelegate MovedHandler;
 		///<summary>OPTIONAL: </summary>
 		public GetAllMonitorsDelegate GetAllMonitorsHandler;
-		///<summary>OPTIONAL: </summary>
+		///<summary>OPTIONAL: WebMessageReceivedDelegate</summary>
 		public WebMessageReceivedDelegate WebMessageReceivedHandler;
 		///<summary>OPTIONAL: </summary>
 		public WebResourceRequestedDelegate WebResourceRequestedHandler;

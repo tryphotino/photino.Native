@@ -1,5 +1,4 @@
 #include "Photino.h"
-//#include <map>
 #include <mutex>
 #include <condition_variable>
 #include <comdef.h>
@@ -49,28 +48,13 @@ void Photino::Register(HINSTANCE hInstance)
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
-//#include <iostream>
-//#include <fstream>
-//using namespace std;
-//#pragma pack(show)
-Photino::Photino(PhotinoInitParams* initParams)
-{
-	//wofstream f;
-	//AutoString f1 = L"Hello";
-	//f.open("Photino.txt");
-	//f << initParams->Mike << endl;
-	//f << initParams->Levent << endl;
-	//f << text << endl;
-	//f << initParams->StartString << endl;
-	//f << initParams->Beth[2] << endl;
-	//f << initParams->CustomSchemaNames[0] << endl;
-	//f.close();
-	
 
+Photino::Photino(PhotinoInitParams* initParams)
+{	
 	_startUrl = initParams->StartUrl;
 	_startString = initParams->StartString;
+
 	//_webMessageReceivedCallback = initParams->WebMessageReceivedHandlers[0];
-	//TODO: Set other handlers
 	//_parenthWnd = initParams->ParentInstance;
 
 	if (initParams->FullScreen)
@@ -80,6 +64,9 @@ Photino::Photino(PhotinoInitParams* initParams)
 		initParams->Width = GetSystemMetrics(SM_CXSCREEN);
 		initParams->Height = GetSystemMetrics(SM_CYSCREEN);
 	}
+
+	if (initParams->Width == 0) initParams->Width = CW_USEDEFAULT;
+	if (initParams->Height == 0) initParams->Height = CW_USEDEFAULT;
 
 	//TODO: Minimized, Maximized, Resizable, Topmost
 	//Create the window
@@ -342,8 +329,17 @@ bool Photino::InstallWebView2()
 	return false;
 }
 
+#include <wchar.h>
 void Photino::AttachWebView()
 {
+	wchar_t startUrl[2048];				//Make local copies of member variables. Member variables can not be reliably used in callbacks.
+	if (_startUrl != nullptr)
+		wcscpy_s(startUrl, _startUrl);
+
+	wchar_t startString[65536];
+	if (_startString != nullptr)
+		wcscpy_s(startString, _startString);
+
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&, this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
@@ -353,8 +349,6 @@ void Photino::AttachWebView()
 
 				env->CreateCoreWebView2Controller(_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
 					[&, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-
-						MessageBox(_hWnd, _startUrl, L"Debug...", MB_OK);
 
 						if (result != S_OK) { return result; }
 
@@ -372,7 +366,7 @@ void Photino::AttachWebView()
 						EventRegistrationToken webMessageToken;
 						_webviewWindow->AddScriptToExecuteOnDocumentCreated(L"window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };", nullptr);
 						_webviewWindow->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-							[this](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+							[&, this](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
 								wil::unique_cotaskmem_string message;
 								args->TryGetWebMessageAsString(&message);
 								_webMessageReceivedCallback(message.get());
@@ -382,7 +376,7 @@ void Photino::AttachWebView()
 						EventRegistrationToken webResourceRequestedToken;
 						_webviewWindow->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 						_webviewWindow->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>(
-							[this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
+							[&, this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
 							{
 								ICoreWebView2WebResourceRequest* req;
 								args->get_Request(&req);
@@ -419,7 +413,10 @@ void Photino::AttachWebView()
 							}
 						).Get(), &webResourceRequestedToken);
 
-						NavigateToUrl(_startUrl);		//TODO: What if it needs to NavigateToString()?
+						if (startUrl != nullptr)
+							NavigateToUrl(startUrl);
+						else if (startString != nullptr)
+							NavigateToString(startString);
 
 						RefitContent();
 
