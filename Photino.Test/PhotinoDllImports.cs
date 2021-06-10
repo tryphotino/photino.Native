@@ -26,6 +26,7 @@ namespace PhotinoNET
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_GetPosition(IntPtr instance, out int x, out int y);
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern uint Photino_GetScreenDpi(IntPtr instance);
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_GetSize(IntPtr instance, out int width, out int height);
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_GetZoom(IntPtr instance, out int zoom);
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_IsMaximized(IntPtr instance, bool maximized);
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_IsMinimized(IntPtr instance, bool minimized);
 
@@ -54,6 +55,7 @@ namespace PhotinoNET
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)] static extern void Photino_SetTitle(IntPtr instance, string title);
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_SetTopmost(IntPtr instance, int topmost);
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)] static extern void Photino_SetIconFile(IntPtr instance, string filename);
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_SetZoom(IntPtr instance, int zoom);
 
 
         //deprecated- always shown on initialization  [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)] static extern void Photino_Show(IntPtr instance);

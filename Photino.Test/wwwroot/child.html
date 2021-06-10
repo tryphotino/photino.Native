@@ -1,11 +1,19 @@
 <h1>Child Window</h1>
-<button class="primary random center">Open Child Window</button>
+<button onclick="OpenChildWindow()" class="primary random center">Open Child Window</button>
+<button onclick="ZoomIn()" class="primary random center">Zoom In</button>
+<button onclick="ZoomOut()" class="primary random center">Zoom Out</button>
 
 <script>
-    (() => {
-        document.querySelector('.random')
-            .addEventListener('click', event => {
-                window.external.sendMessage('random-window');
-            });
-    })();
+    function OpenChildWindow() {
+        window.external.sendMessage('random-window');
+    }
+
+    function ZoomIn() {
+        window.external.sendMessage('zoom-in');
+    }
+
+    function ZoomOut() {
+        window.external.sendMessage('zoom-out');
+    }
+
 </script>

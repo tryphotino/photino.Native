@@ -10,13 +10,12 @@ namespace PhotinoNET
     public partial class PhotinoWindow
     {
         ///<summary>Parameters set to Photino.Native to start a new instance of a Photino.Native window.</summary>
-        private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters 
-        { 
-            Resizable = true, 
+        private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters
+        {
+            Resizable = true,
             Height = -1,
             Width = -1,
-            Left = -1,
-            Top = -1,
+            Zoom = 100,
         };
         
         //Pointers to the type and instance.
@@ -87,6 +86,7 @@ namespace PhotinoNET
                 return Photino_GetScreenDpi(_nativeInstance);
             }
         }
+
 
         private Guid _id = Guid.NewGuid();
         public Guid Id => _id;
@@ -227,7 +227,7 @@ namespace PhotinoNET
         }
 
 
-        private int _left = -1;
+        private int _left;
         public int Left
         {
             get => Location.X;
@@ -314,7 +314,7 @@ namespace PhotinoNET
         }
 
 
-        private int _top = -1;
+        private int _top;
         public int Top
         {
             get => Location.Y;
@@ -345,6 +345,44 @@ namespace PhotinoNET
         }
 
 
+        private bool _useOsDefaultLocation;
+        public bool UseOsDefaultLocation
+        {
+            get => _useOsDefaultLocation;
+            set
+            {
+                if (_useOsDefaultLocation != value)
+                {
+                    _useOsDefaultLocation = value;
+
+                    if (_nativeInstance == IntPtr.Zero)
+                        _startupParameters.UseOsDefaultLocation = _useOsDefaultLocation;
+                    else
+                        throw new ApplicationException("UseOsDefaultLocation can only be set before the window is instantiated.");
+                }
+            }
+        }
+
+
+        private bool _useOsDefaultSize;
+        public bool UseOsDefaultSize
+        {
+            get => _useOsDefaultSize;
+            set
+            {
+                if (_useOsDefaultSize != value)
+                {
+                    _useOsDefaultSize = value;
+
+                    if (_nativeInstance == IntPtr.Zero)
+                        _startupParameters.UseOsDefaultSize = _useOsDefaultSize;
+                    else
+                        throw new ApplicationException("UseOsDefaultSize can only be set before the window is instantiated.");
+                }
+            }
+        }
+
+
         private int _width = -1;
         public int Width
         {
@@ -358,10 +396,34 @@ namespace PhotinoNET
         }
 
 
+        private int _zoom = 100;
+        public int Zoom
+        {
+            get
+            {
+                if (_nativeInstance != IntPtr.Zero)
+                    Photino_GetZoom(_nativeInstance, out _zoom);
+
+                return _zoom;
+            }
+            set
+            {
+                if (_zoom != value)
+                {
+                    _zoom = value;
+
+                    if (_nativeInstance == IntPtr.Zero)
+                        _startupParameters.Zoom = _zoom;
+                    else
+                       Photino_SetZoom(_nativeInstance, _zoom);
+                }
+            }
+        }
+
 
 
         ///<summary>0 = Critical Only, 1 = Critical and Warning, 2 = Verbose, >2 = All Details</summary>
-        public int LogVerbosity { get; set; }
+        public int LogVerbosity { get; set; } = 2;
 
 
 
@@ -487,24 +549,14 @@ namespace PhotinoNET
 
             // If the window is outside of the work area,
             // recalculate the position and continue.
-            if (allowOutsideWorkArea == false)
+            //When window isn't initialized yet, cannot determine screen size.
+            if (allowOutsideWorkArea == false && _nativeInstance != IntPtr.Zero)
             {
                 int horizontalWindowEdge = location.X + Width;
                 int verticalWindowEdge = location.Y + Height;
 
-                int horizontalWorkAreaEdge;
-                int verticalWorkAreaEdge;
-
-                if (_nativeInstance == IntPtr.Zero)
-                {
-                    horizontalWorkAreaEdge = Console.LargestWindowWidth;
-                    verticalWorkAreaEdge = Console.LargestWindowHeight;
-                }
-                else
-                {
-                    horizontalWorkAreaEdge = MainMonitor.WorkArea.Width;
-                    verticalWorkAreaEdge = MainMonitor.WorkArea.Height;
-                }
+                int horizontalWorkAreaEdge = MainMonitor.WorkArea.Width;
+                int verticalWorkAreaEdge = MainMonitor.WorkArea.Height;
 
                 bool isOutsideHorizontalWorkArea = horizontalWindowEdge > horizontalWorkAreaEdge;
                 bool isOutsideVerticalWorkArea = verticalWindowEdge > verticalWorkAreaEdge;
@@ -726,6 +778,40 @@ namespace PhotinoNET
 
             return this;
         }
+
+        ///<summary>Browser control zoom level. e.g. 100 = 100%</summary>
+        public PhotinoWindow SetZoom(int zoom)
+        {
+            if (LogVerbosity > 1)
+                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetZoom(int zoom)");
+
+            Zoom = zoom;
+
+            return this;
+        }
+
+        ///<summary>Overrides Left and Top properties and relise on the OS to position the window.</summary>
+        public PhotinoWindow SetUseOsDefaultLocation(bool useOsDefault)
+        {
+            if (LogVerbosity > 1)
+                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetUseOsDefaultLocation(bool useOsDefault)");
+
+            UseOsDefaultLocation = useOsDefault;
+
+            return this;
+        }
+
+        ///<summary>Overrides Height and Width properties and relise on the OS to determine the initial size of the window.</summary>
+        public PhotinoWindow SetUseOsDefaultSize(bool useOsDefault)
+        {
+            if (LogVerbosity > 1)
+                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetUseOsDefaultSize(bool useOsDefault)");
+
+            UseOsDefaultSize = useOsDefault;
+
+            return this;
+        }
+
 
 
 

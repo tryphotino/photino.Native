@@ -53,6 +53,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 {	
 	_startUrl = initParams->StartUrl;
 	_startString = initParams->StartString;
+	_zoom = initParams->Zoom;
 
 	//these handlers are ALWAYS hooked up
 	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
@@ -60,7 +61,28 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_movedCallback = (MovedCallback)initParams->MovedHandler;
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
 
-	//_parenthWnd = initParams->ParentInstance;
+	_parenthWnd = initParams->ParentInstance;
+
+	//wchar_t msg[50];
+	//swprintf(msg, 50, L"Height: %i  Width: %i  Left: %d  Top: %d", initParams->Height, initParams->Width, initParams->Left, initParams->Top);
+	//MessageBox(nullptr, msg, L"", MB_OK);
+
+	if (initParams->UseOsDefaultSize)
+	{
+		initParams->Width = CW_USEDEFAULT;
+		initParams->Height = CW_USEDEFAULT;
+	}
+	else
+	{
+		if (initParams->Width < 0) initParams->Width = CW_USEDEFAULT;
+		if (initParams->Height < 0) initParams->Height = CW_USEDEFAULT;
+	}
+
+	if (initParams->UseOsDefaultLocation)
+	{
+		initParams->Left = CW_USEDEFAULT;
+		initParams->Top = CW_USEDEFAULT;
+	}
 
 	if (initParams->FullScreen == true)
 	{
@@ -69,15 +91,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 		initParams->Width = GetSystemMetrics(SM_CXSCREEN);
 		initParams->Height = GetSystemMetrics(SM_CYSCREEN);
 	}
-
-	//wchar_t msg[50];
-	//swprintf(msg, 50, L"Height: %i  Width: %i  Left: %d  Top: %d", initParams->Height, initParams->Width, initParams->Left, initParams->Top);
-	//MessageBox(nullptr, msg, L"", MB_OK);
-
-	if (initParams->Width < 0) initParams->Width = CW_USEDEFAULT;
-	if (initParams->Height < 0) initParams->Height = CW_USEDEFAULT;
-	if (initParams->Left < 0) initParams->Left = CW_USEDEFAULT;
-	if (initParams->Top < 0) initParams->Top = CW_USEDEFAULT;
 
 	//Create the window
 	_hWnd = CreateWindowEx(
@@ -276,6 +289,14 @@ void Photino::GetSize(int* width, int* height)
 	if (height) *height = rect.bottom - rect.top;
 }
 
+void Photino::GetZoom(int* zoom)
+{
+	double rawValue = 0;
+	_webviewController->get_ZoomFactor(&rawValue);
+	rawValue = (rawValue * 100) + 0.5;		//account for rounding issues
+	*zoom = (int)rawValue;
+}
+
 void Photino::Minimize()
 {
 	ShowWindow(_hWnd, SW_MINIMIZE);
@@ -325,7 +346,6 @@ void Photino::SetPosition(int x, int y)
 
 void Photino::SetResizable(bool resizable)
 {
-	MessageBox(_hWnd, L"SetResizable", L"", MB_OK);
 	LONG_PTR style = GetWindowLongPtr(_hWnd, GWL_STYLE);
 	if (resizable) style |= WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 	else style &= (~WS_THICKFRAME) & (~WS_MINIMIZEBOX) & (~WS_MAXIMIZEBOX);
@@ -345,6 +365,15 @@ void Photino::SetTitle(AutoString title)
 void Photino::SetTopmost(bool topmost)
 {
 	SetWindowPos(_hWnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+}
+
+void Photino::SetZoom(int zoom)
+{
+	double newZoom = (double)zoom / 100;
+	HRESULT r = _webviewController->put_ZoomFactor(newZoom);
+	//wchar_t msg[50];
+	//swprintf(msg, 50, L"newZoom: %f", newZoom);
+	//MessageBox(nullptr, msg, L"Setter", MB_OK);
 }
 
 void Photino::ShowMessage(AutoString title, AutoString body, UINT type)
@@ -512,22 +541,24 @@ void Photino::AttachWebView()
 		wcscpy_s(startString, _startString);
 	}
 
+	double Zoom = _zoom;
+
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-			[&, this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+			[&, Zoom](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }
 				HRESULT envResult = env->QueryInterface(&_webviewEnvironment);
 				if (envResult != S_OK) { return envResult; }
 
 				env->CreateCoreWebView2Controller(_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-					[&, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+					[&, Zoom](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 
 						if (result != S_OK) { return result; }
 
 						HRESULT envResult = controller->QueryInterface(&_webviewController);
 						if (envResult != S_OK) { return envResult; }
 						_webviewController->get_CoreWebView2(&_webviewWindow);
-
+						
 						ICoreWebView2Settings* Settings;
 						_webviewWindow->get_Settings(&Settings);
 						Settings->put_IsScriptEnabled(TRUE);
@@ -592,6 +623,8 @@ void Photino::AttachWebView()
 							NavigateToString(startString);
 						else
 							throw "Neither StartUrl nor StartString was specified";
+
+						SetZoom(_zoom);
 
 						RefitContent();
 

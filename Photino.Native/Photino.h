@@ -61,6 +61,7 @@ struct PhotinoInitParams
 	int Top;
 	int Width;
 	int Height;
+	int Zoom;
 
 	bool CenterOnInitialize;
 	bool Chromeless;
@@ -69,6 +70,8 @@ struct PhotinoInitParams
 	bool Minimized;
 	bool Resizable;
 	bool Topmost;
+	bool UseOsDefaultLocation;
+	bool UseOsDefaultSize;
 };
 
 class Photino
@@ -80,10 +83,11 @@ private:
 	ClosingCallback _closingCallback;
 	AutoString _startUrl;
 	AutoString _startString;
+	double _zoom;
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
-	HWND _parenthWnd;
+	Photino* _parenthWnd;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
@@ -122,6 +126,7 @@ public:
 	void GetPosition(int* x, int* y);
 	unsigned int GetScreenDpi();
 	void GetSize(int* width, int* height);
+	void GetZoom(int* zoom);
 	void Maximize();
 	void Minimize();
 	void NavigateToString(AutoString content);
@@ -134,6 +139,7 @@ public:
 	void SetSize(int width, int height);
 	void SetTitle(AutoString title);
 	void SetTopmost(bool topmost);
+	void SetZoom(int zoom);
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void WaitForExit();
 

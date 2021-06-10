@@ -70,6 +70,11 @@ extern "C"
 		instance->GetSize(width, height);
 	}
 
+	EXPORTED void Photino_GetZoom(Photino* instance, int* zoom)
+	{
+		instance->GetZoom(zoom);
+	}
+
 	EXPORTED void Photino_Maximize(Photino* instance)
 	{
 		instance->Maximize();
@@ -128,6 +133,11 @@ extern "C"
 	EXPORTED void Photino_SetTopmost(Photino* instance, int topmost)
 	{
 		instance->SetTopmost(topmost);
+	}
+
+	EXPORTED void Photino_SetZoom(Photino* instance, int zoom)
+	{
+		instance->SetZoom(zoom);
 	}
 
 	EXPORTED void Photino_ShowMessage(Photino* instance, AutoString title, AutoString body, unsigned int type)

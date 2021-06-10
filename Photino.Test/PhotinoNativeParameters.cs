@@ -34,14 +34,16 @@ namespace PhotinoNET
 		///<summary>OPTIONAL: A custom URL Scheme handler. Must have a matching entry in CustomSchemeNamess array. Array length must be 32.</summary>
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)] public WebResourceRequestedDelegate[] CustomSchemeHandlers;
 
-		///<summary>OPTIONAL: Initial window position in pixels.</summary>
+		///<summary>OPTIONAL: Initial window position in pixels. Can be overridden with UseOsDefaultLocation property.</summary>
 		[MarshalAs(UnmanagedType.I4)] public int Left;
-		///<summary>OPTIONAL: Initial window position in pixels.</summary>
+		///<summary>OPTIONAL: Initial window position in pixels. Can be overridden with UseOsDefaultLocation property.</summary>
 		[MarshalAs(UnmanagedType.I4)] public int Top;
-		///<summary>OPTIONAL: Initial window size in pixels.</summary>
+		///<summary>OPTIONAL: Initial window size in pixels. Can be overridden with UseOsDefaultSize property.</summary>
 		[MarshalAs(UnmanagedType.I4)] public int Width;
-		///<summary>OPTIONAL: Initial window size in pixels.</summary>
+		///<summary>OPTIONAL: Initial window size in pixels. Can be overridden with UseOsDefaultSize property.</summary>
 		[MarshalAs(UnmanagedType.I4)] public int Height;
+		///<summary>OPTIONAL: Initial zoom level of browser control. e.g.100 = 100%</summary>
+		[MarshalAs(UnmanagedType.I4)] public int Zoom;
 
 		///<summary>OPTIONAL: If true, native window appears in centered on screen. Left and Top properties are ignored.</summary>
 		[MarshalAs(UnmanagedType.I1)] public bool CenterOnInitialize;
@@ -57,6 +59,11 @@ namespace PhotinoNET
 		[MarshalAs(UnmanagedType.I1)] public bool Resizable;
 		///<summary>OPTIONAL: If true, native window appears in front of other windows and cannot be hidden behind them.</summary>
 		[MarshalAs(UnmanagedType.I1)] public bool Topmost;
+		///<summary>OPTIONAL: If true, overrides Top and Left parameters and lets the OS size the newly created window.</summary>
+		[MarshalAs(UnmanagedType.I1)] public bool UseOsDefaultLocation;
+		///<summary>OPTIONAL: If true, overrides Height and Width parameters and lets the OS position the newly created window.</summary>
+		[MarshalAs(UnmanagedType.I1)] public bool UseOsDefaultSize;
+
 
 		///<summary>Checks the parameters to ensure they are valid before window creation. 
 		///Called by PhotinoWindow prior to initializing native window.
