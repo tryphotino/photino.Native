@@ -52,9 +52,7 @@ struct PhotinoInitParams
 	ClosingCallback* ClosingHandler;
 	ResizedCallback* ResizedHandler;
 	MovedCallback* MovedHandler;
-	GetAllMonitorsCallback* GetAllMonitorsHandler;
 	WebMessageReceivedCallback* WebMessageReceivedHandler;
-	WebResourceRequestedCallback* WebResourceRequestedHandler;
 	
 	AutoString CustomSchemaNames[32];
 	WebResourceRequestedCallback CustomSchemaHandlers[32];
@@ -64,6 +62,7 @@ struct PhotinoInitParams
 	int Width;
 	int Height;
 
+	bool CenterOnInitialize;
 	bool Chromeless;
 	bool FullScreen;
 	bool Maximized;
@@ -116,6 +115,7 @@ public:
 	Photino(PhotinoInitParams* initParams);
 	~Photino();
 
+	void Center();
 	void Close();
 	void GetMaximized(bool* isMaximized);
 	void GetMinimized(bool* isMinimized);

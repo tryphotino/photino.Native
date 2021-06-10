@@ -14,8 +14,9 @@ namespace PhotinoNET
             LocationChangedHandler += handler;
             return this;
         }
-        public void OnLocationChanged(Point location)
+        public void OnLocationChanged(int left, int top)
         {
+            var location = new Point(left, top);
             LocationChangedHandler?.Invoke(this, location);
         }
 
@@ -27,8 +28,9 @@ namespace PhotinoNET
             SizeChangedHandler += handler;
             return this;
         }
-        public void OnSizeChanged(Size size)
+        public void OnSizeChanged(int width, int height)
         {
+            var size = new Size(width, height);
             SizeChangedHandler?.Invoke(this, size);
         }
 

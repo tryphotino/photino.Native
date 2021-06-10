@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace PhotinoNET
 {
     [StructLayout(LayoutKind.Sequential, Pack = 16)]
-	public struct PhotinoParameters
+	public struct PhotinoNativeParameters
 	{
 		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this HTML string when initialized.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] public string StartString;
@@ -20,18 +20,14 @@ namespace PhotinoNET
 		///<summary>OPTIONAL: If this window is created from another window.</summary>
 		public IntPtr Parent;
 
-		///<summary>OPTIONAL: </summary>
-		public ClosingDelegate ClosingHandler;      //EventHandler?
-		///<summary>OPTIONAL: </summary>
-		public ResizedDelegate ResizedHandler;
-		///<summary>OPTIONAL: </summary>
-		public MovedDelegate MovedHandler;
-		///<summary>OPTIONAL: </summary>
-		public GetAllMonitorsDelegate GetAllMonitorsHandler;
-		///<summary>OPTIONAL: WebMessageReceivedDelegate</summary>
-		public WebMessageReceivedDelegate WebMessageReceivedHandler;
-		///<summary>OPTIONAL: </summary>
-		public WebResourceRequestedDelegate WebResourceRequestedHandler;
+		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
+		internal ClosingDelegate ClosingHandler;
+		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
+		internal ResizedDelegate ResizedHandler;
+		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
+		internal MovedDelegate MovedHandler;
+		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
+		internal WebMessageReceivedDelegate WebMessageReceivedHandler;
 
 		///<summary>OPTIONAL: Name of a custom URL Scheme. Must have a matching entry in CustomSchemeHandlers array. Array length must be 32.</summary>
 		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.LPWStr, SizeConst = 32)] public string[] CustomSchemeNames;
@@ -39,26 +35,28 @@ namespace PhotinoNET
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)] public WebResourceRequestedDelegate[] CustomSchemeHandlers;
 
 		///<summary>OPTIONAL: Initial window position in pixels.</summary>
-		public int Left;
+		[MarshalAs(UnmanagedType.I4)] public int Left;
 		///<summary>OPTIONAL: Initial window position in pixels.</summary>
-		public int Top;
+		[MarshalAs(UnmanagedType.I4)] public int Top;
 		///<summary>OPTIONAL: Initial window size in pixels.</summary>
-		public int Width;
+		[MarshalAs(UnmanagedType.I4)] public int Width;
 		///<summary>OPTIONAL: Initial window size in pixels.</summary>
-		public int Height;
+		[MarshalAs(UnmanagedType.I4)] public int Height;
 
+		///<summary>OPTIONAL: If true, native window appears in centered on screen. Left and Top properties are ignored.</summary>
+		[MarshalAs(UnmanagedType.I1)] public bool CenterOnInitialize;
 		///<summary>OPTIONAL: If true, window is created without a title bar or borders. This allows owner-drawn title bars and borders.</summary>
-		public bool Chromeless;
+		[MarshalAs(UnmanagedType.I1)] public bool Chromeless;
 		///<summary>OPTIONAL: If true, browser control covers the entire screen. Useful for kiosks for example. Incompatible with Maximized and Minimized.</summary>
-		public bool FullScreen;
+		[MarshalAs(UnmanagedType.I1)] public bool FullScreen;
 		///<summary>OPTIONAL: If true, native window is maximized to fill the screen. Incompatible with Minimized and FullScreen.</summary>
-		public bool Maximized;
+		[MarshalAs(UnmanagedType.I1)] public bool Maximized;
 		///<summary>OPTIONAL: If true, native window is minimized (hidden). Incompatible with Maximized and FullScreen.</summary>
-		public bool Minimized;
+		[MarshalAs(UnmanagedType.I1)] public bool Minimized;
 		///<summary>OPTIONAL: If true, native window cannot be resized by the user. Can still be resized by the program.</summary>
-		public bool Resizable;
+		[MarshalAs(UnmanagedType.I1)] public bool Resizable;
 		///<summary>OPTIONAL: If true, native window appears in front of other windows and cannot be hidden behind them.</summary>
-		public bool Topmost;
+		[MarshalAs(UnmanagedType.I1)] public bool Topmost;
 
 		///<summary>Checks the parameters to ensure they are valid before window creation. 
 		///Called by PhotinoWindow prior to initializing native window.

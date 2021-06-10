@@ -10,14 +10,21 @@ namespace PhotinoNET
     public partial class PhotinoWindow
     {
         ///<summary>Parameters set to Photino.Native to start a new instance of a Photino.Native window.</summary>
-        public PhotinoParameters _startupParameters = new PhotinoParameters();
-
+        private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters 
+        { 
+            Resizable = true, 
+            Height = -1,
+            Width = -1,
+            Left = -1,
+            Top = -1,
+        };
         
-        private static IntPtr _hInstance = IntPtr.Zero;
+        //Pointers to the type and instance.
+        private static IntPtr _nativeType = IntPtr.Zero;
         private IntPtr _nativeInstance;
 
 
-        //READ ONLY WINDOW PROPERTIES
+        //READ ONLY PROPERTIES
         public static bool IsWindowsPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         public static bool IsMacOsPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         public static bool IsLinuxPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -27,7 +34,12 @@ namespace PhotinoNET
             get
             {
                 if (IsWindowsPlatform)
+                {
+                    if (_nativeInstance == IntPtr.Zero)
+                        throw new ApplicationException("The Photino window is not initialized yet");
+
                     return Photino_getHwnd_win32(_nativeInstance);
+                }
                 else
                     throw new PlatformNotSupportedException($"{nameof(WindowHandle)} is only supported on Windows.");
             }
@@ -37,6 +49,9 @@ namespace PhotinoNET
         {
             get
             {
+                if (_nativeInstance == IntPtr.Zero)
+                    throw new ApplicationException("The Photino window hasn't been initialized yet.");
+
                 List<Monitor> monitors = new List<Monitor>();
 
                 int callback(in NativeMonitor monitor)
@@ -45,21 +60,40 @@ namespace PhotinoNET
                     return 1;
                 }
 
-                Photino_GetAllMonitors(_nativeInstance, null); // monitor struct has callbacks?  , callback);
+                Photino_GetAllMonitors(_nativeInstance, callback);
 
                 return monitors;
             }
         }
 
-        public Monitor MainMonitor => Monitors.First();
+        public Monitor MainMonitor
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    throw new ApplicationException("The Photino window hasn't been initialized yet.");
 
-        public uint ScreenDpi => Photino_GetScreenDpi(_nativeInstance);
+                return Monitors.First();
+            }
+        }
+
+        public uint ScreenDpi
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    throw new ApplicationException("The Photino window hasn't been initialized yet.");
+
+                return Photino_GetScreenDpi(_nativeInstance);
+            }
+        }
 
         private Guid _id = Guid.NewGuid();
         public Guid Id => _id;
 
 
-        //READ-WRITE WINDOW PROPERTIES
+
+        //READ-WRITE PROPERTIES
         private bool _fullScreen;
         public bool FullScreen
         {
@@ -78,19 +112,15 @@ namespace PhotinoNET
         }
 
 
-        private int _height;
+        private int _height = -1;
         public int Height
         {
             get => Size.Height;
             set
             {
-                Size currentSize = Size;
-
+                var currentSize = Size;
                 if (currentSize.Height != value)
-                {
-                    _height = value;
-                    Size = new Size(currentSize.Width, _height);
-                }
+                    Size = new Size(currentSize.Width, value);
             }
         }
 
@@ -103,9 +133,15 @@ namespace PhotinoNET
             {
                 if (_iconFile != value)
                 {
-                    if (!File.Exists(_iconFile)) throw new ArgumentException($"Icon file: {_iconFile} does not exist.");
-                 
                     _iconFile = value;
+
+                    if (!File.Exists(_iconFile))
+                    {
+                        var absolutePath = $"{System.AppContext.BaseDirectory}{_iconFile}";
+                        if (!File.Exists(absolutePath))
+                            throw new ArgumentException($"Icon file: {_iconFile} does not exist.");
+                    }
+                 
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.WindowIconFile = _iconFile;
                     else
@@ -137,7 +173,9 @@ namespace PhotinoNET
         {
             get
             {
-                Photino_GetSize(_nativeInstance, out _width, out _height);
+                if (_nativeInstance != IntPtr.Zero)
+                    Photino_GetSize(_nativeInstance, out _width, out _height);
+    
                 return new Size(_width, _height);
             }
             set
@@ -165,7 +203,9 @@ namespace PhotinoNET
         {
             get
             {
-                Photino_GetPosition(_nativeInstance, out _left, out _top);
+                if (_nativeInstance != IntPtr.Zero)
+                    Photino_GetPosition(_nativeInstance, out _left, out _top);
+
                 return new Point(_left, _top);
             }
             set
@@ -187,19 +227,15 @@ namespace PhotinoNET
         }
 
 
-        private int _left;
+        private int _left = -1;
         public int Left
         {
-            get => this.Location.X;
+            get => Location.X;
             set
             {
-                Point currentLocation = this.Location;
-
+                var currentLocation = Location;
                 if (currentLocation.X != value)
-                {
-                    _left = value;
-                    this.Location = new Point(_left, currentLocation.Y);
-                }
+                    Location = new Point(value, currentLocation.Y);
             }
         }
 
@@ -252,23 +288,6 @@ namespace PhotinoNET
         }
 
 
-        private int _top;
-        public int Top
-        {
-            get => this.Location.Y;
-            set
-            {
-                Point currentLocation = this.Location;
-
-                if (currentLocation.Y != value)
-                {
-                    _top = value;
-                    this.Location = new Point(currentLocation.X, _left);
-                }
-            }
-        }
-
-
         private string _title;
         public string Title
         {
@@ -295,6 +314,19 @@ namespace PhotinoNET
         }
 
 
+        private int _top = -1;
+        public int Top
+        {
+            get => Location.Y;
+            set
+            {
+                var currentLocation = Location;
+                if (currentLocation.Y != value)
+                    Location = new Point(currentLocation.X, value);
+            }
+        }
+
+
         private bool _topMost = false;
         public bool TopMost
         {
@@ -313,19 +345,15 @@ namespace PhotinoNET
         }
 
 
-        private int _width;
+        private int _width = -1;
         public int Width
         {
-            get => this.Size.Width;
+            get => Size.Width;
             set
             {
-                Size currentSize = this.Size;
-
+                var currentSize = Size;
                 if (currentSize.Width != value)
-                {
-                    _width = value;
-                    this.Size = new Size(_width, currentSize.Height);
-                }
+                    Size = new Size(value, currentSize.Height);
             }
         }
 
@@ -341,11 +369,17 @@ namespace PhotinoNET
         public PhotinoWindow()
         {
             //This only has to be done once
-            if (_hInstance == IntPtr.Zero)
+            if (_nativeType == IntPtr.Zero)
             {
-                _hInstance = Marshal.GetHINSTANCE(typeof(PhotinoWindow).Module);
-                Photino_register_win32(_hInstance);
+                _nativeType = Marshal.GetHINSTANCE(typeof(PhotinoWindow).Module);
+                Photino_register_win32(_nativeType);
             }
+
+            //Wire up handlers from C++ to C#
+            _startupParameters.ClosingHandler = (ClosingDelegate)OnWindowClosing;
+            _startupParameters.ResizedHandler = (ResizedDelegate)OnSizeChanged;
+            _startupParameters.MovedHandler = (MovedDelegate)OnLocationChanged;
+            _startupParameters.WebMessageReceivedHandler = (WebMessageReceivedDelegate)OnWebMessageReceived;
         }
 
 
@@ -417,14 +451,19 @@ namespace PhotinoNET
         }
 
 
-
-        ///<summary>Centers the window in the main monitor</summary>
+        ///<summary>Centers the window in the main monitor. If called prior to window initialization, overrides Left and Top properties.</summary>
         public PhotinoWindow Center()
         {
             if (LogVerbosity > 1)
                 Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Center()");
 
-            var workAreaSize = MainMonitor.WorkArea.Size;
+            if (_nativeInstance == IntPtr.Zero)
+            {
+                _startupParameters.CenterOnInitialize = true;
+                return this;
+            }
+
+            Size workAreaSize= MainMonitor.WorkArea.Size;
 
             var centeredPosition = new Point(
                 ((workAreaSize.Width / 2) - (Width / 2)),
@@ -453,8 +492,19 @@ namespace PhotinoNET
                 int horizontalWindowEdge = location.X + Width;
                 int verticalWindowEdge = location.Y + Height;
 
-                int horizontalWorkAreaEdge = MainMonitor.WorkArea.Width;
-                int verticalWorkAreaEdge = MainMonitor.WorkArea.Height;
+                int horizontalWorkAreaEdge;
+                int verticalWorkAreaEdge;
+
+                if (_nativeInstance == IntPtr.Zero)
+                {
+                    horizontalWorkAreaEdge = Console.LargestWindowWidth;
+                    verticalWorkAreaEdge = Console.LargestWindowHeight;
+                }
+                else
+                {
+                    horizontalWorkAreaEdge = MainMonitor.WorkArea.Width;
+                    verticalWorkAreaEdge = MainMonitor.WorkArea.Height;
+                }
 
                 bool isOutsideHorizontalWorkArea = horizontalWindowEdge > horizontalWorkAreaEdge;
                 bool isOutsideVerticalWorkArea = verticalWindowEdge > verticalWorkAreaEdge;
@@ -526,6 +576,20 @@ namespace PhotinoNET
 
 
 
+
+        public PhotinoWindow SetChromeless(bool chromeless)
+        {
+            if (LogVerbosity > 1)
+                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetChromeless(bool chromeless)");
+
+            if (_nativeInstance != IntPtr.Zero)
+                throw new ApplicationException("Chromeless setting cannot be used on an unitialized window.");
+
+            _startupParameters.Chromeless = chromeless;
+
+            return this;
+        }
+
         public PhotinoWindow SetFullScreen(bool fullScreen)
         {
             if (LogVerbosity > 1)
@@ -536,6 +600,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>In Pixels. Leave at -1 to initialize window to OS default size.</summary>
         public PhotinoWindow SetHeight(int height)
         {
             if (LogVerbosity > 1)
@@ -546,6 +611,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>Must be a local file, not a URL.</summary>
         public PhotinoWindow SetIconFile(string iconFile)
         {
             if (LogVerbosity > 1)
@@ -556,6 +622,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>In Pixels. Leave at -1 to initialize window to OS default position.</summary>
         public PhotinoWindow SetLeft(int left)
         {
             if (LogVerbosity > 1)
@@ -576,6 +643,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>In Pixels. Leave at -1, -1 to initialize window to OS default size.</summary>
         public PhotinoWindow SetSize(Size size)
         {
             if (LogVerbosity > 1)
@@ -586,6 +654,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>In Pixels. Leave at -1, -1 to initialize window to OS default position.</summary>
         public PhotinoWindow SetLocation(Point location)
         {
             if (LogVerbosity > 1)
@@ -626,6 +695,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>In Pixels. Leave at -1 to initialize window to OS default position.</summary>
         public PhotinoWindow SetTop(int top)
         {
             if (LogVerbosity > 1)
@@ -646,6 +716,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>In Pixels. Leave at -1 to initialize window to OS default size.</summary>
         public PhotinoWindow SetWidth(int width)
         {
             if (LogVerbosity > 1)
@@ -666,7 +737,9 @@ namespace PhotinoNET
         ///This is the only Window that runs a message loop.</summary>
         public void WaitForClose()
         {
-            if (_nativeInstance != IntPtr.Zero) throw new ArgumentException("Photino Window has already been started.");
+            if (_nativeInstance != IntPtr.Zero) 
+                throw new ArgumentException("Photino Window has already been started.");
+
             var errors = _startupParameters.GetParamErrors();
             if (errors.Count == 0)
             {
@@ -678,13 +751,16 @@ namespace PhotinoNET
                 var formattedErrors = "\n";
                 foreach (var error in errors)
                     formattedErrors += error + "\n";
+
                 throw new ArgumentException($"Startup Parameters Are Not Valid: {formattedErrors}");
             }
         }
         ///<summary>Creates a child window. The main window must be created first by calling WaitForClose()</summary>
         public void CreateChildWindow()
         {
-            if (_nativeInstance != IntPtr.Zero) throw new ArgumentException("Photino Child Window has already been started.");
+            if (_nativeInstance != IntPtr.Zero) 
+                throw new ArgumentException("Photino Child Window has already been started.");
+
             var errors = _startupParameters.GetParamErrors();
             if (errors.Count == 0)
             {
@@ -695,6 +771,7 @@ namespace PhotinoNET
                 var formattedErrors = "\n";
                 foreach (var error in errors)
                     formattedErrors += error + "\n";
+
                 throw new ArgumentException($"Startup Parameters Are Not Valid: {formattedErrors}");
             }
         }
