@@ -12,7 +12,7 @@ namespace PhotinoNET
         ///<summary>Parameters set to Photino.Native to start a new instance of a Photino.Native window.</summary>
         private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters
         {
-            Resizable = true,
+            Resizable = true,   //these values can't be initialize within the struct itself
             Height = -1,
             Width = -1,
             Zoom = 100,
@@ -21,6 +21,10 @@ namespace PhotinoNET
         //Pointers to the type and instance.
         private static IntPtr _nativeType = IntPtr.Zero;
         private IntPtr _nativeInstance;
+
+        
+        //There can only be 1 message loop for all windows.
+        private static bool _messageLoopIsStarted = false;
 
 
         //READ ONLY PROPERTIES
@@ -291,7 +295,13 @@ namespace PhotinoNET
         private string _title;
         public string Title
         {
-            get => _title;
+            get
+            {
+                if (_nativeInstance != IntPtr.Zero)
+                    Photino_GetTitle(_nativeInstance, out _title);
+
+                return _title;
+            }
             set
             {
                 if (_title != value)
@@ -430,18 +440,25 @@ namespace PhotinoNET
         //CONSTRUCTOR
         public PhotinoWindow()
         {
-            //This only has to be done once
-            if (_nativeType == IntPtr.Zero)
+            if (IsWindowsPlatform)
             {
-                _nativeType = Marshal.GetHINSTANCE(typeof(PhotinoWindow).Module);
-                Photino_register_win32(_nativeType);
+                //This only has to be done once
+                if (_nativeType == IntPtr.Zero)
+                {
+                    _nativeType = Marshal.GetHINSTANCE(typeof(PhotinoWindow).Module);
+                    Photino_register_win32(_nativeType);
+                }
+            }
+            else if (IsMacOsPlatform)
+            {
+                Photino_register_mac();
             }
 
             //Wire up handlers from C++ to C#
-            _startupParameters.ClosingHandler = (ClosingDelegate)OnWindowClosing;
-            _startupParameters.ResizedHandler = (ResizedDelegate)OnSizeChanged;
-            _startupParameters.MovedHandler = (MovedDelegate)OnLocationChanged;
-            _startupParameters.WebMessageReceivedHandler = (WebMessageReceivedDelegate)OnWebMessageReceived;
+            _startupParameters.ClosingHandler = (CppClosingDelegate)OnWindowClosing;
+            _startupParameters.ResizedHandler = (CppResizedDelegate)OnSizeChanged;
+            _startupParameters.MovedHandler = (CppMovedDelegate)OnLocationChanged;
+            _startupParameters.WebMessageReceivedHandler = (CppWebMessageReceivedDelegate)OnWebMessageReceived;
         }
 
 
@@ -674,7 +691,6 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>In Pixels. Leave at -1 to initialize window to OS default position.</summary>
         public PhotinoWindow SetLeft(int left)
         {
             if (LogVerbosity > 1)
@@ -706,7 +722,6 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>In Pixels. Leave at -1, -1 to initialize window to OS default position.</summary>
         public PhotinoWindow SetLocation(Point location)
         {
             if (LogVerbosity > 1)
@@ -747,7 +762,6 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>In Pixels. Leave at -1 to initialize window to OS default position.</summary>
         public PhotinoWindow SetTop(int top)
         {
             if (LogVerbosity > 1)
@@ -823,14 +837,18 @@ namespace PhotinoNET
         ///This is the only Window that runs a message loop.</summary>
         public void WaitForClose()
         {
-            if (_nativeInstance != IntPtr.Zero) 
-                throw new ArgumentException("Photino Window has already been started.");
-
             var errors = _startupParameters.GetParamErrors();
             if (errors.Count == 0)
             {
+                OnWindowCreating();
                 _nativeInstance = Photino_ctor(_startupParameters);
-                Photino_WaitForExit(_nativeInstance);
+                OnWindowCreated();
+
+                if (!_messageLoopIsStarted)
+                {
+                    _messageLoopIsStarted = true;
+                    Photino_WaitForExit(_nativeInstance);       //start the message loop. there can only be 1 message loop for all windows.
+                }
             }
             else
             {
@@ -841,29 +859,18 @@ namespace PhotinoNET
                 throw new ArgumentException($"Startup Parameters Are Not Valid: {formattedErrors}");
             }
         }
-        ///<summary>Creates a child window. The main window must be created first by calling WaitForClose()</summary>
-        public void CreateChildWindow()
-        {
-            if (_nativeInstance != IntPtr.Zero) 
-                throw new ArgumentException("Photino Child Window has already been started.");
 
-            var errors = _startupParameters.GetParamErrors();
-            if (errors.Count == 0)
-            {
-                _nativeInstance = Photino_ctor(_startupParameters);
-            }
-            else
-            {
-                var formattedErrors = "\n";
-                foreach (var error in errors)
-                    formattedErrors += error + "\n";
-
-                throw new ArgumentException($"Startup Parameters Are Not Valid: {formattedErrors}");
-            }
-        }
 
 
         //WHAT ABOUT RESTORE() ? for windows it's just unsettng minimized or maximized
+
+        public void Close()
+        {
+            if (LogVerbosity > 1)
+                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Close()");
+
+            Photino_Close(_nativeInstance);
+        }
 
         ///<summary>Opens a native alert window with a title and message</summary>
         public void OpenAlertWindow(string title, string message)

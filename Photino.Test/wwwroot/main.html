@@ -1,7 +1,8 @@
 <h1>Main Window</h1>
-<button onclick="OpenChildWindow()" class="primary random center">Open Child Window</button>
-<button onclick="ZoomIn()"  class="primary random center">Zoom In</button>
-<button onclick="ZoomOut()" class="primary random center">Zoom Out</button>
+<button onclick="OpenChildWindow()" class="primary center">Open Child Window</button>
+<button onclick="ZoomIn()" class="primary center">Zoom In</button>
+<button onclick="ZoomOut()" class="primary center">Zoom Out</button>
+<button onclick="Close()" class="center">Close</button>
 
 <script>
     function OpenChildWindow() {
@@ -16,4 +17,7 @@
         window.external.sendMessage('zoom-out');
     }
 
+    function Close() {
+        window.external.sendMessage('close');
+    }
 </script>

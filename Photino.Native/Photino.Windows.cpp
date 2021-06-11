@@ -138,38 +138,32 @@ HWND Photino::getHwnd()
 	return _hWnd;
 }
 
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	//case WM_CLOSE:
-	//{
-	//	//if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK)
-	//	//{
-	//	Photino* Photino = hwndToPhotino[hwnd];
-	//	if (Photino)
-	//	{
-	//		Photino->InvokeClosing();
-	//		InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)lParam;
-	//		{
-	//			std::lock_guard<std::mutex> guard(invokeLockMutex);
-	//			waitInfo->isCompleted = true;
-	//		}
-	//		waitInfo->completionNotifier.notify_one();
-	//		DestroyWindow(hwnd);
-	//	}
-	//	//}
-	//	return 0;
-	//}
+	case WM_CLOSE:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (Photino)
+		{
+			bool doNotClose = Photino->InvokeClosing();
+
+			if (!doNotClose)
+				DestroyWindow(hwnd);
+		}
+
+		return 0;
+	}
 	case WM_DESTROY:
 	{
 		// Only terminate the message loop if the window being closed is the one that
 		// started the message loop
 		hwndToPhotino.erase(hwnd);
 		if (hwnd == messageLoopRootWindowHandle)
-		{
 			PostQuitMessage(0);
-		}
+
 		return 0;
 	}
 	case WM_USER_SHOWMESSAGE:
@@ -189,6 +183,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			waitInfo->isCompleted = true;
 		}
 		waitInfo->completionNotifier.notify_one();
+		//delete waitInfo; ?
 		return 0;
 	}
 	case WM_SIZE:
@@ -247,13 +242,14 @@ void Photino::Center()
 
 void Photino::Close()
 {
-	InvokeWaitInfo waitInfo = {};
-	SendMessage(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
+	PostMessage(_hWnd, WM_CLOSE, NULL, NULL);
+	//InvokeWaitInfo waitInfo = {};
+	//SendMessage(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
 
-	// Block until the callback is actually executed and completed
-	// TODO: Add return values, exception handling, etc.
-	std::unique_lock<std::mutex> uLock(invokeLockMutex);
-	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
+	//// Block until the callback is actually executed and completed
+	//// TODO: Add return values, exception handling, etc.
+	//std::unique_lock<std::mutex> uLock(invokeLockMutex);
+	//waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -287,6 +283,14 @@ void Photino::GetSize(int* width, int* height)
 	GetWindowRect(_hWnd, &rect);
 	if (width) *width = rect.right - rect.left;
 	if (height) *height = rect.bottom - rect.top;
+}
+
+void Photino::GetTitle(AutoString windowTitle)
+{
+	int titleLength = GetWindowTextLength(_hWnd) + 1;
+	wchar_t* title = new wchar_t[titleLength];
+	GetWindowText(_hWnd, title, titleLength);
+	windowTitle = title;
 }
 
 void Photino::GetZoom(int* zoom)
@@ -522,7 +526,6 @@ bool Photino::InstallWebView2()
 	return false;
 }
 
-#include <wchar.h>
 void Photino::AttachWebView()
 {
 	bool isUrl = false;
@@ -541,7 +544,7 @@ void Photino::AttachWebView()
 		wcscpy_s(startString, _startString);
 	}
 
-	double Zoom = _zoom;
+	int Zoom = _zoom;
 
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(

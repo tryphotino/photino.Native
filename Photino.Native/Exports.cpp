@@ -70,6 +70,11 @@ extern "C"
 		instance->GetSize(width, height);
 	}
 
+	EXPORTED void Photino_GetTitle(Photino* instance, AutoString windowTitle)
+	{
+		instance->GetTitle(windowTitle);
+	}
+
 	EXPORTED void Photino_GetZoom(Photino* instance, int* zoom)
 	{
 		instance->GetZoom(zoom);

@@ -37,7 +37,7 @@ typedef void* (*WebResourceRequestedCallback)(AutoString url, int* outNumBytes, 
 typedef int (*GetAllMonitorsCallback)(const Monitor* monitor);
 typedef void (*ResizedCallback)(int width, int height);
 typedef void (*MovedCallback)(int x, int y);
-typedef void (*ClosingCallback)();
+typedef bool (*ClosingCallback)();
 
 class Photino;
 struct PhotinoInitParams
@@ -83,7 +83,7 @@ private:
 	ClosingCallback _closingCallback;
 	AutoString _startUrl;
 	AutoString _startString;
-	double _zoom;
+	int _zoom;
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
@@ -126,6 +126,7 @@ public:
 	void GetPosition(int* x, int* y);
 	unsigned int GetScreenDpi();
 	void GetSize(int* width, int* height);
+	void GetTitle(AutoString windowTitle);
 	void GetZoom(int* zoom);
 	void Maximize();
 	void Minimize();
@@ -151,7 +152,7 @@ public:
 	void SetResizedCallback(ResizedCallback callback) { _resizedCallback = callback; }
 
 	void Invoke(ACTION callback);
-	void InvokeClosing() { if (_closingCallback) _closingCallback(); }
+	bool InvokeClosing() { if (_closingCallback) return _closingCallback(); else return false; }
 	void InvokeMoved(int x, int y) { if (_movedCallback) _movedCallback(x, y); }
 	void InvokeResized(int width, int height) { if (_resizedCallback) _resizedCallback(width, height); }
 };

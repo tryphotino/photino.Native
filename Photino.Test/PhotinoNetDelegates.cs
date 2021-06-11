@@ -48,16 +48,22 @@ namespace PhotinoNET
         }
 
 
-
-        public event EventHandler WindowClosing;
-        public PhotinoWindow RegisterWindowClosingHandler(EventHandler handler)
+        public delegate bool NetClosingDelegate(object sender, EventArgs e);
+        public event NetClosingDelegate WindowClosing;
+        public PhotinoWindow RegisterWindowClosingHandler(NetClosingDelegate handler)
         {
             WindowClosing += handler;
             return this;
         }
-        public void OnWindowClosing()
+        public byte OnWindowClosing()
         {
-            WindowClosing?.Invoke(this, null);
+            //C++ handles bool values as a single byte, C# uses 4 bytes
+            byte noClose = 0;
+            var doNotClose = WindowClosing?.Invoke(this, null);
+            if (doNotClose ?? false)
+                noClose = 1;
+
+            return noClose;
         }
 
 
@@ -90,7 +96,7 @@ namespace PhotinoNET
 
 
         ///<summary>Custom schemes (other than 'http', 'https' and 'file') must be handled by creating the handlers manually</summary>
-        public IDictionary<string, CustomSchemeDelegate> CustomSchemeHandlers { get; } = new Dictionary<string, CustomSchemeDelegate>();
-        public delegate Stream CustomSchemeDelegate(string url, out string contentType);
+        public IDictionary<string, NetCustomSchemeDelegate> CustomSchemeHandlers { get; } = new Dictionary<string, NetCustomSchemeDelegate>();
+        public delegate Stream NetCustomSchemeDelegate(string url, out string contentType);
     }
 }

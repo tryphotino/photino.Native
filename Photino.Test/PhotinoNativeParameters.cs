@@ -21,18 +21,18 @@ namespace PhotinoNET
 		public IntPtr Parent;
 
 		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
-		internal ClosingDelegate ClosingHandler;
+		internal CppClosingDelegate ClosingHandler;
 		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
-		internal ResizedDelegate ResizedHandler;
+		internal CppResizedDelegate ResizedHandler;
 		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
-		internal MovedDelegate MovedHandler;
+		internal CppMovedDelegate MovedHandler;
 		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
-		internal WebMessageReceivedDelegate WebMessageReceivedHandler;
+		internal CppWebMessageReceivedDelegate WebMessageReceivedHandler;
 
 		///<summary>OPTIONAL: Name of a custom URL Scheme. Must have a matching entry in CustomSchemeHandlers array. Array length must be 32.</summary>
 		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.LPWStr, SizeConst = 32)] public string[] CustomSchemeNames;
 		///<summary>OPTIONAL: A custom URL Scheme handler. Must have a matching entry in CustomSchemeNamess array. Array length must be 32.</summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)] public WebResourceRequestedDelegate[] CustomSchemeHandlers;
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)] public CppWebResourceRequestedDelegate[] CustomSchemeHandlers;
 
 		///<summary>OPTIONAL: Initial window position in pixels. Can be overridden with UseOsDefaultLocation property.</summary>
 		[MarshalAs(UnmanagedType.I4)] public int Left;
