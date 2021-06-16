@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace PhotinoNET
 {
@@ -95,8 +95,63 @@ namespace PhotinoNET
 
 
 
-        ///<summary>Custom schemes (other than 'http', 'https' and 'file') must be handled by creating the handlers manually</summary>
-        public IDictionary<string, NetCustomSchemeDelegate> CustomSchemeHandlers { get; } = new Dictionary<string, NetCustomSchemeDelegate>();
+
+        ///<summary>Custom schemes (other than 'http', 'https' and 'file') must be handled by creating the handlers manually.</summary>
         public delegate Stream NetCustomSchemeDelegate(string url, out string contentType);
+        public PhotinoWindow RegisterCustomSchemeHandler(string scheme, NetCustomSchemeDelegate handler)
+        {
+            if (!string.IsNullOrWhiteSpace(_startupParameters.CustomSchemeNames[31]))
+                throw new ArgumentException("A maximum of 32 custom scheme handlers can be set prior to intializing the native window.");
+
+            if (string.IsNullOrWhiteSpace(scheme))
+                throw new ArgumentException("A scheme must be provided. (for example 'app' or 'custom'");
+
+            if (handler == null)
+                throw new ArgumentException("A handler (method) with a signature matching NetCustomSchemeDelegate must be supplied.");
+
+            scheme = scheme.ToLower();
+            var i = 0;
+            while (i < 32)
+            {
+                if (string.Compare(_startupParameters.CustomSchemeNames[i], scheme, true) == 0)
+                    throw new ArgumentException($"Scheme '{scheme}' has already been defined and cannot be re-defined.");
+                if (string.IsNullOrWhiteSpace(_startupParameters.CustomSchemeNames[i]))
+                    break;
+                i++;
+            }
+
+            _startupParameters.CustomSchemeNames[i] = scheme;
+
+            CppWebResourceRequestedDelegate cCallback = (string url, out int numBytes, out string contentType) =>
+            {
+                var responseStream = handler(url, out contentType);
+                if (responseStream == null)
+                {
+                    // Webview should pass through request to normal handlers (e.g., network)
+                    // or handle as 404 otherwise
+                    numBytes = 0;
+                    return default;
+                }
+
+                // Read the stream into memory and serve the bytes
+                // In the future, it would be possible to pass the stream through into C++
+                using (responseStream)
+                using (var ms = new MemoryStream())
+                {
+                    responseStream.CopyTo(ms);
+
+                    numBytes = (int)ms.Position;
+                    var buffer = Marshal.AllocHGlobal(numBytes);
+                    Marshal.Copy(ms.GetBuffer(), 0, buffer, numBytes);
+                    //_hGlobalToFree.Add(buffer);
+                    return buffer;
+                }
+            };
+
+            _startupParameters.CustomSchemeHandlers[i] = cCallback;
+               
+
+            return this;
+        }
     }
 }

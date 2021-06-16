@@ -128,6 +128,14 @@ Photino::Photino(PhotinoInitParams* initParams)
 		SetTopmost(true);
 
 	Photino::Show();
+
+
+	int i = 0;
+	while (i < 32 && initParams->CustomSchemNames[i] != NULL) // && wcslen(initParams->CustomSchemNames[i]) > 0)
+	{
+		AddCustomScheme(initParams->CustomSchemNames[i], *initParams->CustomSchemHandlers[i]);
+		i++;
+	}
 }
 
 // Needn't to release the handles.
@@ -599,6 +607,9 @@ void Photino::AttachWebView()
 									{
 										int numBytes;
 										AutoString contentType;
+										
+										MessageBox(nullptr, uriString.c_str(), scheme.c_str(), MB_OK);
+
 										wil::unique_cotaskmem dotNetResponse(handler(uriString.c_str(), &numBytes, &contentType));
 
 										if (dotNetResponse != nullptr && contentType != nullptr)

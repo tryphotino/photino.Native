@@ -64,6 +64,10 @@ namespace PhotinoNET
 		///<summary>OPTIONAL: If true, overrides Height and Width parameters and lets the OS position the newly created window.</summary>
 		[MarshalAs(UnmanagedType.I1)] public bool UseOsDefaultSize;
 
+		
+		///<summary>The size is set when GetParamErrors() is called, prior to initializing the native window. It is a check to make sure the struct matches what C++ is expecting.</summary>
+		[MarshalAs(UnmanagedType.I4)] public int Size;
+
 
 		///<summary>Checks the parameters to ensure they are valid before window creation. 
 		///Called by PhotinoWindow prior to initializing native window.
@@ -84,6 +88,7 @@ namespace PhotinoNET
 
 			if (!string.IsNullOrWhiteSpace(WindowIconFile) && !File.Exists(WindowIconFile))
 				response.Add($"WindowIconFile: {WindowIconFile} cannot be found");
+
 
 			return response;
 		}

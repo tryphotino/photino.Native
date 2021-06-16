@@ -54,8 +54,8 @@ struct PhotinoInitParams
 	MovedCallback* MovedHandler;
 	WebMessageReceivedCallback* WebMessageReceivedHandler;
 	
-	AutoString CustomSchemaNames[32];
-	WebResourceRequestedCallback CustomSchemaHandlers[32];
+	AutoString CustomSchemNames[32];
+	WebResourceRequestedCallback CustomSchemHandlers[32];
 
 	int Left;
 	int Top;

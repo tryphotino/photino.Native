@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Text;
 
 namespace PhotinoNET
 {
@@ -49,7 +51,20 @@ namespace PhotinoNET
                 .RegisterSizeChangedHandler(WindowSizeChanged)
                 .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
                 .RegisterWindowClosingHandler(WindowIsClosing);
-                
+
+
+            mainWindow.RegisterCustomSchemeHandler("app", (string url, out string contentType) =>
+            {
+                contentType = "text/javascript";
+                return new MemoryStream(Encoding.UTF8.GetBytes(@"
+                                (() =>{
+                                    window.setTimeout(() => {
+                                        alert(`🎉 Dynamically inserted JavaScript.`);
+                                    }, 1000);
+                                })();
+                            "));
+            });
+
             mainWindow.WaitForClose();
 
             mainWindow.Center(); //will never happen - this is blocking.

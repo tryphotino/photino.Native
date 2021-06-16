@@ -16,6 +16,8 @@ namespace PhotinoNET
             Height = -1,
             Width = -1,
             Zoom = 100,
+            CustomSchemeNames = new string[32],
+            CustomSchemeHandlers = new CppWebResourceRequestedDelegate[32],
         };
         
         //Pointers to the type and instance.
