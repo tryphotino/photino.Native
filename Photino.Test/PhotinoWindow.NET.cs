@@ -10,7 +10,6 @@ namespace PhotinoNET
     public partial class PhotinoWindow
     {
         //PRIVATE FIELDS
-
         ///<summary>Parameters set to Photino.Native to start a new instance of a Photino.Native window.</summary>
         private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters
         {
@@ -806,6 +805,8 @@ namespace PhotinoNET
         public void Close()
         {
             Log(".Close()");
+            if (_nativeInstance == IntPtr.Zero)
+                throw new ApplicationException("Close cannot be called until after the Photino window is initialized.");
             Photino_Close(_nativeInstance);
         }
 
@@ -817,6 +818,8 @@ namespace PhotinoNET
             // Bug:
             // Closing the message shown with the OpenAlertWindow
             // method closes the sender window as well.
+            if (_nativeInstance == IntPtr.Zero)
+                throw new ApplicationException("OpenAlertWindow cannot be called until after the Photino window is initialized.");
             Photino_ShowMessage(_nativeInstance, title, message, /* MB_OK */ 0);
         }
 
@@ -824,6 +827,8 @@ namespace PhotinoNET
         public void SendWebMessage(string message)
         {
             Log($".SendWebMessage({message})");
+            if (_nativeInstance == IntPtr.Zero)
+                throw new ApplicationException("SendWebMessage cannot be called until after the Photino window is initialized.");
             Photino_SendWebMessage(_nativeInstance, message);
         }
 
