@@ -9,6 +9,8 @@ namespace PhotinoNET
 {
     public partial class PhotinoWindow
     {
+        //PRIVATE FIELDS
+
         ///<summary>Parameters set to Photino.Native to start a new instance of a Photino.Native window.</summary>
         private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters
         {
@@ -22,8 +24,7 @@ namespace PhotinoNET
         //Pointers to the type and instance.
         private static IntPtr _nativeType = IntPtr.Zero;
         private IntPtr _nativeInstance;
-
-        
+ 
         //There can only be 1 message loop for all windows.
         private static bool _messageLoopIsStarted = false;
 
