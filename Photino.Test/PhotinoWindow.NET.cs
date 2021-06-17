@@ -16,8 +16,7 @@ namespace PhotinoNET
             Height = -1,
             Width = -1,
             Zoom = 100,
-            CustomSchemeNames = new string[32],
-            CustomSchemeHandlers = new CppWebResourceRequestedDelegate[32],
+            CustomSchemeNames = new string[16],
         };
         
         //Pointers to the type and instance.
@@ -457,10 +456,11 @@ namespace PhotinoNET
             }
 
             //Wire up handlers from C++ to C#
-            _startupParameters.ClosingHandler = (CppClosingDelegate)OnWindowClosing;
-            _startupParameters.ResizedHandler = (CppResizedDelegate)OnSizeChanged;
-            _startupParameters.MovedHandler = (CppMovedDelegate)OnLocationChanged;
-            _startupParameters.WebMessageReceivedHandler = (CppWebMessageReceivedDelegate)OnWebMessageReceived;
+            _startupParameters.ClosingHandler = OnWindowClosing;
+            _startupParameters.ResizedHandler = OnSizeChanged;
+            _startupParameters.MovedHandler = OnLocationChanged;
+            _startupParameters.WebMessageReceivedHandler = OnWebMessageReceived;
+            _startupParameters.CustomSchemeHandler = OnCustomScheme;
         }
 
 
@@ -473,22 +473,18 @@ namespace PhotinoNET
         ///<summary>Loads the specified file or url into the browser control</summary>
         public PhotinoWindow Load(Uri uri)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Load(Uri uri)");
-
+            Log($".Load({uri})");
             if (_nativeInstance == IntPtr.Zero)
                 _startupParameters.StartUrl = uri.ToString();
             else
                 Photino_NavigateToUrl(_nativeInstance, uri.ToString());
-
             return this;
         }
 
         ///<summary>Loads the specified file or url into the browser control</summary>
         public PhotinoWindow Load(string path)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Load(string path)");
+            Log($".Load({path})");
 
             // ––––––––––––––––––––––
             // SECURITY RISK!
@@ -509,7 +505,7 @@ namespace PhotinoNET
 
                 if (File.Exists(absolutePath) == false)
                 {
-                    Console.WriteLine($"File \"{path}\" could not be found.");
+                    Log($" ** File \"{path}\" could not be found.");
                     return this;
                 }
             }
@@ -520,14 +516,12 @@ namespace PhotinoNET
         ///<summary>Loads a raw string (typically HTML) into the browser control</summary>
         public PhotinoWindow LoadRawString(string content)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".LoadRawString(string content)");
-
+            var shortContent = content.Length > 50 ? content.Substring(0, 50) + "..." : content;
+            Log($".LoadRawString({shortContent})");
             if (_nativeInstance == IntPtr.Zero)
                 _startupParameters.StartString = content;
             else
                 Photino_NavigateToString(_nativeInstance, content);
-
             return this;
         }
 
@@ -535,35 +529,29 @@ namespace PhotinoNET
         ///<summary>Centers the window in the main monitor. If called prior to window initialization, overrides Left and Top properties.</summary>
         public PhotinoWindow Center()
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Center()");
-
+            Log(".Center()");
             if (_nativeInstance == IntPtr.Zero)
             {
                 _startupParameters.CenterOnInitialize = true;
                 return this;
             }
-
             Size workAreaSize= MainMonitor.WorkArea.Size;
-
             var centeredPosition = new Point(
                 ((workAreaSize.Width / 2) - (Width / 2)),
                 ((workAreaSize.Height / 2) - (Height / 2))
             );
-
             return SetLocation(centeredPosition);
         }
 
         ///<summary>Moves the window to the specified location on the screen using a Point</summary>
         public PhotinoWindow MoveTo(Point location, bool allowOutsideWorkArea = false)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".MoveTo(Point location, bool allowOutsideWorkArea)");
+            Log($".MoveTo({location}, {allowOutsideWorkArea})");
 
             if (LogVerbosity > 2)
             {
-                Console.WriteLine($"Current location: {Location}");
-                Console.WriteLine($"New location: {location}");
+                Log($"  Current location: {Location}");
+                Log($"  New location: {location}");
             }
 
             // If the window is outside of the work area,
@@ -615,216 +603,156 @@ namespace PhotinoNET
         ///<summary>Moves the window to the specified location on the screen using left and right properties</summary>
         public PhotinoWindow MoveTo(int left, int top, bool allowOutsideWorkArea = false)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".MoveTo(int left, int top, bool allowOutsideWorkArea)");
-
+            Log($".MoveTo({left}, {top}, {allowOutsideWorkArea})");
             return MoveTo(new Point(left, top), allowOutsideWorkArea);
         }
 
         ///<summary>Moves the window relative to its current location on the screen using a Point</summary>
         public PhotinoWindow Offset(Point offset)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Offset(Point offset)");
-
+            Log($".Offset({offset})");
             var location = Location;
-
             int left = location.X + offset.X;
             int top = location.Y + offset.Y;
-
             return MoveTo(left, top);
         }
 
         ///<summary>Moves the window relative to its current location on the screen using left and top coordinates</summary>
         public PhotinoWindow Offset(int left, int top)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Offset(int left, int top)");
-
+            Log($".Offset({left}, {top})");
             return Offset(new Point(left, top));
         }
-        ///<summary>Centers the window on the main monitor work area.</summary>
 
 
 
 
         public PhotinoWindow SetChromeless(bool chromeless)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetChromeless(bool chromeless)");
-
+            Log($".SetChromeless({chromeless})");
             if (_nativeInstance != IntPtr.Zero)
                 throw new ApplicationException("Chromeless setting cannot be used on an unitialized window.");
 
             _startupParameters.Chromeless = chromeless;
-
             return this;
         }
 
         public PhotinoWindow SetFullScreen(bool fullScreen)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetFullScreen(bool fullScreen)");
-
+            Log($".SetFullScreen({fullScreen})");
             FullScreen = fullScreen;
-
             return this;
         }
 
         ///<summary>In Pixels. Leave at -1 to initialize window to OS default size.</summary>
         public PhotinoWindow SetHeight(int height)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetHeight(int height)");
-
+            Log($".SetHeight({height})");
             Height = height;
-
             return this;
         }
 
         ///<summary>Must be a local file, not a URL.</summary>
         public PhotinoWindow SetIconFile(string iconFile)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetIconFile(string iconFile)");
-
+            Log($".SetIconFile({iconFile})");
             IconFile = iconFile;
-
             return this;
         }
 
         public PhotinoWindow SetLeft(int left)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetLeft(int Left)");
-
+            Log($".SetLeft({Left})");
             Left = left;
-
             return this;
         }
 
         public PhotinoWindow SetResizable(bool resizable)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetIsTopMost(bool topMost)");
-
+            Log($".SetResizable({resizable})");
             Resizable = resizable;
-
             return this;
         }
 
         ///<summary>In Pixels. Leave at -1, -1 to initialize window to OS default size.</summary>
         public PhotinoWindow SetSize(Size size)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetSize(Size size)");
-
+            Log($".SetSize({size})");
             Size = size;
-
             return this;
         }
 
         public PhotinoWindow SetLocation(Point location)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetLocation(Point location)");
-
+            Log($".SetLocation({location})");
             Location = location;
-
             return this;
         }
 
         public PhotinoWindow SetMaximized(bool maximized)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetMaximized(bool maximized)");
-
+            Log($".SetMaximized({maximized})");
             Maximized = maximized;
-
             return this;
         }
 
         public PhotinoWindow SetMinimized(bool minimized)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetMinimized(bool minimized)");
-
+            Log($".SetMinimized({minimized})");
             Minimized = minimized;
-
             return this;
         }
 
         public PhotinoWindow SetTitle(string title)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetTitle(string title)");
-
+            Log($".SetTitle({title})");
             Title = title;
-
             return this;
         }
 
         public PhotinoWindow SetTop(int top)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetTop(int Top)");
-
+            Log($".SetTop({top})");
             Top = top;
-
             return this;
         }
 
         public PhotinoWindow SetTopMost(bool topMost)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetIsTopMost(bool topMost)");
-
+            Log($".SetTopMost({topMost})");
             TopMost = topMost;
-
             return this;
         }
 
         ///<summary>In Pixels. Leave at -1 to initialize window to OS default size.</summary>
         public PhotinoWindow SetWidth(int width)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetWidth(int width)");
-
+            Log($".SetWidth({width})");
             Width = width;
-
             return this;
         }
 
         ///<summary>Browser control zoom level. e.g. 100 = 100%</summary>
         public PhotinoWindow SetZoom(int zoom)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetZoom(int zoom)");
-
+            Log($".SetZoom({zoom})");
             Zoom = zoom;
-
             return this;
         }
 
         ///<summary>Overrides Left and Top properties and relise on the OS to position the window.</summary>
         public PhotinoWindow SetUseOsDefaultLocation(bool useOsDefault)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetUseOsDefaultLocation(bool useOsDefault)");
-
+            Log($".SetUseOsDefaultLocation({useOsDefault})");
             UseOsDefaultLocation = useOsDefault;
-
             return this;
         }
 
         ///<summary>Overrides Height and Width properties and relise on the OS to determine the initial size of the window.</summary>
         public PhotinoWindow SetUseOsDefaultSize(bool useOsDefault)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SetUseOsDefaultSize(bool useOsDefault)");
-
+            Log($".SetUseOsDefaultSize({useOsDefault})");
             UseOsDefaultSize = useOsDefault;
-
             return this;
         }
 
@@ -839,6 +767,14 @@ namespace PhotinoNET
         ///This is the only Window that runs a message loop.</summary>
         public void WaitForClose()
         {
+            //fill in the fixed size array of custom scheme names
+            var i = 0;
+            foreach (var name in CustomSchemeNames.Take(16))
+            {
+                _startupParameters.CustomSchemeNames[i] = name;
+                i++;
+            }
+
             var errors = _startupParameters.GetParamErrors();
             if (errors.Count == 0)
             {
@@ -868,17 +804,14 @@ namespace PhotinoNET
 
         public void Close()
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".Close()");
-
+            Log(".Close()");
             Photino_Close(_nativeInstance);
         }
 
         ///<summary>Opens a native alert window with a title and message</summary>
         public void OpenAlertWindow(string title, string message)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".OpenAlertWindow(string title, string message)");
+            Log($".OpenAlertWindow({title}, {message})");
 
             // Bug:
             // Closing the message shown with the OpenAlertWindow
@@ -889,10 +822,16 @@ namespace PhotinoNET
         ///<summary>Send a message to the window's JavaScript context</summary>
         public void SendWebMessage(string message)
         {
-            if (LogVerbosity > 1)
-                Console.WriteLine($"Executing: \"{Title ?? "PhotinoWindow"}\".SendWebMessage(string message)");
-
+            Log($".SendWebMessage({message})");
             Photino_SendWebMessage(_nativeInstance, message);
+        }
+
+
+
+        private void Log(string message)
+        {
+            if (LogVerbosity < 1) return;
+            Console.WriteLine($"Photino.NET: \"{Title ?? "PhotinoWindow"}\"{message}");
         }
     }
 }

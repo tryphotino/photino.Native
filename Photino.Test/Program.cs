@@ -53,17 +53,7 @@ namespace PhotinoNET
                 .RegisterWindowClosingHandler(WindowIsClosing);
 
 
-            mainWindow.RegisterCustomSchemeHandler("app", (string url, out string contentType) =>
-            {
-                contentType = "text/javascript";
-                return new MemoryStream(Encoding.UTF8.GetBytes(@"
-                                (() =>{
-                                    window.setTimeout(() => {
-                                        alert(`🎉 Dynamically inserted JavaScript.`);
-                                    }, 1000);
-                                })();
-                            "));
-            });
+            mainWindow.RegisterCustomSchemeHandler("app", AppCustomSchemeUsed);
 
             mainWindow.WaitForClose();
 
@@ -72,110 +62,102 @@ namespace PhotinoNET
 
 
         //These are the event handlers I'm hooking up
-        private static void MessageReceivedFromWindow(object sender, string message)
+        private static Stream AppCustomSchemeUsed(string scheme, out string contentType)
         {
-            if (_logEvents)
-            {
-                var currentWindow = sender as PhotinoWindow;
-                var windowTitle = currentWindow == null ? string.Empty : currentWindow.Title;
-                Console.WriteLine($" Window '{windowTitle}' Received New Message: {message}");
+            Log(null, $"Custom scheme '{scheme}' was used.");
 
-                if (string.Compare(message, "random-window", true) == 0)
-                {
-                    var x = new PhotinoWindow()
-                        .SetTitle($"Child Window {_windowNumber++}")
-                        .Load("wwwroot/child.html")
-
-                        .SetUseOsDefaultLocation(true)
-                        .SetHeight(600)
-                        .SetWidth(800)
-
-                        .RegisterWindowCreatingHandler(WindowCreating)
-                        .RegisterWindowCreatedHandler(WindowCreated)
-                        .RegisterLocationChangedHandler(WindowLocationChanged)
-                        .RegisterSizeChangedHandler(WindowSizeChanged)
-                        .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
-                        .RegisterWindowClosingHandler(WindowIsClosing);
-
-                    x.WaitForClose();
-
-                    Console.WriteLine($"****** Window Title: {x.Title}");
-
-                    //x.SetHeight(800);
-                    //x.Close();
-                }
-                else if (string.Compare(message, "zoom-in", true) == 0)
-                {
-                    if (currentWindow != null)
-                        currentWindow.Zoom += 5;
-                }
-                else if (string.Compare(message, "zoom-out", true) == 0)
-                {
-                    if (currentWindow != null)
-                        currentWindow.Zoom -= 5;
-                }
-                else if (string.Compare(message, "close", true) == 0)
-                {
-                    if (currentWindow != null)
-                        currentWindow.Close();
-                }
-                else
-                    throw new Exception($"WTF? Unknown message '{message}'");
-            }
+            contentType = "text/javascript";
+            return new MemoryStream(Encoding.UTF8.GetBytes(@"
+                                (() =>{
+                                    window.setTimeout(() => {
+                                        alert(`🎉 Dynamically inserted JavaScript.`);
+                                    }, 1000);
+                                })();
+                            "));
         }
 
+        private static void MessageReceivedFromWindow(object sender, string message)
+        {
+            var currentWindow = sender as PhotinoWindow;
 
+            Log(sender, $"MessageRecievedFromWindow Callback Fired.");
+
+            if (string.Compare(message, "random-window", true) == 0)
+            {
+                var x = new PhotinoWindow()
+                    .SetTitle($"Child Window {_windowNumber++}")
+                    .Load("wwwroot/child.html")
+
+                    .SetUseOsDefaultLocation(true)
+                    .SetHeight(600)
+                    .SetWidth(800)
+
+                    .RegisterWindowCreatingHandler(WindowCreating)
+                    .RegisterWindowCreatedHandler(WindowCreated)
+                    .RegisterLocationChangedHandler(WindowLocationChanged)
+                    .RegisterSizeChangedHandler(WindowSizeChanged)
+                    .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
+                    .RegisterWindowClosingHandler(WindowIsClosing);
+
+                x.WaitForClose();
+
+                //x.SetHeight(800);
+                //x.Close();
+            }
+            else if (string.Compare(message, "zoom-in", true) == 0)
+            {
+                if (currentWindow != null)
+                    currentWindow.Zoom += 5;
+            }
+            else if (string.Compare(message, "zoom-out", true) == 0)
+            {
+                if (currentWindow != null)
+                    currentWindow.Zoom -= 5;
+            }
+            else if (string.Compare(message, "close", true) == 0)
+            {
+                if (currentWindow != null)
+                    currentWindow.Close();
+            }
+            else
+                throw new Exception($"WTF? Unknown message '{message}'");
+        }
 
         private static void WindowCreating(object sender, EventArgs e)
         {
-            if (_logEvents)
-            {
-                var currentWindow = sender as PhotinoWindow;
-                var windowTitle = currentWindow == null ? string.Empty : currentWindow.Title;
-                Console.WriteLine($" Window '{windowTitle}' Creating");
-            }
+            Log(sender, "WindowCreating Callback Fired.");
         }
 
         private static void WindowCreated(object sender, EventArgs e)
         {
-            if (_logEvents)
-            {
-                var currentWindow = sender as PhotinoWindow;
-                var windowTitle = currentWindow == null ? string.Empty : currentWindow.Title;
-                Console.WriteLine($" Window '{windowTitle}' was Created");
-            }
+            Log(sender, "WindowCreated Callback Fired.");
         }
 
         private static void WindowLocationChanged(object sender, Point location)
         {
-            if (_logEvents)
-            {
-                var currentWindow = sender as PhotinoWindow;
-                var windowTitle = currentWindow == null ? string.Empty : currentWindow.Title;
-                Console.WriteLine($" Window '{windowTitle}' Location Changed To Left: {location.X}  Top: {location.Y}");
-            }
+            Log(sender, $"WindowLocationChanged Callback Fired.  Left: {location.X}  Top: {location.Y}");
         }
 
         private static void WindowSizeChanged(object sender, Size size)
         {
-            if (_logEvents)
-            {
-                var currentWindow = sender as PhotinoWindow;
-                var windowTitle = currentWindow == null ? string.Empty : currentWindow.Title;
-                Console.WriteLine($" Window '{windowTitle}' Size Changed To Height: {size.Height}  Width: {size.Width}");
-            }
+            Log(sender, $"WindowSizeChanged Callback Fired.  Height: {size.Height}  Width: {size.Width}");
         }
 
         private static bool WindowIsClosing(object sender, EventArgs e)
         {
-            if (_logEvents)
-            {
-                var currentWindow = sender as PhotinoWindow;
-                var windowTitle = currentWindow == null ? string.Empty : currentWindow.Title;
-                Console.WriteLine($" Window '{windowTitle}' Is Closing");
-            }
-
+            Log(sender, "WindowIsClosing Callback Fired.");
             return false;   //return true to block closing of the window
+        }
+
+
+
+
+        private static void Log(object sender, string message)
+        {
+            if (!_logEvents) return;
+            var currentWindow = sender as PhotinoWindow;
+            var windowTitle = currentWindow == null ? string.Empty : currentWindow.Title;
+            Console.WriteLine($"-Client App: \"{windowTitle ?? "title?"}\" {message}");
         }
     }
 }

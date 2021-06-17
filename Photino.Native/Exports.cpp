@@ -158,9 +158,9 @@ extern "C"
 
 
 	//Callbacks
-	EXPORTED void Photino_AddCustomScheme(Photino* instance, AutoString scheme, WebResourceRequestedCallback requestHandler)
+	EXPORTED void Photino_AddCustomSchemeName(Photino* instance, AutoString scheme)
 	{
-		instance->AddCustomScheme(scheme, requestHandler);
+		instance->AddCustomSchemeName(scheme);
 	}
 
 	EXPORTED void Photino_GetAllMonitors(Photino* instance, GetAllMonitorsCallback callback)

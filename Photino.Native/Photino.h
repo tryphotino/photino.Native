@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <wil/com.h>
 #include <WebView2.h>
+#include <vector>
 typedef const wchar_t* AutoString;
 #else
 // AutoString for macOS/Linux
@@ -53,9 +54,8 @@ struct PhotinoInitParams
 	ResizedCallback* ResizedHandler;
 	MovedCallback* MovedHandler;
 	WebMessageReceivedCallback* WebMessageReceivedHandler;
-	
-	AutoString CustomSchemNames[32];
-	WebResourceRequestedCallback CustomSchemHandlers[32];
+	AutoString CustomSchemeNames[16];
+	WebResourceRequestedCallback* CustomSchemeHandler;
 
 	int Left;
 	int Top;
@@ -72,6 +72,8 @@ struct PhotinoInitParams
 	bool Topmost;
 	bool UseOsDefaultLocation;
 	bool UseOsDefaultSize;
+
+	int Size;
 };
 
 class Photino
@@ -81,6 +83,9 @@ private:
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
 	ClosingCallback _closingCallback;
+	std::vector<AutoString> _customSchemeNames;
+	WebResourceRequestedCallback _customSchemeCallback;
+
 	AutoString _startUrl;
 	AutoString _startString;
 	int _zoom;
@@ -91,7 +96,6 @@ private:
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
-	std::map<std::wstring, WebResourceRequestedCallback> _schemeToRequestHandler;
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
 	void Show();
@@ -145,14 +149,14 @@ public:
 	void WaitForExit();
 
 	//Callbacks
-	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
+	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back(scheme); };
 	void GetAllMonitors(GetAllMonitorsCallback callback);
 	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
 	void SetMovedCallback(MovedCallback callback) { _movedCallback = callback; }
 	void SetResizedCallback(ResizedCallback callback) { _resizedCallback = callback; }
 
 	void Invoke(ACTION callback);
-	bool InvokeClosing() { if (_closingCallback) return _closingCallback(); else return false; }
-	void InvokeMoved(int x, int y) { if (_movedCallback) _movedCallback(x, y); }
-	void InvokeResized(int width, int height) { if (_resizedCallback) _resizedCallback(width, height); }
+	bool InvokeClose() { if (_closingCallback) return _closingCallback(); else return false; }
+	void InvokeMove(int x, int y) { if (_movedCallback) _movedCallback(x, y); }
+	void InvokeResize(int width, int height) { if (_resizedCallback) _resizedCallback(width, height); }
 };

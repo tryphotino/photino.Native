@@ -7,6 +7,7 @@
 #include <wrl.h>
 #include <windows.h>
 #include <cstdio>
+#include <algorithm>
 #pragma comment(lib, "Urlmon.lib")
 
 #define WM_USER_SHOWMESSAGE (WM_USER + 0x0001)
@@ -51,6 +52,13 @@ void Photino::Register(HINSTANCE hInstance)
 
 Photino::Photino(PhotinoInitParams* initParams)
 {	
+	if (initParams->Size != sizeof(PhotinoInitParams))
+	{
+		wchar_t msg[200];
+		swprintf(msg, 200, L"Initial parameters passed are %i bytes, but expected %i bytes.", initParams->Size, sizeof(PhotinoInitParams));
+		throw msg;
+	}
+
 	_startUrl = initParams->StartUrl;
 	_startString = initParams->StartString;
 	_zoom = initParams->Zoom;
@@ -60,12 +68,25 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_resizedCallback = (ResizedCallback)initParams->ResizedHandler;
 	_movedCallback = (MovedCallback)initParams->MovedHandler;
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
+	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
+
+	//copy strings from the fixed size array passed, but only if they have a value.
+	int i = 0;
+	while (i < 16)
+	{
+		if (initParams->CustomSchemeNames[i] != NULL)
+			_customSchemeNames.push_back(initParams->CustomSchemeNames[i]);
+		i++;
+	}
+
 
 	_parenthWnd = initParams->ParentInstance;
 
 	//wchar_t msg[50];
 	//swprintf(msg, 50, L"Height: %i  Width: %i  Left: %d  Top: %d", initParams->Height, initParams->Width, initParams->Left, initParams->Top);
 	//MessageBox(nullptr, msg, L"", MB_OK);
+
+
 
 	if (initParams->UseOsDefaultSize)
 	{
@@ -128,14 +149,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 		SetTopmost(true);
 
 	Photino::Show();
-
-
-	int i = 0;
-	while (i < 32 && initParams->CustomSchemNames[i] != NULL) // && wcslen(initParams->CustomSchemNames[i]) > 0)
-	{
-		AddCustomScheme(initParams->CustomSchemNames[i], *initParams->CustomSchemHandlers[i]);
-		i++;
-	}
 }
 
 // Needn't to release the handles.
@@ -156,7 +169,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Photino* Photino = hwndToPhotino[hwnd];
 		if (Photino)
 		{
-			bool doNotClose = Photino->InvokeClosing();
+			bool doNotClose = Photino->InvokeClose();
 
 			if (!doNotClose)
 				DestroyWindow(hwnd);
@@ -202,7 +215,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			Photino->RefitContent();
 			int width, height;
 			Photino->GetSize(&width, &height);
-			Photino->InvokeResized(width, height);
+			Photino->InvokeResize(width, height);
 		}
 		return 0;
 	}
@@ -213,7 +226,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			int x, y;
 			Photino->GetPosition(&x, &y);
-			Photino->InvokeMoved(x, y);
+			Photino->InvokeMove(x, y);
 		}
 		return 0;
 	}
@@ -416,11 +429,6 @@ void Photino::WaitForExit()
 
 
 //Callbacks
-void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
-{
-	_schemeToRequestHandler[scheme] = requestHandler;
-}
-
 BOOL MonitorEnum(HMONITOR monitor, HDC, LPRECT, LPARAM arg)
 {
 	auto callback = (GetAllMonitorsCallback)arg;
@@ -602,15 +610,18 @@ void Photino::AttachWebView()
 								if (colonPos > 0)
 								{
 									std::wstring scheme = uriString.substr(0, colonPos);
-									WebResourceRequestedCallback handler = _schemeToRequestHandler[scheme];
-									if (handler != NULL)
+									std::vector<AutoString>::iterator it = std::find(_customSchemeNames.begin(), _customSchemeNames.end(), scheme);
+
+									//wchar_t* url = _wcsdup(uriString.c_str());
+									//wchar_t msg[100];
+									//swprintf(msg, 100, L"it: %i  .end(): %i,  _customSchemeCallback: %p", it, _customSchemeNames.end(), _customSchemeCallback);
+									//MessageBox(nullptr, msg, L"", MB_OK);
+
+									if (it != _customSchemeNames.end() && _customSchemeCallback != NULL)
 									{
 										int numBytes;
 										AutoString contentType;
-										
-										MessageBox(nullptr, uriString.c_str(), scheme.c_str(), MB_OK);
-
-										wil::unique_cotaskmem dotNetResponse(handler(uriString.c_str(), &numBytes, &contentType));
+										wil::unique_cotaskmem dotNetResponse(_customSchemeCallback(uriString.c_str(), &numBytes, &contentType));
 
 										if (dotNetResponse != nullptr && contentType != nullptr)
 										{
