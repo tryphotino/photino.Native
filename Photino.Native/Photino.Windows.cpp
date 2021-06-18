@@ -61,6 +61,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	_startUrl = initParams->StartUrl;
 	_startString = initParams->StartString;
+	_temporaryFilesPath = initParams->TemporaryFilesPath;
 	_zoom = initParams->Zoom;
 
 	//these handlers are ALWAYS hooked up
@@ -263,14 +264,10 @@ void Photino::Center()
 
 void Photino::Close()
 {
-	PostMessage(_hWnd, WM_CLOSE, NULL, NULL);
-	//InvokeWaitInfo waitInfo = {};
-	//SendMessage(_hWnd, WM_CLOSE, 0, (LPARAM)&waitInfo);
+	//SetLastError(er);
+	//throw new std::exception("C++ boom!", 123);
 
-	//// Block until the callback is actually executed and completed
-	//// TODO: Add return values, exception handling, etc.
-	//std::unique_lock<std::mutex> uLock(invokeLockMutex);
-	//waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
+	PostMessage(_hWnd, WM_CLOSE, NULL, NULL);
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -293,6 +290,12 @@ void Photino::GetPosition(int* x, int* y)
 	if (y) *y = rect.top;
 }
 
+void Photino::GetResizable(bool* resizable)
+{
+	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	if (lStyles & WS_MINIMIZEBOX & WS_MAXIMIZEBOX & WS_THICKFRAME) *resizable = true;
+}
+
 unsigned int Photino::GetScreenDpi()
 {
 	return GetDpiForWindow(_hWnd);
@@ -312,6 +315,12 @@ void Photino::GetTitle(AutoString windowTitle)
 	wchar_t* title = new wchar_t[titleLength];
 	GetWindowText(_hWnd, title, titleLength);
 	windowTitle = title;
+}
+
+void Photino::GetTopmost(bool* topmost)
+{
+	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	if (lStyles & WS_EX_TOPMOST) *topmost = true;
 }
 
 void Photino::GetZoom(int* zoom)
@@ -562,7 +571,7 @@ void Photino::AttachWebView()
 
 	int Zoom = _zoom;
 
-	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
+	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, _temporaryFilesPath, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&, Zoom](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }

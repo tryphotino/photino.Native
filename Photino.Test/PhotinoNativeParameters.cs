@@ -8,14 +8,16 @@ namespace PhotinoNET
     [StructLayout(LayoutKind.Sequential, Pack = 16, CharSet = CharSet.Auto)]
 	internal struct PhotinoNativeParameters
 	{
-		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this HTML string when initialized.</summary>
+		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this HTML string when initialized. Default is none.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] internal string StartString;
-		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this URL when initialized.</summary>
+		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this URL when initialized. Default is none.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] internal string StartUrl;
-		///<summary>OPTIONAL: Appears on the title bar of the native window.</summary>
+		///<summary>OPTIONAL: Appears on the title bar of the native window. Default is none.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] internal string Title;
-		///<summary>WINDOWS ONLY: OPTIONAL: Path to a local file or a URL. Icon appears on the title bar of the native window (if supported).</summary>
+		///<summary>WINDOWS AND LINUX ONLY: OPTIONAL: Path to a local file or a URL. Icon appears on the title bar of the native window (if supported). Default is none.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] internal string WindowIconFile;
+		///<summary>WINDOWS: OPTIONAL: Path to store temp files for browser control. Defaults is user's AppDataLocal folder.</summary>
+		[MarshalAs(UnmanagedType.LPWStr)] internal string TemporaryFilesPath;
 
 		///<summary>OPTIONAL: If this window is created from another window.</summary>
 		internal IntPtr Parent;
@@ -28,51 +30,48 @@ namespace PhotinoNET
 		[MarshalAs(UnmanagedType.FunctionPtr)] internal CppMovedDelegate MovedHandler;
 		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
 		[MarshalAs(UnmanagedType.FunctionPtr)] internal CppWebMessageReceivedDelegate WebMessageReceivedHandler;
-
-		///<summary>OPTIONAL: Names of a custom URL Schemes. Array length must be 16.</summary>
+		///<summary>OPTIONAL: Names of custom URL Schemes. e.g. 'app', 'custom'. Array length must be 16. Default is none.</summary>
 		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.LPWStr, SizeConst = 16)] internal string[] CustomSchemeNames;
 		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
 		[MarshalAs(UnmanagedType.FunctionPtr)] internal CppWebResourceRequestedDelegate CustomSchemeHandler;
 
 
-		///<summary>OPTIONAL: Initial window position in pixels. Can be overridden with UseOsDefaultLocation property.</summary>
+		///<summary>OPTIONAL: Initial window position in pixels. Default is 0. Can be overridden with UseOsDefaultLocation.</summary>
 		[MarshalAs(UnmanagedType.I4)] internal int Left;
-		///<summary>OPTIONAL: Initial window position in pixels. Can be overridden with UseOsDefaultLocation property.</summary>
+		///<summary>OPTIONAL: Initial window position in pixels. Default is 0. Can be overridden with UseOsDefaultLocation.</summary>
 		[MarshalAs(UnmanagedType.I4)] internal int Top;
-		///<summary>OPTIONAL: Initial window size in pixels. Can be overridden with UseOsDefaultSize property.</summary>
+		///<summary>OPTIONAL: Initial window size in pixels. Default is 0. Can be overridden with UseOsDefaultSize.</summary>
 		[MarshalAs(UnmanagedType.I4)] internal int Width;
-		///<summary>OPTIONAL: Initial window size in pixels. Can be overridden with UseOsDefaultSize property.</summary>
+		///<summary>OPTIONAL: Initial window size in pixels. Default is. Can be overridden with UseOsDefaultSize.</summary>
 		[MarshalAs(UnmanagedType.I4)] internal int Height;
-		///<summary>OPTIONAL: Initial zoom level of browser control. e.g.100 = 100%</summary>
+		///<summary>OPTIONAL: Initial zoom level of the native browser control. e.g.100 = 100%  Default is 100.</summary>
 		[MarshalAs(UnmanagedType.I4)] internal int Zoom;
 
-		///<summary>OPTIONAL: If true, native window appears in centered on screen. Left and Top properties are ignored.</summary>
+		///<summary>OPTIONAL: If true, native window appears in centered on screen. Left and Top properties are ignored. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool CenterOnInitialize;
-		///<summary>OPTIONAL: If true, window is created without a title bar or borders. This allows owner-drawn title bars and borders.</summary>
+		///<summary>OPTIONAL: If true, window is created without a title bar or borders. This allows owner-drawn title bars and borders. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool Chromeless;
-		///<summary>OPTIONAL: If true, browser control covers the entire screen. Useful for kiosks for example. Incompatible with Maximized and Minimized.</summary>
+		///<summary>OPTIONAL: If true, native browser control covers the entire screen. Useful for kiosks for example. Incompatible with Maximized and Minimized. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool FullScreen;
-		///<summary>OPTIONAL: If true, native window is maximized to fill the screen. Incompatible with Minimized and FullScreen.</summary>
+		///<summary>OPTIONAL: If true, native window is maximized to fill the screen. Incompatible with Minimized and FullScreen. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool Maximized;
-		///<summary>OPTIONAL: If true, native window is minimized (hidden). Incompatible with Maximized and FullScreen.</summary>
+		///<summary>OPTIONAL: If true, native window is minimized (hidden). Incompatible with Maximized and FullScreen. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool Minimized;
-		///<summary>OPTIONAL: If true, native window cannot be resized by the user. Can still be resized by the program.</summary>
+		///<summary>OPTIONAL: If true, native window cannot be resized by the user. Can still be resized by the program. Default is true.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool Resizable;
-		///<summary>OPTIONAL: If true, native window appears in front of other windows and cannot be hidden behind them.</summary>
+		///<summary>OPTIONAL: If true, native window appears in front of other windows and cannot be hidden behind them. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool Topmost;
-		///<summary>OPTIONAL: If true, overrides Top and Left parameters and lets the OS size the newly created window.</summary>
+		///<summary>OPTIONAL: If true, overrides Top and Left parameters and lets the OS size the newly created window. Default is true.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool UseOsDefaultLocation;
-		///<summary>OPTIONAL: If true, overrides Height and Width parameters and lets the OS position the newly created window.</summary>
+		///<summary>OPTIONAL: If true, overrides Height and Width parameters and lets the OS position the newly created window. Default is true.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool UseOsDefaultSize;
 
 		
-		///<summary>The size is set when GetParamErrors() is called, prior to initializing the native window. It is a check to make sure the struct matches what C++ is expecting.</summary>
+		///<summary>Set when GetParamErrors() is called, prior to initializing the native window. It is a check to make sure the struct matches what C++ is expecting.</summary>
 		[MarshalAs(UnmanagedType.I4)] internal int Size;
 
 
-		///<summary>Checks the parameters to ensure they are valid before window creation. 
-		///Called by PhotinoWindow prior to initializing native window.
-		///</summary>
+		///<summary>Checks the parameters to ensure they are valid before window creation. Called by PhotinoWindow prior to initializing native window.</summary>
 		///<returns>List of error strings</returns>
 		internal List<string> GetParamErrors()
 		{

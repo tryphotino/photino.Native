@@ -15,49 +15,60 @@ namespace PhotinoNET
         [STAThread]
         static void Main(string[] args)
         {
-            mainWindow = new PhotinoWindow()
-                .SetIconFile("wwwroot/photino-logo.ico")
-                .SetTitle($"My Photino Window {_windowNumber++}")
+            try
+            {
+                mainWindow = new PhotinoWindow()
+                    .SetIconFile("wwwroot/photino-logo.ico")
+                    .SetTitle($"My Photino Window {_windowNumber++}")
 
-                //.Load(new Uri("https://google.com"))
-                .Load("wwwroot/main.html")
-                //.LoadRawString("<h1>Hello Photino!</h1>")
+                    //.Load(new Uri("https://google.com"))
+                    .Load("wwwroot/main.html")
+                    //.LoadRawString("<h1>Hello Photino!</h1>")
 
-                //.SetChromeless(true)
-                //.SetFullScreen(true)
-                //.SetMaximized(true)
-                //.SetMinimized(true)
-                //.SetResizable(false)
-                //.SetTopMost(true)
-                .SetUseOsDefaultLocation(true)
-                //.SetUseOsDefaultSize(true)
-                //.SetZoom(150)
+                    //.SetChromeless(true)
+                    //.SetFullScreen(true)
+                    //.SetMaximized(true)
+                    //.SetMinimized(true)
+                    //.SetResizable(false)
+                    //.SetTopMost(true)
+                    .SetUseOsDefaultLocation(true)
+                    //.SetUseOsDefaultSize(true)
+                    //.SetZoom(150)
 
-                //.Center()
-                //.SetSize(new Size(800, 600))
-                .SetHeight(600)
-                .SetWidth(800)
-                //.SetLocation(new Point(50, 50))
-                //.SetTop(50)
-                //.SetLeft(50)
-                //.MoveTo(new Point(10, 10))
-                //.MoveTo(20, 20)
-                //.Offset(new Point(150, 150))
-                //.Offset(250, 250)
+                    //.Center()
+                    //.SetSize(new Size(800, 600))
+                    .SetHeight(600)
+                    .SetWidth(800)
+                    //.SetLocation(new Point(50, 50))
+                    //.SetTop(50)
+                    //.SetLeft(50)
+                    //.MoveTo(new Point(10, 10))
+                    //.MoveTo(20, 20)
+                    //.Offset(new Point(150, 150))
+                    //.Offset(250, 250)
 
-                .RegisterWindowCreatingHandler(WindowCreating)
-                .RegisterWindowCreatedHandler(WindowCreated)
-                .RegisterLocationChangedHandler(WindowLocationChanged)
-                .RegisterSizeChangedHandler(WindowSizeChanged)
-                .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
-                .RegisterWindowClosingHandler(WindowIsClosing);
+                    .RegisterWindowCreatingHandler(WindowCreating)
+                    .RegisterWindowCreatedHandler(WindowCreated)
+                    .RegisterLocationChangedHandler(WindowLocationChanged)
+                    .RegisterSizeChangedHandler(WindowSizeChanged)
+                    .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
+                    .RegisterWindowClosingHandler(WindowIsClosing)
 
+                    //.SetTemporaryFilesPath(@"C:\Temp")
 
-            mainWindow.RegisterCustomSchemeHandler("app", AppCustomSchemeUsed);
+                    .SetLogVerbosity(_logEvents ? 2 : 0);
 
-            mainWindow.WaitForClose();
+                mainWindow.RegisterCustomSchemeHandler("app", AppCustomSchemeUsed);
 
-            mainWindow.Center(); //will never happen - this is blocking.
+                mainWindow.WaitForClose();
+
+                mainWindow.Center(); //will never happen - this is blocking.
+            }
+            catch (Exception ex)
+            {
+                Log(null, ex.Message);
+                Console.ReadKey();
+            }
         }
 
 
@@ -78,10 +89,9 @@ namespace PhotinoNET
 
         private static void MessageReceivedFromWindow(object sender, string message)
         {
-            var currentWindow = sender as PhotinoWindow;
-
             Log(sender, $"MessageRecievedFromWindow Callback Fired.");
 
+            var currentWindow = sender as PhotinoWindow;
             if (string.Compare(message, "random-window", true) == 0)
             {
                 var x = new PhotinoWindow()
@@ -97,10 +107,14 @@ namespace PhotinoNET
                     .RegisterLocationChangedHandler(WindowLocationChanged)
                     .RegisterSizeChangedHandler(WindowSizeChanged)
                     .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
-                    .RegisterWindowClosingHandler(WindowIsClosing);
+                    .RegisterWindowClosingHandler(WindowIsClosing)
+
+                    .SetTemporaryFilesPath(currentWindow.TemporaryFilesPath)
+                    .SetLogVerbosity(_logEvents ? 2 : 0);
 
                 x.WaitForClose();
 
+                //x.Center();           //WaitForClose() is non-blocking for child windows
                 //x.SetHeight(800);
                 //x.Close();
             }

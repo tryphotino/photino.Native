@@ -13,11 +13,15 @@ namespace PhotinoNET
         ///<summary>Parameters set to Photino.Native to start a new instance of a Photino.Native window.</summary>
         private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters
         {
-            Resizable = true,   //these values can't be initialize within the struct itself
-            Height = -1,
-            Width = -1,
+            Resizable = true,   //these values can't be initialized within the struct itself
             Zoom = 100,
             CustomSchemeNames = new string[16],
+            TemporaryFilesPath = IsWindowsPlatform
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Photino")
+                : null,
+            Title = "Photino",
+            UseOsDefaultLocation = true,
+            UseOsDefaultSize = true,
         };
         
         //Pointers to the type and instance.
@@ -33,6 +37,7 @@ namespace PhotinoNET
         public static bool IsMacOsPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         public static bool IsLinuxPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
+        ///<summary>Windows platform only. Gets the handle of the native window. Throws exception if called from platform other than Windows.</summary>
         public IntPtr WindowHandle
         {
             get
@@ -49,6 +54,7 @@ namespace PhotinoNET
             }
         }
 
+        ///<summary>Gets list of information for each monitor from the native window.</summary>
         public IReadOnlyList<Monitor> Monitors
         {
             get
@@ -70,6 +76,7 @@ namespace PhotinoNET
             }
         }
 
+        ///<summary>Gets Information for the primary display from the native window.</summary>
         public Monitor MainMonitor
         {
             get
@@ -81,6 +88,7 @@ namespace PhotinoNET
             }
         }
 
+        ///<summary>Gets dots per inch for the primary display from the native window.</summary>
         public uint ScreenDpi
         {
             get
@@ -92,32 +100,60 @@ namespace PhotinoNET
             }
         }
 
+        ///<summary>Gets a unique GUID to identify the native window. Not used by Photino.</summary>
+        public Guid Id { get; } = Guid.NewGuid();
 
-        private Guid _id = Guid.NewGuid();
-        public Guid Id => _id;
 
 
 
         //READ-WRITE PROPERTIES
-        private bool _fullScreen;
-        public bool FullScreen
+        ///<summary>When true, the native window will appear without a title bar or border. The user can supply both, as well as handle dragging and resizing. Default is false. Throws exception if called after native window is initalized.</summary>
+        public bool Chromeless
         {
-            get => _fullScreen;
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.Chromeless;
+
+                throw new ApplicationException("Chromeless can only be read before the native window is instantiated.");
+            }
             set
             {
-                if (_fullScreen != value)
+                if (_nativeInstance == IntPtr.Zero)
                 {
-                    _fullScreen = value;
+                    if (_startupParameters.Chromeless != value)
+                        _startupParameters.Chromeless = value;
+                }
+                else
+                    throw new ApplicationException("Chromeless can only be set before the native window is instantiated.");
+            }
+        }
+
+        ///<summary>When true, the native window will cover the entire screen area - kiosk style. Default is false.</summary>
+        public bool FullScreen
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.FullScreen;
+
+                Photino_GetSize(_nativeInstance, out int width, out int height);
+                return width == MainMonitor.WorkArea.Width
+                    && height == MainMonitor.WorkArea.Height;
+            }
+            set
+            {
+                if (FullScreen != value)
+                {
                     if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.FullScreen = _fullScreen;
+                        _startupParameters.FullScreen = value;
                     else
                         Photino_SetSize(_nativeInstance, MainMonitor.WorkArea.Width, MainMonitor.WorkArea.Height);
                 }
             }
         }
 
-
-        private int _height = -1;
+        ///<summary>Gets or Sets the native window Height in pixels. Default is 0. See also UseOsDefaultSize.</summary>
         public int Height
         {
             get => Size.Height;
@@ -129,8 +165,8 @@ namespace PhotinoNET
             }
         }
 
-
         private string _iconFile;
+        ///<summary>Gets or sets the icon on the native window title bar on Windows and Linux. Must be a local file, not a URL. Default is none.</summary>
         public string IconFile
         {
             get => _iconFile;
@@ -138,15 +174,16 @@ namespace PhotinoNET
             {
                 if (_iconFile != value)
                 {
+                    if (!File.Exists(value))
+                    {
+                        var absolutePath = $"{System.AppContext.BaseDirectory}{value}";
+                        if (!File.Exists(absolutePath))
+                            throw new ArgumentException($"Icon file: {value} does not exist.");
+                    }
+
                     _iconFile = value;
 
-                    if (!File.Exists(_iconFile))
-                    {
-                        var absolutePath = $"{System.AppContext.BaseDirectory}{_iconFile}";
-                        if (!File.Exists(absolutePath))
-                            throw new ArgumentException($"Icon file: {_iconFile} does not exist.");
-                    }
-                 
+
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.WindowIconFile = _iconFile;
                     else
@@ -154,247 +191,265 @@ namespace PhotinoNET
                 }
             }
         }
-        
 
-        private bool _resizable = true;
-        public bool Resizable
-        {
-            get => _resizable;
-            set
-            {
-                if (_resizable != value)
-                {
-                    _resizable = value;
-                    if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.Resizable = _resizable;
-                    else
-                       Photino_SetResizable(_nativeInstance, _resizable ? 1 : 0);
-                }
-            }
-        }
-
-
-        public Size Size
-        {
-            get
-            {
-                if (_nativeInstance != IntPtr.Zero)
-                    Photino_GetSize(_nativeInstance, out _width, out _height);
-    
-                return new Size(_width, _height);
-            }
-            set
-            {
-                // ToDo:
-                // Should this be locked if _isResizable == false?
-                if (_width != value.Width || _height != value.Height)
-                {
-                    _width = value.Width;
-                    _height = value.Height;
-
-                    if (_nativeInstance == IntPtr.Zero)
-                    {
-                        _startupParameters.Height = _height;
-                        _startupParameters.Width = _width;
-                    }
-                    else
-                        Photino_SetSize(_nativeInstance, _width, _height);
-                }
-            }
-        }
-
-
+        ///<summary>Gets or sets the native window Left (X) and Top coordinates (Y) in pixels. Default is 0,0. See also UseOsDefaultLocation.</summary>
         public Point Location
         {
             get
             {
-                if (_nativeInstance != IntPtr.Zero)
-                    Photino_GetPosition(_nativeInstance, out _left, out _top);
+                if (_nativeInstance == IntPtr.Zero)
+                    return new Point(_startupParameters.Left, _startupParameters.Top);
 
-                return new Point(_left, _top);
+                Photino_GetPosition(_nativeInstance, out int left, out int top);
+                return new Point(left, top);
             }
             set
             {
-                if (_left != value.X || _top != value.Y)
+                if (Location.X != value.X || Location.Y != value.Y)
                 {
-                    _left = value.X;
-                    _top = value.Y;
-
                     if (_nativeInstance == IntPtr.Zero)
                     {
-                        _startupParameters.Left = _left;
-                        _startupParameters.Top = _top;
+                        _startupParameters.Left = value.X;
+                        _startupParameters.Top = value.Y;
                     }
                     else
-                        Photino_SetPosition(_nativeInstance, _left, _top);
+                        Photino_SetPosition(_nativeInstance, value.X, value.Y);
                 }
             }
         }
 
-
-        private int _left;
+        ///<summary>Gets or sets the native window Left (X) coordinate in pixels. Default is 0.</summary>
         public int Left
         {
             get => Location.X;
             set
             {
-                var currentLocation = Location;
-                if (currentLocation.X != value)
-                    Location = new Point(value, currentLocation.Y);
+                if (Location.X != value)
+                    Location = new Point(value, Location.Y);
             }
         }
 
-
-        private bool _maximized;
+        ///<summary>Gets or sets whether the native window is maximized. Default is false.</summary>
         public bool Maximized
         {
             get
             {
-                if (_nativeInstance != IntPtr.Zero)
-                    Photino_IsMaximized(_nativeInstance, _minimized);
-                
-                return _minimized;
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.Maximized;
+
+                bool maximized = false;
+                Photino_IsMaximized(_nativeInstance, maximized);
+                return maximized;
             }
             set
             {
-                if (_maximized != value)
+                if (Maximized != value)
                 {
-                    _maximized = value;
                     if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.Maximized = _maximized;
+                        _startupParameters.Maximized = value;
                     else
-                        Photino_IsMaximized(_nativeInstance, _maximized);
+                        Photino_IsMaximized(_nativeInstance, value);
                 }
             }
         }
 
-
-        private bool _minimized;
+        ///<summary>Gets or sets whether the native window is minimized (hidden). Default is false.</summary>
         public bool Minimized
         {
             get
             {
-                if (_nativeInstance != IntPtr.Zero)
-                    Photino_IsMinimized(_nativeInstance, _minimized);
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.Minimized;
 
-                return _minimized;
+                bool minimized = false;
+                Photino_IsMinimized(_nativeInstance, minimized);
+                return minimized;
             }
             set
             {
-                if (_minimized != value)
+                if (Minimized != value)
                 {
-                    _minimized = value;
                     if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.Minimized = _minimized;
+                        _startupParameters.Minimized = value;
                     else
-                        Photino_SetMinimized(_nativeInstance, _minimized);
+                        Photino_SetMinimized(_nativeInstance, value);
                 }
             }
         }
 
+        ///<summary>Gets or sets whether the native window can be resized by the user. Default is true.</summary>
+        public bool Resizable
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.Resizable;
 
-        private string _title;
+                Photino_GetResizable(_nativeInstance, out bool resizeable);
+                return resizeable;
+            }
+            set
+            {
+                if (Resizable != value)
+                {
+                    if (_nativeInstance == IntPtr.Zero)
+                        _startupParameters.FullScreen = value;
+                    else
+                        Photino_SetResizable(_nativeInstance, value);
+                }
+            }
+        }
+
+        ///<summary>Gets or sets the native window Width and Height in pixels. Default is 0,0. See also UseOsDefaultSize.</summary>
+        public Size Size
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return new Size(_startupParameters.Width, _startupParameters.Height);
+
+                Photino_GetSize(_nativeInstance, out int width, out int height);
+                return new Size(width, height);
+            }
+            set
+            {
+                if (Size.Width != value.Width || Size.Height != value.Height)
+                {
+                    if (_nativeInstance == IntPtr.Zero)
+                    {
+                        _startupParameters.Height = value.Height;
+                        _startupParameters.Width = value.Width;
+                    }
+                    else
+                        Photino_SetSize(_nativeInstance, value.Width, value.Height);
+                }
+            }
+        }
+
+        ///<summary>Windows platform only. Gets or sets the local path to store temp files for browser control. Default is user's AppDataLocal folder. Throws exception if platform is not Windows.</summary>
+        public string TemporaryFilesPath
+        {
+            get
+            {
+                return _startupParameters.TemporaryFilesPath;
+            }
+            set
+            {
+                if (_startupParameters.TemporaryFilesPath != value)
+                {
+                    if (_nativeInstance != IntPtr.Zero)
+                        throw new ApplicationException($"{nameof(_startupParameters.TemporaryFilesPath)} cannot be changed after Photino Window is initialized");
+                    _startupParameters.TemporaryFilesPath = value;
+                }
+            }
+        }
+
+        ///<summary>Gets or sets the native window title. Default is "Photino".</summary>
         public string Title
         {
             get
             {
-                if (_nativeInstance != IntPtr.Zero)
-                    Photino_GetTitle(_nativeInstance, out _title);
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.Title;
 
-                return _title;
+                Photino_GetTitle(_nativeInstance, out string title);
+                return title;
             }
             set
             {
-                if (_title != value)
+                if (Title != value)
                 {
-                    if (string.IsNullOrEmpty(value.Trim()))
-                        value = "Untitled Window";
-
                     // Due to Linux/Gtk platform limitations, the window title has to be no more than 31 chars
                     if (value.Length > 31 && IsLinuxPlatform)
                         value = value.Substring(0, 31);
 
-                    _title = value;
-
                     if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.Title = _title;
+                        _startupParameters.Title = value;
                     else
-                        Photino_SetTitle(_nativeInstance, _title);
+                        Photino_SetTitle(_nativeInstance, value);
                 }
             }
         }
 
-
-        private int _top;
+        ///<summary>Gets or sets the native window Top (Y) coordinate in pixels. Default is 0. See also UseOsDefaultLocation.</summary>
         public int Top
         {
             get => Location.Y;
             set
             {
-                var currentLocation = Location;
-                if (currentLocation.Y != value)
-                    Location = new Point(currentLocation.X, value);
+                if (Location.Y != value)
+                    Location = new Point(Location.X, value);
             }
         }
 
-
-        private bool _topMost = false;
+        ///<summary>Gets or sets whehter the native window is always at the top of the z-order. Default is false.</summary>
         public bool TopMost
         {
-            get => _topMost;
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.Topmost;
+
+                Photino_GetTopmost(_nativeInstance, out bool topmost);
+                return topmost;
+            }
             set
             {
-                if (_topMost != value)
+                if (TopMost != value)
                 {
-                    _topMost = value;
                     if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.Topmost = _topMost;
+                        _startupParameters.Topmost = value;
                     else
-                        Photino_SetTopmost(_nativeInstance, _topMost ? 1 : 0);
+                        Photino_SetTopmost(_nativeInstance, value ? 1 : 0);
                 }
             }
         }
 
-
-        private bool _useOsDefaultLocation;
+        ///<summary>When true the native window starts up at the OS Default location. Overrides Left (X) and Top (Y) properties. Default is true. Throws Application Exception if accessed after native window initialization.</summary>
         public bool UseOsDefaultLocation
         {
-            get => _useOsDefaultLocation;
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.UseOsDefaultLocation;
+
+                throw new ApplicationException("UseOsDefaultLocation can only be read before the native window is instantiated.");
+            }
             set
             {
-                if (_useOsDefaultLocation != value)
+                if (_nativeInstance == IntPtr.Zero)
                 {
-                    _useOsDefaultLocation = value;
-
-                    if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.UseOsDefaultLocation = _useOsDefaultLocation;
-                    else
-                        throw new ApplicationException("UseOsDefaultLocation can only be set before the window is instantiated.");
+                    if (UseOsDefaultLocation != value)
+                        _startupParameters.UseOsDefaultLocation = value;
                 }
+                else
+                    throw new ApplicationException("UseOsDefaultLocation can only be set before the native window is instantiated.");
             }
         }
 
-
-        private bool _useOsDefaultSize;
+        ///<summary>When true the native window starts at the OS Default size. Overrides Height and Width properties. Default is true. Throws Application Exception if accessed after native window initialization.</summary>
         public bool UseOsDefaultSize
         {
-            get => _useOsDefaultSize;
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.UseOsDefaultSize;
+
+                throw new ApplicationException("UseOsDefaultSize can only be read before the native window is instantiated.");
+            }
             set
             {
-                if (_useOsDefaultSize != value)
+                if (_nativeInstance == IntPtr.Zero)
                 {
-                    _useOsDefaultSize = value;
-
-                    if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.UseOsDefaultSize = _useOsDefaultSize;
-                    else
-                        throw new ApplicationException("UseOsDefaultSize can only be set before the window is instantiated.");
+                    if (UseOsDefaultSize != value)
+                        _startupParameters.UseOsDefaultSize = value;
                 }
+                else
+                    throw new ApplicationException("UseOsDefaultSize can only be set before the native window is instantiated.");
             }
         }
 
-
-        private int _width = -1;
+        ///<summary>Gets or Sets the native window width in pixels. Default is 0. See also UseOsDefaultSize.</summary>
         public int Width
         {
             get => Size.Width;
@@ -406,39 +461,38 @@ namespace PhotinoNET
             }
         }
 
-
-        private int _zoom = 100;
+        ///<summary>Gets or sets the native browser control zoom. e.g. 100 = 100%  Default is 100;</summary>
         public int Zoom
         {
             get
             {
-                if (_nativeInstance != IntPtr.Zero)
-                    Photino_GetZoom(_nativeInstance, out _zoom);
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.Zoom;
 
-                return _zoom;
+                Photino_GetZoom(_nativeInstance, out int zoom);
+                return zoom;
             }
             set
             {
-                if (_zoom != value)
+                if (Zoom != value)
                 {
-                    _zoom = value;
-
                     if (_nativeInstance == IntPtr.Zero)
-                        _startupParameters.Zoom = _zoom;
+                        _startupParameters.Zoom = value;
                     else
-                       Photino_SetZoom(_nativeInstance, _zoom);
+                       Photino_SetZoom(_nativeInstance, value);
                 }
             }
         }
 
 
 
-        ///<summary>0 = Critical Only, 1 = Critical and Warning, 2 = Verbose, >2 = All Details</summary>
+        ///<summary>Gets or sets the amound of logging to standard output (console window) by Photino.Native. 0 = Critical Only, 1 = Critical and Warning, 2 = Verbose, >2 = All Details. Default is 2.</summary>
         public int LogVerbosity { get; set; } = 2;
 
 
 
         //CONSTRUCTOR
+        ///<summary>.NET class that represents a native window with a native browser control taking up the entire client area.</summary>
         public PhotinoWindow()
         {
             if (IsWindowsPlatform)
@@ -470,7 +524,8 @@ namespace PhotinoNET
         //CAN ALSO BE CALLED AFTER INITIALIZATION TO SET VALUES
 
         //ONE OF THESE 3 METHODS *MUST* BE CALLED PRIOR TO CALLING WAITFORCLOSE() OR CREATECHILDWINDOW()
-        ///<summary>Loads the specified file or url into the browser control</summary>
+        
+        ///<summary>Loads the specified file or url into the browser control. Load() or LoadString() must be called before native window is initialized.</summary>
         public PhotinoWindow Load(Uri uri)
         {
             Log($".Load({uri})");
@@ -481,7 +536,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>Loads the specified file or url into the browser control</summary>
+        ///<summary>Loads the specified file or url into the browser control. Load() or LoadString() must be called before native window is initialized.</summary>
         public PhotinoWindow Load(string path)
         {
             Log($".Load({path})");
@@ -513,7 +568,7 @@ namespace PhotinoNET
             return Load(new Uri(absolutePath, UriKind.Absolute));
         }
 
-        ///<summary>Loads a raw string (typically HTML) into the browser control</summary>
+        ///<summary>Loads a raw string (typically HTML) into the browser control. Load() or LoadString() must be called before native window is initialized.</summary>
         public PhotinoWindow LoadRawString(string content)
         {
             var shortContent = content.Length > 50 ? content.Substring(0, 50) + "..." : content;
@@ -526,7 +581,8 @@ namespace PhotinoNET
         }
 
 
-        ///<summary>Centers the window in the main monitor. If called prior to window initialization, overrides Left and Top properties.</summary>
+
+        ///<summary>Centers the native window in the primary display. If called prior to window initialization, overrides Left (X) and Top (Y) properties. See also UseOsDefaultLocation.</summary>
         public PhotinoWindow Center()
         {
             Log(".Center()");
@@ -543,7 +599,7 @@ namespace PhotinoNET
             return SetLocation(centeredPosition);
         }
 
-        ///<summary>Moves the window to the specified location on the screen using a Point</summary>
+        ///<summary>Moves the native window to the specified location on the screen in pixels using a Point.</summary>
         public PhotinoWindow MoveTo(Point location, bool allowOutsideWorkArea = false)
         {
             Log($".MoveTo({location}, {allowOutsideWorkArea})");
@@ -600,14 +656,14 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>Moves the window to the specified location on the screen using left and right properties</summary>
+        ///<summary>Moves the native window to the specified location on the screen in pixels using Left (X) and Top (Y) properties.</summary>
         public PhotinoWindow MoveTo(int left, int top, bool allowOutsideWorkArea = false)
         {
             Log($".MoveTo({left}, {top}, {allowOutsideWorkArea})");
             return MoveTo(new Point(left, top), allowOutsideWorkArea);
         }
 
-        ///<summary>Moves the window relative to its current location on the screen using a Point</summary>
+        ///<summary>Moves the native window relative to its current location on the screen using a Point.</summary>
         public PhotinoWindow Offset(Point offset)
         {
             Log($".Offset({offset})");
@@ -617,7 +673,7 @@ namespace PhotinoNET
             return MoveTo(left, top);
         }
 
-        ///<summary>Moves the window relative to its current location on the screen using left and top coordinates</summary>
+        ///<summary>Moves the native window relative to its current location on the screen in pixels using Left (X) and Top (Y) properties.</summary>
         public PhotinoWindow Offset(int left, int top)
         {
             Log($".Offset({left}, {top})");
@@ -626,7 +682,7 @@ namespace PhotinoNET
 
 
 
-
+        ///<summary>When true, the native window will appear without a title bar or border. The user must then supply both, as well as handle dragging and resizing if desired. Default is false.</summary>
         public PhotinoWindow SetChromeless(bool chromeless)
         {
             Log($".SetChromeless({chromeless})");
@@ -637,6 +693,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>When true, the native window will cover the entire screen area - kiosk style. Default is false.</summary>
         public PhotinoWindow SetFullScreen(bool fullScreen)
         {
             Log($".SetFullScreen({fullScreen})");
@@ -644,7 +701,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>In Pixels. Leave at -1 to initialize window to OS default size.</summary>
+        ///<summary>Sets the native window Height in pixels. Default is 0. See also UseOsDefaultSize.</summary>
         public PhotinoWindow SetHeight(int height)
         {
             Log($".SetHeight({height})");
@@ -652,7 +709,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>Must be a local file, not a URL.</summary>
+        ///<summary>sets the icon on the native window title bar on Windows and Linux. Must be a local file, not a URL. Default is none.</summary>
         public PhotinoWindow SetIconFile(string iconFile)
         {
             Log($".SetIconFile({iconFile})");
@@ -660,6 +717,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>Moves the native window to a new Left (X) coordinate in pixels. Default is 0. See also UseOsDefaultLocation.</summary>
         public PhotinoWindow SetLeft(int left)
         {
             Log($".SetLeft({Left})");
@@ -667,6 +725,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>When true, the native window can be resized by the user. Default is true.</summary>
         public PhotinoWindow SetResizable(bool resizable)
         {
             Log($".SetResizable({resizable})");
@@ -674,7 +733,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>In Pixels. Leave at -1, -1 to initialize window to OS default size.</summary>
+        ///<summary>Sets the native window Width and Height in pixels. Default is 0,0. See also UseOsDefaultSize.</summary>
         public PhotinoWindow SetSize(Size size)
         {
             Log($".SetSize({size})");
@@ -682,6 +741,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>Moves the native window to the new Left (X) and Top (Y) coordinates in pixels. Default is 0,0. See also UseOsDefaultLocation.</summary>
         public PhotinoWindow SetLocation(Point location)
         {
             Log($".SetLocation({location})");
@@ -689,6 +749,15 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>Sets the level of logging to standard output (console window) by Photino.Native. 0 = Critical Only, 1 = Critical and Warning, 2 = Verbose, >2 = All Details. Default is 2.</summary>
+        public PhotinoWindow SetLogVerbosity(int verbosity)
+        {
+            Log($".SetLogVerbosity({verbosity})");
+            LogVerbosity = verbosity;
+            return this;
+        }
+
+        ///<summary>When true, the native window is maximized. Default is false.</summary>
         public PhotinoWindow SetMaximized(bool maximized)
         {
             Log($".SetMaximized({maximized})");
@@ -696,6 +765,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>When true, the native window is minimized (hidden). Default is false.</summary>
         public PhotinoWindow SetMinimized(bool minimized)
         {
             Log($".SetMinimized({minimized})");
@@ -703,6 +773,15 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>Windows platform only. Sets the local path to store temp files for browser control. Default is user's AppDataLocal. Throws exception if called on platform other than Windows.</summary>
+        public PhotinoWindow SetTemporaryFilesPath(string tempFilesPath)
+        {
+            Log($".SetTemporaryFilesPath({tempFilesPath})");
+            TemporaryFilesPath = tempFilesPath;
+            return this;
+        }
+
+        ///<summary>Sets the native window title. Default is "Photino".</summary>
         public PhotinoWindow SetTitle(string title)
         {
             Log($".SetTitle({title})");
@@ -710,6 +789,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>Moves the native window to a new Top (Y) coordinate in pixels. Default is 0. See also UseOsDefaultLocation.</summary>
         public PhotinoWindow SetTop(int top)
         {
             Log($".SetTop({top})");
@@ -717,6 +797,7 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>When true, the native window is always at the top of the z-order. Default is false.</summary>
         public PhotinoWindow SetTopMost(bool topMost)
         {
             Log($".SetTopMost({topMost})");
@@ -724,7 +805,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>In Pixels. Leave at -1 to initialize window to OS default size.</summary>
+        ///<summary>Native window Width in pixels. Default is 0. See also UseOsDefaultSize.</summary>
         public PhotinoWindow SetWidth(int width)
         {
             Log($".SetWidth({width})");
@@ -732,7 +813,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>Browser control zoom level. e.g. 100 = 100%</summary>
+        ///<summary>Sets the browser control zoom level in the native window. e.g. 100 = 100%  Default is 100.</summary>
         public PhotinoWindow SetZoom(int zoom)
         {
             Log($".SetZoom({zoom})");
@@ -740,7 +821,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>Overrides Left and Top properties and relise on the OS to position the window.</summary>
+        ///<summary>Overrides Left (X) and Top (Y) properties and relies on the OS to position the window intially. Default is true.</summary>
         public PhotinoWindow SetUseOsDefaultLocation(bool useOsDefault)
         {
             Log($".SetUseOsDefaultLocation({useOsDefault})");
@@ -748,7 +829,7 @@ namespace PhotinoNET
             return this;
         }
 
-        ///<summary>Overrides Height and Width properties and relise on the OS to determine the initial size of the window.</summary>
+        ///<summary>Overrides Height and Width properties and relies on the OS to determine the initial size of the window. Default is true.</summary>
         public PhotinoWindow SetUseOsDefaultSize(bool useOsDefault)
         {
             Log($".SetUseOsDefaultSize({useOsDefault})");
@@ -763,8 +844,8 @@ namespace PhotinoNET
         //NON-FLUENT METHODS - CAN ONLY BE CALLED AFTER WINDOW IS INITIALIZED
 
         //ONE OF THESE 2 METHODS *MUST* BE CALLED TO CREATE THE WINDOW
-        ///<summary>Creates the main (first) window. All other windows must be created with CreateChildWindow(). 
-        ///This is the only Window that runs a message loop.</summary>
+        
+        ///<summary>Initializes the main (first) native window and blocks until the window is closed. Also used to initialize child windows in which case it does not block. Only the main native window runs a message loop.</summary>
         public void WaitForClose()
         {
             //fill in the fixed size array of custom scheme names
@@ -779,13 +860,37 @@ namespace PhotinoNET
             if (errors.Count == 0)
             {
                 OnWindowCreating();
-                _nativeInstance = Photino_ctor(_startupParameters);
+                try  //All C++ exceptions will bubble up to here.
+                {
+                    _nativeInstance = Photino_ctor(_startupParameters);
+                }
+                catch (Exception ex)
+                {
+                    int lastError = 0;
+                    if (IsWindowsPlatform)
+                        lastError = Marshal.GetLastWin32Error();
+
+                    Log($"***\n{ex.Message}\n{ex.StackTrace}\nError #{lastError}");
+                    throw new ApplicationException($"Native code exception. Error # {lastError}  See inner exception for details.", ex);
+                }
                 OnWindowCreated();
 
                 if (!_messageLoopIsStarted)
                 {
                     _messageLoopIsStarted = true;
-                    Photino_WaitForExit(_nativeInstance);       //start the message loop. there can only be 1 message loop for all windows.
+                    try
+                    {
+                        Photino_WaitForExit(_nativeInstance);       //start the message loop. there can only be 1 message loop for all windows.
+                    }
+                    catch (Exception ex)
+                    {
+                        int lastError = 0;
+                        if (IsWindowsPlatform)
+                            lastError = Marshal.GetLastWin32Error();
+
+                        Log($"***\n{ex.Message}\n{ex.StackTrace}\nError #{lastError}");
+                        throw new ApplicationException($"Native code exception. Error # {lastError}  See inner exception for details.", ex);
+                    }
                 }
             }
             else
@@ -798,10 +903,7 @@ namespace PhotinoNET
             }
         }
 
-
-
-        //WHAT ABOUT RESTORE() ? for windows it's just unsettng minimized or maximized
-
+        ///<summary>Closes the native window. Throws an exception if the window is not initialized.</summary>
         public void Close()
         {
             Log(".Close()");
@@ -810,20 +912,16 @@ namespace PhotinoNET
             Photino_Close(_nativeInstance);
         }
 
-        ///<summary>Opens a native alert window with a title and message</summary>
+        ///<summary>Opens a native alert (MessageBox) on the native window with a title and message. Throws an exception if the window is not initialized.</summary>
         public void OpenAlertWindow(string title, string message)
         {
             Log($".OpenAlertWindow({title}, {message})");
-
-            // Bug:
-            // Closing the message shown with the OpenAlertWindow
-            // method closes the sender window as well.
             if (_nativeInstance == IntPtr.Zero)
                 throw new ApplicationException("OpenAlertWindow cannot be called until after the Photino window is initialized.");
             Photino_ShowMessage(_nativeInstance, title, message, /* MB_OK */ 0);
         }
 
-        ///<summary>Send a message to the window's JavaScript context</summary>
+        ///<summary>Send a message to the ative window's native browser control's JavaScript context. Throws an exception if the window is not initialized.</summary>
         public void SendWebMessage(string message)
         {
             Log($".SendWebMessage({message})");

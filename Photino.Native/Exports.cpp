@@ -60,6 +60,11 @@ extern "C"
 		instance->GetPosition(x, y);
 	}
 
+	EXPORTED void GetResizable(Photino* instance, bool* resizable)
+	{
+		instance->GetResizable(resizable);
+	}
+
 	EXPORTED unsigned int Photino_GetScreenDpi(Photino* instance)
 	{
 		return instance->GetScreenDpi();
@@ -73,6 +78,11 @@ extern "C"
 	EXPORTED void Photino_GetTitle(Photino* instance, AutoString windowTitle)
 	{
 		instance->GetTitle(windowTitle);
+	}
+
+	EXPORTED void Photino_GetTopmost(Photino* instance, bool* topmost)
+	{
+		instance->GetTopmost(topmost);
 	}
 
 	EXPORTED void Photino_GetZoom(Photino* instance, int* zoom)
@@ -120,7 +130,7 @@ extern "C"
 		instance->SetPosition(x, y);
 	}
 
-	EXPORTED void Photino_SetResizable(Photino* instance, int resizable)
+	EXPORTED void Photino_SetResizable(Photino* instance, bool resizable)
 	{
 		instance->SetResizable(resizable);
 	}
@@ -135,7 +145,7 @@ extern "C"
 		instance->SetTitle(title);
 	}
 
-	EXPORTED void Photino_SetTopmost(Photino* instance, int topmost)
+	EXPORTED void Photino_SetTopmost(Photino* instance, bool topmost)
 	{
 		instance->SetTopmost(topmost);
 	}

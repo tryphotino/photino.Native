@@ -47,6 +47,7 @@ struct PhotinoInitParams
 	AutoString StartUrl;
 	AutoString Title;
 	AutoString WindowIconFile;
+	AutoString TemporaryFilesPath;
 
 	Photino* ParentInstance;
 
@@ -88,6 +89,7 @@ private:
 
 	AutoString _startUrl;
 	AutoString _startString;
+	AutoString _temporaryFilesPath;
 	int _zoom;
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
@@ -128,9 +130,11 @@ public:
 	void GetMaximized(bool* isMaximized);
 	void GetMinimized(bool* isMinimized);
 	void GetPosition(int* x, int* y);
+	void GetResizable(bool* resizable);
 	unsigned int GetScreenDpi();
 	void GetSize(int* width, int* height);
-	void GetTitle(AutoString windowTitle);
+	void GetTitle(AutoString title);
+	void GetTopmost(bool* topmost);
 	void GetZoom(int* zoom);
 	void Maximize();
 	void Minimize();

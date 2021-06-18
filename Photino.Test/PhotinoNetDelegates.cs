@@ -10,12 +10,14 @@ namespace PhotinoNET
     {
         //FLUENT EVENT HANDLER REGISTRATION
         public event EventHandler<Point> LocationChangedHandler;
+        ///<summary>Registers user-defined handler methods to receive callbacks from the native window when its location changes.</summary>
         public PhotinoWindow RegisterLocationChangedHandler(EventHandler<Point> handler)
         {
             LocationChangedHandler += handler;
             return this;
         }
-        public void OnLocationChanged(int left, int top)
+        ///<summary>Invokes registered user-defined handler methods when the native window's location changes.</summary>
+        internal void OnLocationChanged(int left, int top)
         {
             var location = new Point(left, top);
             LocationChangedHandler?.Invoke(this, location);
@@ -24,12 +26,14 @@ namespace PhotinoNET
 
 
         public event EventHandler<Size> SizeChangedHandler;
+        ///<summary>Registers user-defined handler methods to receive callbacks from the native window when its size changes.</summary>
         public PhotinoWindow RegisterSizeChangedHandler(EventHandler<Size> handler)
         {
             SizeChangedHandler += handler;
             return this;
         }
-        public void OnSizeChanged(int width, int height)
+        ///<summary>Invokes registered user-defined handler methods when the native window's size changes.</summary>
+        internal void OnSizeChanged(int width, int height)
         {
             var size = new Size(width, height);
             SizeChangedHandler?.Invoke(this, size);
@@ -38,12 +42,14 @@ namespace PhotinoNET
 
 
         public event EventHandler<string> WebMessageReceived;
+        ///<summary>Registers user-defined handler methods to receive callbacks from the native window when it sends a message.</summary>
         public PhotinoWindow RegisterWebMessageReceivedHandler(EventHandler<string> handler)
         {
             WebMessageReceived += handler;
             return this;
         }
-        public void OnWebMessageReceived(string message)
+        ///<summary>Invokes registered user-defined handler methods when the native window sends a message.</summary>
+        internal void OnWebMessageReceived(string message)
         {
             WebMessageReceived?.Invoke(this, message);
         }
@@ -51,12 +57,14 @@ namespace PhotinoNET
 
         public delegate bool NetClosingDelegate(object sender, EventArgs e);
         public event NetClosingDelegate WindowClosing;
+        ///<summary>Registers user-defined handler methods to receive callbacks from the native window when the window is about to close. Handler can return true to prevent the window from closing.</summary>
         public PhotinoWindow RegisterWindowClosingHandler(NetClosingDelegate handler)
         {
             WindowClosing += handler;
             return this;
         }
-        public byte OnWindowClosing()
+        ///<summary>Invokes registered user-defined handler methods when the native window is about to close.</summary>
+        internal byte OnWindowClosing()
         {
             //C++ handles bool values as a single byte, C# uses 4 bytes
             byte noClose = 0;
@@ -70,12 +78,14 @@ namespace PhotinoNET
 
 
         public event EventHandler WindowCreating;
+        ///<summary>Registers user-defined handler methods to receive callbacks before the native window is created.</summary>
         public PhotinoWindow RegisterWindowCreatingHandler(EventHandler handler)
         {
             WindowCreating += handler;
             return this;
         }
-        public void OnWindowCreating()
+        ///<summary>Invokes registered user-defined handler methods before the native window is created.</summary>
+        internal void OnWindowCreating()
         {
             WindowCreating?.Invoke(this, null);
         }
@@ -83,12 +93,14 @@ namespace PhotinoNET
 
 
         public event EventHandler WindowCreated;
+        ///<summary>Registers user-defined handler methods to receive callbacks after the native window is created.</summary>
         public PhotinoWindow RegisterWindowCreatedHandler(EventHandler handler)
         {
             WindowCreated += handler;
             return this;
         }
-        public void OnWindowCreated()
+        ///<summary>Invokes registered user-defined handler methods after the native window is created.</summary>
+        internal void OnWindowCreated()
         {
             WindowCreated?.Invoke(this, null);
         }
@@ -96,11 +108,12 @@ namespace PhotinoNET
 
 
 
+        //NOTE: There is 1 callback from C++ to C# which is automatically registered. The .NET callback appropriate for the custom scheme is handled in OnCustomScheme().
 
-        ///<summary>Custom schemes (other than 'http', 'https' and 'file') must be handled by creating the handlers manually.</summary>
         public delegate Stream NetCustomSchemeDelegate(string url, out string contentType);
         public event NetCustomSchemeDelegate CustomScheme;
         internal List<string> CustomSchemeNames = new List<string>();
+        ///<summary>Registers user-defined custom schemes (other than 'http', 'https' and 'file') and handler methods to receive callbacks when the native browser control encounters them.</summary>
         public PhotinoWindow RegisterCustomSchemeHandler(string scheme, NetCustomSchemeDelegate handler)
         {
             if (string.IsNullOrWhiteSpace(scheme))
@@ -129,10 +142,15 @@ namespace PhotinoNET
             return this;
         }
 
+        ///<summary>Invokes registered user-defined handler methods for user-defined custom schemes (other than 'http','https', and 'file') when the native browser control encounters them.</summary>
         public IntPtr OnCustomScheme(string url, out int numBytes, out string contentType)
         {
-            //TODO: Parse the scheme from the URL
-            var scheme = "app";
+            var colonPos = url.IndexOf(':');
+
+            if (colonPos < 0)
+                throw new ApplicationException($"URL: '{url}' does not contain a colon.");
+
+            var scheme = url.Substring(0, colonPos - 1).ToLower();
 
             if (!CustomSchemeNames.Contains(scheme))
                 throw new ApplicationException($"A handler for the scheme '{scheme}' has not been registered.");
