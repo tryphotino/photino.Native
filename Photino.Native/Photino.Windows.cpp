@@ -55,7 +55,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
 		wchar_t msg[200];
-		swprintf(msg, 200, L"Initial parameters passed are %i bytes, but expected %i bytes.", initParams->Size, sizeof(PhotinoInitParams));
+		swprintf(msg, 200, L"Initial parameters passed are %u bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
 		throw msg;
 	}
 
@@ -80,8 +80,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 		i++;
 	}
 
-
-	_parenthWnd = initParams->ParentInstance;
+	_parent = initParams->ParentInstance;
 
 	//wchar_t msg[50];
 	//swprintf(msg, 50, L"Height: %i  Width: %i  Left: %d  Top: %d", initParams->Height, initParams->Width, initParams->Left, initParams->Top);

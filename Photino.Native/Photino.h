@@ -4,7 +4,6 @@
 #include <Windows.h>
 #include <wil/com.h>
 #include <WebView2.h>
-#include <vector>
 typedef const wchar_t* AutoString;
 #else
 // AutoString for macOS/Linux
@@ -22,6 +21,7 @@ typedef char* AutoString;
 
 #include <map>
 #include <string>
+#include <vector>
 
 struct Monitor
 {
@@ -91,16 +91,16 @@ private:
 	AutoString _startString;
 	AutoString _temporaryFilesPath;
 	int _zoom;
+	Photino* _parent;
+	void Show();
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
-	Photino* _parenthWnd;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
-	void Show();
 	void AttachWebView();
 #elif __linux__
 	GtkWidget* _window;
