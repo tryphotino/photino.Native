@@ -95,17 +95,27 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 
 	SetTitle(initParams->Title);
 
+	if (initParams->Chromeless)
+	{
+		gtk_window_set_decorated(GTK_WINDOW(_window), false);
+
+	if (initParams->CenterOnInitialize)
+		Photino::Center();
+
+	if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != L"")
+		Photino::SetIconFile(initParams->WindowIconFile);
+
 	if (initParams->Minimized)
-		gtk_window_iconify(GTK_WINDOW(_window));
+		Photino::Minimize();;
 
 	if (initParams->Maximized)
-		gtk_window_maximize(GTK_WINDOW(_window));
+		Photino::Maximize();
 
 	if (initParams->Resizable == false)
-		gtk_window_set_resizable(GTK_WINDOW(_window), false);
+		Photino::SetResizable(false);
 
 	if (initParams->Topmost)
-		gtk_window_set_keep_above(GTK_WINDOW(_window), true);
+		Photino::SetTopmost(true);
 
 	if (_parent == NULL)
 	{
