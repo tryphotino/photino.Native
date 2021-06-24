@@ -45,6 +45,16 @@ extern "C"
 		instance->Close();
 	}
 
+	EXPORTED void Photino_GetContextMenuEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetContextMenuEnabled(enabled);
+	}
+
+	EXPORTED void Photino_GetDevToolsEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetDevToolsEnabled(enabled);
+	}
+
 	EXPORTED void Photino_GetMaximized(Photino* instance, bool* isMaximized)
 	{
 		instance->GetMaximized(isMaximized);
@@ -118,6 +128,16 @@ extern "C"
 	EXPORTED void Photino_SendWebMessage(Photino* instance, AutoString message)
 	{
 		instance->SendWebMessage(message);
+	}
+
+	EXPORTED void Photino_SetContextMenuEnabled(Photino* instance, bool enabled)
+	{
+		instance->SetContextMenuEnabled(enabled);
+	}
+
+	EXPORTED void Photino_SetDevToolsEnabled(Photino* instance, bool enabled)
+	{
+		instance->SetDevToolsEnabled(enabled);
 	}
 
 	EXPORTED void Photino_SetIconFile(Photino* instance, AutoString filename)

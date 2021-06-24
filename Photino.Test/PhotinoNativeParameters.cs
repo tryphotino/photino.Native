@@ -8,7 +8,7 @@ namespace PhotinoNET
     [StructLayout(LayoutKind.Sequential, Pack = 16, CharSet = CharSet.Auto)]
 	internal struct PhotinoNativeParameters
 	{
-		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this HTML string when initialized. Default is none.</summary>
+		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will render this HTML string when initialized. Default is none.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] internal string StartString;
 		///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this URL when initialized. Default is none.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] internal string StartUrl;
@@ -51,6 +51,10 @@ namespace PhotinoNET
 		[MarshalAs(UnmanagedType.I1)] internal bool CenterOnInitialize;
 		///<summary>OPTIONAL: If true, window is created without a title bar or borders. This allows owner-drawn title bars and borders. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool Chromeless;
+		///<summary>OPTIONAL: If true, user can access the browser control's context menu. Default is true.</summary>
+		[MarshalAs(UnmanagedType.I1)] internal bool ContextMenuEnabled;        
+		///<summary>OPTIONAL: If true, user can access the browser control's dev tools. Default is true.</summary>
+		[MarshalAs(UnmanagedType.I1)] internal bool DevToolsEnabled;
 		///<summary>OPTIONAL: If true, native browser control covers the entire screen. Useful for kiosks for example. Incompatible with Maximized and Minimized. Default is false.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool FullScreen;
 		///<summary>OPTIONAL: If true, native window is maximized to fill the screen. Incompatible with Minimized and FullScreen. Default is false.</summary>

@@ -29,14 +29,46 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 {
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
-		wchar_t msg[200];
-		swprintf(msg, 200, L"Initial parameters passed are %u bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
+		char msg[200];
+		swprintf(msg, 200, L"Initial parameters passed are %i bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
 		throw msg;
 	}
 
-	_startUrl = initParams->StartUrl;
-	_startString = initParams->StartString;
-	_temporaryFilesPath = initParams->TemporaryFilesPath;
+	_windowTitle = new char[256];
+	if (initParams->Title != NULL)
+		wcscpy(_windowTitle, initParams->Title);
+	else
+		_windowTitle[0] = 0;
+
+
+	_startUrl = NULL;
+	if (initParams->StartUrl != NULL)
+	{
+		_startUrl = new char[2048];
+		if (_startUrl == NULL) exit(0);
+		wcscpy(_startUrl, initParams->StartUrl);
+	}
+
+	_startString = NULL;
+	if (initParams->StartString != NULL)
+	{
+		_startString = new char[wcslen(initParams->StartString) + 1];
+		if (_startString == NULL) exit(0);
+		wcscpy(_startString, initParams->StartString);
+	}
+
+	_temporaryFilesPath = NULL;
+	if (initParams->TemporaryFilesPath != NULL)
+	{
+		_temporaryFilesPath = new char[256];
+		if (_temporaryFilesPath == NULL) exit(0);
+		wcscpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
+
+	}
+
+	_contextMenuEnabled = initParams->ContextMenuEnabled;
+	_devToolsEnabled = initParams->DevToolsEnabled;
+
 	_zoom = initParams->Zoom;
 
 	//these handlers are ALWAYS hooked up
@@ -147,6 +179,16 @@ void Photino::Center()
 void Photino::Close()
 {
 	gtk_window_close(GTK_WINDOW(_window));
+}
+
+void Photino::GetContextMenuEnabled(bool* enabled)
+{
+
+}
+
+void Photino::GetDevToolsEnabled(bool* enabled)
+{
+
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -270,6 +312,16 @@ void Photino::SendWebMessage(AutoString message)
 	while (!invokeJsWaitInfo.isCompleted) {
 		g_main_context_iteration(NULL, TRUE);
 	}
+}
+
+void Photino::SetContextMenuEnabled(bool enabled)
+{
+
+}
+
+void Photino::SetDevToolsEnabled(bool enabled)
+{
+
 }
 
 void Photino::SetIconFile(AutoString filename)

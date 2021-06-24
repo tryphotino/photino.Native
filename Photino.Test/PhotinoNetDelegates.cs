@@ -9,34 +9,34 @@ namespace PhotinoNET
     public partial class PhotinoWindow
     {
         //FLUENT EVENT HANDLER REGISTRATION
-        public event EventHandler<Point> LocationChangedHandler;
+        public event EventHandler<Point> WindowLocationChanged;
         ///<summary>Registers user-defined handler methods to receive callbacks from the native window when its location changes.</summary>
         public PhotinoWindow RegisterLocationChangedHandler(EventHandler<Point> handler)
         {
-            LocationChangedHandler += handler;
+            WindowLocationChanged += handler;
             return this;
         }
         ///<summary>Invokes registered user-defined handler methods when the native window's location changes.</summary>
         internal void OnLocationChanged(int left, int top)
         {
             var location = new Point(left, top);
-            LocationChangedHandler?.Invoke(this, location);
+            WindowLocationChanged?.Invoke(this, location);
         }
 
 
 
-        public event EventHandler<Size> SizeChangedHandler;
+        public event EventHandler<Size> WindowSizeChanged;
         ///<summary>Registers user-defined handler methods to receive callbacks from the native window when its size changes.</summary>
         public PhotinoWindow RegisterSizeChangedHandler(EventHandler<Size> handler)
         {
-            SizeChangedHandler += handler;
+            WindowSizeChanged += handler;
             return this;
         }
         ///<summary>Invokes registered user-defined handler methods when the native window's size changes.</summary>
         internal void OnSizeChanged(int width, int height)
         {
             var size = new Size(width, height);
-            SizeChangedHandler?.Invoke(this, size);
+            WindowSizeChanged?.Invoke(this, size);
         }
 
 

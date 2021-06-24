@@ -66,6 +66,8 @@ struct PhotinoInitParams
 
 	bool CenterOnInitialize;
 	bool Chromeless;
+	bool ContextMenuEnabled;
+	bool DevToolsEnabled;
 	bool FullScreen;
 	bool Maximized;
 	bool Minimized;
@@ -92,7 +94,11 @@ private:
 	AutoString _temporaryFilesPath;
 	AutoString _windowTitle;
 
+	bool _contextMenuEnabled;
+	bool _devToolsEnabled;
+
 	int _zoom;
+
 	Photino* _parent;
 	void Show();
 #ifdef _WIN32
@@ -129,6 +135,8 @@ public:
 
 	void Center();
 	void Close();
+	void GetContextMenuEnabled(bool* enabled);
+	void GetDevToolsEnabled(bool* enabled);
 	void GetMaximized(bool* isMaximized);
 	void GetMinimized(bool* isMinimized);
 	void GetPosition(int* x, int* y);
@@ -144,6 +152,8 @@ public:
 	void NavigateToUrl(AutoString url);
 	void Restore();
 	void SendWebMessage(AutoString message);
+	void SetContextMenuEnabled(bool enabled);
+	void SetDevToolsEnabled(bool enabled);
 	void SetIconFile(AutoString filename);
 	void SetPosition(int x, int y);
 	void SetResizable(bool resizable);

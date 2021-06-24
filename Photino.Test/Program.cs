@@ -44,9 +44,12 @@ namespace PhotinoNET
                 //.SetMinimized(true)
                 //.SetResizable(false)
                 //.SetTopMost(true)
-                .SetUseOsDefaultLocation(true)
-                //.SetUseOsDefaultSize(true)
+                .SetUseOsDefaultLocation(false)
+                .SetUseOsDefaultSize(false)
                 //.SetZoom(150)
+
+                .SetContextMenuEnabled(true)
+                .SetDevToolsEnabled(false)
 
                 //.Center()
                 //.SetSize(new Size(800, 600))
@@ -87,46 +90,44 @@ namespace PhotinoNET
                 IconFile = "wwwroot/photino-logo.ico",
                 Title = $"My Photino Window {_windowNumber++}",
 
-                //.Load(new Uri("https://google.com"))
-                //.Load("wwwroot/main.html")
-                //.LoadRawString("<h1>Hello Photino!</h1>")
+                StartUrl = "wwwroot/main.html",
+                //StartString = "<h1>Hello Photino!</h1>",
 
-                Chromeless = true,
-                FullScreen = true,
-                Maximized = true,
-                Minimized = true,
-                Resizable = false,
-                TopMost = true,
-                UseOsDefaultLocation = true,
-                UseOsDefaultSize = true,
-                Zoom = 150,
+                //Chromeless = true,
+                //FullScreen = true,
+                //Maximized = true,
+                //Minimized = true,
+                //Resizable = false,
+                //TopMost = true,
+                UseOsDefaultLocation = false,
+                UseOsDefaultSize = false,
+                //Zoom = 150,
 
-                //.Center()
-                Size = new Size(800, 600),
+                ContextMenuEnabled = true,
+                DevToolsEnabled = false,
+
+                //CenterOnInitialize = true,
+                //Size = new Size(800, 600),
                 Height = 600,
                 Width = 800,
-                Location = new Point(50, 50),
+                //Location = new Point(50, 50),
                 Top = 50,
                 Left = 50,
 
-                //.MoveTo(new Point(10, 10))
-                //.MoveTo(20, 20)
-                //.Offset(new Point(150, 150))
-                //.Offset(250, 250)
-
-                //.RegisterWindowCreatingHandler(WindowCreating)
-                //.RegisterWindowCreatedHandler(WindowCreated)
-                //.RegisterLocationChangedHandler(WindowLocationChanged)
-                //.RegisterSizeChangedHandler(WindowSizeChanged)
-                //.RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
-                //.RegisterWindowClosingHandler(WindowIsClosing)
+                WindowCreatingHandler = WindowCreating,
+                WindowCreatedHandler = WindowCreated,
+                WindowLocationChangedHandler = WindowLocationChanged,
+                WindowSizeChangedHandler = WindowSizeChanged,
+                WebMessageReceivedHandler = MessageReceivedFromWindow,
+                WindowClosingHandler = WindowIsClosing,
 
                 TemporaryFilesPath = @"C:\Temp",
 
-                //.RegisterCustomSchemeHandler("app", AppCustomSchemeUsed)
-
                 LogVerbosity = _logEvents ? 2 : 0,
             };
+
+            //Can this be done with a property? 
+            mainWindow.RegisterCustomSchemeHandler("app", AppCustomSchemeUsed);
 
             mainWindow.WaitForClose();
 

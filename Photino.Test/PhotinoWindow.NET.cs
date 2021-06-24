@@ -14,14 +14,16 @@ namespace PhotinoNET
         private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters
         {
             Resizable = true,   //these values can't be initialized within the struct itself
-            Zoom = 100,
+            ContextMenuEnabled = true,
             CustomSchemeNames = new string[16],
+            DevToolsEnabled = true,
             TemporaryFilesPath = IsWindowsPlatform
                 ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Photino")
                 : null,
             Title = "Photino",
             UseOsDefaultLocation = true,
             UseOsDefaultSize = true,
+            Zoom = 100,
         };
         
         //Pointers to the type and instance.
@@ -107,15 +109,31 @@ namespace PhotinoNET
 
 
         //READ-WRITE PROPERTIES
-        ///<summary>When true, the native window will appear without a title bar or border. The user can supply both, as well as handle dragging and resizing. Default is false. Throws exception if called after native window is initalized.</summary>
+        ///<summary>When true, the native window will appear centered on the screen. Default is false. Throws exception if set after native window is initalized.</summary>
+        public bool CenterOnInitialize
+        {
+            get
+            {
+                return _startupParameters.CenterOnInitialize;
+            }
+            set
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                {
+                    if (_startupParameters.CenterOnInitialize != value)
+                        _startupParameters.CenterOnInitialize = value;
+                }
+                else
+                    throw new ApplicationException("CenterOnInitialize can only be set before the native window is instantiated.");
+            }
+        }
+
+        ///<summary>When true, the native window will appear without a title bar or border. The user can supply both, as well as handle dragging and resizing. Default is false. Throws exception if set after native window is initalized.</summary>
         public bool Chromeless
         {
             get
             {
-                if (_nativeInstance == IntPtr.Zero)
-                    return _startupParameters.Chromeless;
-
-                throw new ApplicationException("Chromeless can only be read before the native window is instantiated.");
+                return _startupParameters.Chromeless;
             }
             set
             {
@@ -126,6 +144,52 @@ namespace PhotinoNET
                 }
                 else
                     throw new ApplicationException("Chromeless can only be set before the native window is instantiated.");
+            }
+        }
+
+        ///<summary>When true, the userr can access the browser control's context menu. Default is true.</summary>
+        public bool ContextMenuEnabled
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.ContextMenuEnabled;
+
+                Photino_GetContextMenuEnabled(_nativeInstance, out bool enabled);
+                    return enabled;
+            }
+            set
+            {
+                if (ContextMenuEnabled != value)
+                {
+                    if (_nativeInstance == IntPtr.Zero)
+                        _startupParameters.ContextMenuEnabled = value;
+                    else
+                        Photino_SetContextMenuEnabled(_nativeInstance, value);
+                }
+            }
+        }
+
+        ///<summary>When true, the userr can access the browser control's dev tools. Default is true.</summary>
+        public bool DevToolsEnabled
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.DevToolsEnabled;
+                
+                Photino_GetDevToolsEnabled(_nativeInstance, out bool enabled);
+                return enabled;
+            }
+            set
+            {
+                if (DevToolsEnabled != value)
+                {
+                    if (_nativeInstance == IntPtr.Zero)
+                        _startupParameters.DevToolsEnabled = value;
+                    else
+                        Photino_SetDevToolsEnabled(_nativeInstance, value);
+                }
             }
         }
 
@@ -326,6 +390,42 @@ namespace PhotinoNET
             }
         }
 
+        ///<summary>EITHER StartString or StartUrl Must be specified: Browser control will render this HTML string when initialized. Default is none. Throws exception if set after native window is initalized.</summary>
+        public string StartString
+        {
+            get
+            {
+                return _startupParameters.StartString;
+            }
+            set
+            {
+                if (string.Compare(_startupParameters.StartString, value, true) != 0)
+                {
+                    if (_nativeInstance != IntPtr.Zero)
+                        throw new ApplicationException($"{nameof(_startupParameters.StartString)} cannot be changed after Photino Window is initialized");
+                    LoadRawString(value);
+                }
+            }
+        }
+
+        ///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this URL string when initialized. Default is none. Throws exception if set after native window is initalized.</summary>
+        public string StartUrl
+        {
+            get
+            {
+                return _startupParameters.StartUrl;
+            }
+            set
+            {
+                if (string.Compare(_startupParameters.StartUrl, value, true) != 0)
+                {
+                    if (_nativeInstance != IntPtr.Zero)
+                        throw new ApplicationException($"{nameof(_startupParameters.StartUrl)} cannot be changed after Photino Window is initialized");
+                    Load(value);
+                }
+            }
+        }
+
         ///<summary>Windows platform only. Gets or sets the local path to store temp files for browser control. Default is user's AppDataLocal folder. Throws exception if platform is not Windows.</summary>
         public string TemporaryFilesPath
         {
@@ -404,15 +504,12 @@ namespace PhotinoNET
             }
         }
 
-        ///<summary>When true the native window starts up at the OS Default location. Overrides Left (X) and Top (Y) properties. Default is true. Throws Application Exception if accessed after native window initialization.</summary>
+        ///<summary>When true the native window starts up at the OS Default location. Overrides Left (X) and Top (Y) properties. Default is true. Throws exception if set after native window is initialized.</summary>
         public bool UseOsDefaultLocation
         {
             get
             {
-                if (_nativeInstance == IntPtr.Zero)
-                    return _startupParameters.UseOsDefaultLocation;
-
-                throw new ApplicationException("UseOsDefaultLocation can only be read before the native window is instantiated.");
+                return _startupParameters.UseOsDefaultLocation;
             }
             set
             {
@@ -426,15 +523,12 @@ namespace PhotinoNET
             }
         }
 
-        ///<summary>When true the native window starts at the OS Default size. Overrides Height and Width properties. Default is true. Throws Application Exception if accessed after native window initialization.</summary>
+        ///<summary>When true the native window starts at the OS Default size. Overrides Height and Width properties. Default is true. Throws exception if set after native window is initialized.</summary>
         public bool UseOsDefaultSize
         {
             get
             {
-                if (_nativeInstance == IntPtr.Zero)
-                    return _startupParameters.UseOsDefaultSize;
-
-                throw new ApplicationException("UseOsDefaultSize can only be read before the native window is instantiated.");
+                return _startupParameters.UseOsDefaultSize;
             }
             set
             {
@@ -445,6 +539,19 @@ namespace PhotinoNET
                 }
                 else
                     throw new ApplicationException("UseOsDefaultSize can only be set before the native window is instantiated.");
+            }
+        }
+
+        ///<summary>Gets or set the event for WebMessageReceived. Set assigns a new handler to the event.</summary>
+        public EventHandler<string> WebMessageReceivedHandler
+        {
+            get
+            {
+                return WebMessageReceived;
+            }
+            set
+            {
+                WebMessageReceived += value;
             }
         }
 
@@ -459,6 +566,72 @@ namespace PhotinoNET
                     Size = new Size(value, currentSize.Height);
             }
         }
+
+        ///<summary>Gets or set the event for WindowClosing. Set assigns a new handler to the event.</summary>
+        public NetClosingDelegate WindowClosingHandler
+        {
+            get
+            {
+                return WindowClosing;
+            }
+            set
+            {
+                WindowClosing += value;
+            }
+        }
+
+        ///<summary>Gets or set the event for WindowCreating. Set assigns a new handler to the event.</summary>
+        public EventHandler WindowCreatingHandler
+        {
+            get
+            {
+                return WindowCreating;
+            }
+            set
+            {
+                WindowCreating += value;
+            }
+        }
+
+        ///<summary>Gets or set the event for WindowCreated. Set assigns a new handler to the event.</summary>
+        public EventHandler WindowCreatedHandler
+        {
+            get
+            {
+                return WindowCreated;
+            }
+            set
+            {
+                WindowCreated += value;
+            }
+        }
+
+        ///<summary>Gets or set the event for WindowLocationChanged. Set assigns a new handler to the event.</summary>
+        public EventHandler<Point> WindowLocationChangedHandler
+        {
+            get
+            {
+                return WindowLocationChanged;
+            }
+            set
+            {
+                WindowLocationChanged += value;
+            }
+        }
+
+        ///<summary>Gets or set the event for WindowSizeChanged. Set assigns a new handler to the event.</summary>
+        public EventHandler<Size> WindowSizeChangedHandler
+        {
+            get
+            {
+                return WindowSizeChanged;
+            }
+            set
+            {
+                WindowSizeChanged += value;
+            }
+        }
+
 
         ///<summary>Gets or sets the native browser control zoom. e.g. 100 = 100%  Default is 100;</summary>
         public int Zoom
@@ -689,6 +862,22 @@ namespace PhotinoNET
                 throw new ApplicationException("Chromeless setting cannot be used on an unitialized window.");
 
             _startupParameters.Chromeless = chromeless;
+            return this;
+        }
+
+        ///<summary>When true, the userr can access the browser control's context menu. Default is true.</summary>
+        public PhotinoWindow SetContextMenuEnabled(bool enabled)
+        {
+            Log($".SetContextMenuEnabled({enabled})");
+            ContextMenuEnabled = enabled;
+            return this;
+        }
+
+        ///<summary>When true, the userr can access the browser control's dev tools. Default is true.</summary>
+        public PhotinoWindow SetDevToolsEnabled(bool enabled)
+        {
+            Log($".SetDevTools({enabled})");
+            DevToolsEnabled = enabled;
             return this;
         }
 

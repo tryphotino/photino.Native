@@ -56,7 +56,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
 		wchar_t msg[200];
-		swprintf(msg, 200, L"Initial parameters passed are %d bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
+		swprintf(msg, 200, L"Initial parameters passed are %i bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
 		throw msg;
 	}
 
@@ -89,7 +89,11 @@ Photino::Photino(PhotinoInitParams* initParams)
 		_temporaryFilesPath = new wchar_t[256];
 		if (_temporaryFilesPath == NULL) exit(0);
 		wcscpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
+
 	}
+
+	_contextMenuEnabled = initParams->ContextMenuEnabled;
+	_devToolsEnabled = initParams->DevToolsEnabled;
 
 	_zoom = initParams->Zoom;
 
@@ -118,7 +122,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 	//MessageBox(nullptr, msg, L"", MB_OK);
 
 
-
 	if (initParams->UseOsDefaultSize)
 	{
 		initParams->Width = CW_USEDEFAULT;
@@ -143,6 +146,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 		initParams->Width = GetSystemMetrics(SM_CXSCREEN);
 		initParams->Height = GetSystemMetrics(SM_CYSCREEN);
 	}
+
+	//MessageBox(nullptr, _startUrl, L"", MB_OK);
 
 	//Create the window
 	_hWnd = CreateWindowEx(
@@ -188,6 +193,7 @@ Photino::~Photino()
 	if (_startUrl != NULL) delete[]_startUrl;
 	if (_startString != NULL) delete[]_startString;
 	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
+	if (_windowTitle != NULL) delete[]_windowTitle;
 }
 
 HWND Photino::getHwnd()
@@ -305,6 +311,20 @@ void Photino::Close()
 	PostMessage(_hWnd, WM_CLOSE, NULL, NULL);
 }
 
+void Photino::GetContextMenuEnabled(bool* enabled)
+{
+	ICoreWebView2Settings* settings;
+	HRESULT r = _webviewWindow->get_Settings(&settings);
+	settings->get_AreDefaultContextMenusEnabled((BOOL*)enabled);
+}
+
+void Photino::GetDevToolsEnabled(bool* enabled)
+{
+	ICoreWebView2Settings* settings;
+	HRESULT r = _webviewWindow->get_Settings(&settings);
+	settings->get_AreDevToolsEnabled((BOOL*)enabled);
+}
+
 void Photino::GetMaximized(bool* isMaximized)
 {
 	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
@@ -395,6 +415,20 @@ void Photino::Restore()
 void Photino::SendWebMessage(AutoString message)
 {
 	_webviewWindow->PostWebMessageAsString(message);
+}
+
+void Photino::SetContextMenuEnabled(bool enabled)
+{
+	ICoreWebView2Settings* settings;
+	HRESULT r = _webviewWindow->get_Settings(&settings);
+	settings->put_AreDefaultContextMenusEnabled(enabled);
+}
+
+void Photino::SetDevToolsEnabled(bool enabled)
+{
+	ICoreWebView2Settings* settings;
+	HRESULT r = _webviewWindow->get_Settings(&settings);
+	settings->put_AreDevToolsEnabled(enabled);
 }
 
 void Photino::SetIconFile(AutoString filename)
@@ -615,6 +649,7 @@ void Photino::AttachWebView()
 						
 						ICoreWebView2Settings* Settings;
 						_webviewWindow->get_Settings(&Settings);
+						Settings->put_AreHostObjectsAllowed(TRUE);
 						Settings->put_IsScriptEnabled(TRUE);
 						Settings->put_AreDefaultScriptDialogsEnabled(TRUE);
 						Settings->put_IsWebMessageEnabled(TRUE);
@@ -678,6 +713,12 @@ void Photino::AttachWebView()
 							NavigateToString(_startString);
 						else
 							throw "Neither StartUrl nor StartString was specified";
+
+						if (_contextMenuEnabled == false)
+							SetContextMenuEnabled(false);
+
+						if (_devToolsEnabled == false)
+							SetDevToolsEnabled(false);
 
 						if (_zoom != 100)
 							SetZoom(_zoom);
