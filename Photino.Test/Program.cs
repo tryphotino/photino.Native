@@ -17,52 +17,8 @@ namespace PhotinoNET
         {
             try
             {
-                mainWindow = new PhotinoWindow()
-                    .SetIconFile("wwwroot/photino-logo.ico")
-                    .SetTitle($"My Photino Window {_windowNumber++}")
-
-                    //.Load(new Uri("https://google.com"))
-                    .Load("wwwroot/main.html")
-                    //.LoadRawString("<h1>Hello Photino!</h1>")
-
-                    //.SetChromeless(true)
-                    //.SetFullScreen(true)
-                    //.SetMaximized(true)
-                    //.SetMinimized(true)
-                    //.SetResizable(false)
-                    //.SetTopMost(true)
-                    .SetUseOsDefaultLocation(true)
-                    //.SetUseOsDefaultSize(true)
-                    //.SetZoom(150)
-
-                    //.Center()
-                    //.SetSize(new Size(800, 600))
-                    .SetHeight(600)
-                    .SetWidth(800)
-                    //.SetLocation(new Point(50, 50))
-                    //.SetTop(50)
-                    //.SetLeft(50)
-                    //.MoveTo(new Point(10, 10))
-                    //.MoveTo(20, 20)
-                    //.Offset(new Point(150, 150))
-                    //.Offset(250, 250)
-
-                    .RegisterWindowCreatingHandler(WindowCreating)
-                    .RegisterWindowCreatedHandler(WindowCreated)
-                    .RegisterLocationChangedHandler(WindowLocationChanged)
-                    .RegisterSizeChangedHandler(WindowSizeChanged)
-                    .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
-                    .RegisterWindowClosingHandler(WindowIsClosing)
-
-                    //.SetTemporaryFilesPath(@"C:\Temp")
-
-                    .SetLogVerbosity(_logEvents ? 2 : 0);
-
-                mainWindow.RegisterCustomSchemeHandler("app", AppCustomSchemeUsed);
-
-                mainWindow.WaitForClose();
-
-                mainWindow.Center(); //will never happen - this is blocking.
+                FluentStyle();
+                //PropertyInitStyle();
             }
             catch (Exception ex)
             {
@@ -70,6 +26,113 @@ namespace PhotinoNET
                 Console.ReadKey();
             }
         }
+
+
+        private static void FluentStyle()
+        {
+            mainWindow = new PhotinoWindow()
+                .SetIconFile("wwwroot/photino-logo.ico")
+                .SetTitle($"My Photino Window {_windowNumber++}")
+
+                //.Load(new Uri("https://google.com"))
+                .Load("wwwroot/main.html")
+                //.LoadRawString("<h1>Hello Photino!</h1>")
+
+                //.SetChromeless(true)
+                //.SetFullScreen(true)
+                //.SetMaximized(true)
+                //.SetMinimized(true)
+                //.SetResizable(false)
+                //.SetTopMost(true)
+                .SetUseOsDefaultLocation(true)
+                //.SetUseOsDefaultSize(true)
+                //.SetZoom(150)
+
+                //.Center()
+                //.SetSize(new Size(800, 600))
+                .SetHeight(600)
+                .SetWidth(800)
+                //.SetLocation(new Point(50, 50))
+                //.SetTop(50)
+                //.SetLeft(50)
+                //.MoveTo(new Point(10, 10))
+                //.MoveTo(20, 20)
+                //.Offset(new Point(150, 150))
+                //.Offset(250, 250)
+
+                .RegisterCustomSchemeHandler("app", AppCustomSchemeUsed)
+
+                .RegisterWindowCreatingHandler(WindowCreating)
+                .RegisterWindowCreatedHandler(WindowCreated)
+                .RegisterLocationChangedHandler(WindowLocationChanged)
+                .RegisterSizeChangedHandler(WindowSizeChanged)
+                .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
+                .RegisterWindowClosingHandler(WindowIsClosing)
+
+                //.SetTemporaryFilesPath(@"C:\Temp")
+
+                .SetLogVerbosity(_logEvents ? 2 : 0);
+
+
+            mainWindow.WaitForClose();
+
+            mainWindow.Center(); //will never happen - this is blocking.
+        }
+
+        private static void PropertyInitStyle()
+        {
+            mainWindow = new PhotinoWindow
+            {
+
+                IconFile = "wwwroot/photino-logo.ico",
+                Title = $"My Photino Window {_windowNumber++}",
+
+                //.Load(new Uri("https://google.com"))
+                //.Load("wwwroot/main.html")
+                //.LoadRawString("<h1>Hello Photino!</h1>")
+
+                Chromeless = true,
+                FullScreen = true,
+                Maximized = true,
+                Minimized = true,
+                Resizable = false,
+                TopMost = true,
+                UseOsDefaultLocation = true,
+                UseOsDefaultSize = true,
+                Zoom = 150,
+
+                //.Center()
+                Size = new Size(800, 600),
+                Height = 600,
+                Width = 800,
+                Location = new Point(50, 50),
+                Top = 50,
+                Left = 50,
+
+                //.MoveTo(new Point(10, 10))
+                //.MoveTo(20, 20)
+                //.Offset(new Point(150, 150))
+                //.Offset(250, 250)
+
+                //.RegisterWindowCreatingHandler(WindowCreating)
+                //.RegisterWindowCreatedHandler(WindowCreated)
+                //.RegisterLocationChangedHandler(WindowLocationChanged)
+                //.RegisterSizeChangedHandler(WindowSizeChanged)
+                //.RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
+                //.RegisterWindowClosingHandler(WindowIsClosing)
+
+                TemporaryFilesPath = @"C:\Temp",
+
+                //.RegisterCustomSchemeHandler("app", AppCustomSchemeUsed)
+
+                LogVerbosity = _logEvents ? 2 : 0,
+            };
+
+            mainWindow.WaitForClose();
+
+            mainWindow.Center(); //will never happen - this is blocking.
+        }
+
 
 
         //These are the event handlers I'm hooking up

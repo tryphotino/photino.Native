@@ -150,7 +150,7 @@ namespace PhotinoNET
             if (colonPos < 0)
                 throw new ApplicationException($"URL: '{url}' does not contain a colon.");
 
-            var scheme = url.Substring(0, colonPos - 1).ToLower();
+            var scheme = url.Substring(0, colonPos).ToLower();
 
             if (!CustomSchemeNames.Contains(scheme))
                 throw new ApplicationException($"A handler for the scheme '{scheme}' has not been registered.");

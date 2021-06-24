@@ -352,8 +352,7 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.Title;
 
-                Photino_GetTitle(_nativeInstance, out string title);
-                return title;
+                return Marshal.PtrToStringAuto(Photino_GetTitle(_nativeInstance));
             }
             set
             {

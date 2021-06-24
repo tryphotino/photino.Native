@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <algorithm>
 #pragma comment(lib, "Urlmon.lib")
+#pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
 
 #define WM_USER_SHOWMESSAGE (WM_USER + 0x0001)
 #define WM_USER_INVOKE (WM_USER + 0x0002)
@@ -51,17 +52,45 @@ void Photino::Register(HINSTANCE hInstance)
 
 
 Photino::Photino(PhotinoInitParams* initParams)
-{	
+{
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
 		wchar_t msg[200];
-		swprintf(msg, 200, L"Initial parameters passed are %u bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
+		swprintf(msg, 200, L"Initial parameters passed are %d bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
 		throw msg;
 	}
 
-	_startUrl = initParams->StartUrl;
-	_startString = initParams->StartString;
-	_temporaryFilesPath = initParams->TemporaryFilesPath;
+	_windowTitle = new wchar_t[256];
+	if (initParams->Title != NULL)
+		wcscpy(_windowTitle, initParams->Title);
+	else
+		_windowTitle[0] = 0;
+
+
+	_startUrl = NULL;
+	if (initParams->StartUrl != NULL)
+	{
+		_startUrl = new wchar_t[2048];
+		if (_startUrl == NULL) exit(0);
+		wcscpy(_startUrl, initParams->StartUrl);
+	}
+
+	_startString = NULL;
+	if (initParams->StartString != NULL)
+	{
+		_startString = new wchar_t[wcslen(initParams->StartString) + 1];
+		if (_startString == NULL) exit(0);
+		wcscpy(_startString, initParams->StartString);
+	}
+
+	_temporaryFilesPath = NULL;
+	if (initParams->TemporaryFilesPath != NULL)
+	{
+		_temporaryFilesPath = new wchar_t[256];
+		if (_temporaryFilesPath == NULL) exit(0);
+		wcscpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
+	}
+
 	_zoom = initParams->Zoom;
 
 	//these handlers are ALWAYS hooked up
@@ -72,12 +101,14 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
-	int i = 0;
-	while (i < 16)
+	for (int i = 0; i < 16; ++i)
 	{
 		if (initParams->CustomSchemeNames[i] != NULL)
-			_customSchemeNames.push_back(initParams->CustomSchemeNames[i]);
-		i++;
+		{
+			wchar_t* name = new wchar_t[50];
+			wcscpy(name, initParams->CustomSchemeNames[i]);
+			_customSchemeNames.push_back(name);
+		}
 	}
 
 	_parent = initParams->ParentInstance;
@@ -152,7 +183,12 @@ Photino::Photino(PhotinoInitParams* initParams)
 }
 
 // Needn't to release the handles.
-Photino::~Photino() {}
+Photino::~Photino() 
+{
+	if (_startUrl != NULL) delete[]_startUrl;
+	if (_startString != NULL) delete[]_startString;
+	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
+}
 
 HWND Photino::getHwnd()
 {
@@ -308,12 +344,13 @@ void Photino::GetSize(int* width, int* height)
 	if (height) *height = rect.bottom - rect.top;
 }
 
-void Photino::GetTitle(AutoString windowTitle)
+AutoString Photino::GetTitle()
 {
-	int titleLength = GetWindowTextLength(_hWnd) + 1;
-	wchar_t* title = new wchar_t[titleLength];
-	GetWindowText(_hWnd, title, titleLength);
-	windowTitle = title;
+	//int titleLength = GetWindowTextLength(_hWnd) + 1;
+	//wchar_t* title = new wchar_t[titleLength];
+	//GetWindowText(_hWnd, title, titleLength);
+	//MessageBox(nullptr, title, L"", MB_OK);
+	return _windowTitle;
 }
 
 void Photino::GetTopmost(bool* topmost)
@@ -326,7 +363,7 @@ void Photino::GetZoom(int* zoom)
 {
 	double rawValue = 0;
 	_webviewController->get_ZoomFactor(&rawValue);
-	rawValue = (rawValue * 100) + 0.5;		//account for rounding issues
+	rawValue = (rawValue * 100.0) + 0.5;		//account for rounding issues
 	*zoom = (int)rawValue;
 }
 
@@ -392,6 +429,14 @@ void Photino::SetSize(int width, int height)
 
 void Photino::SetTitle(AutoString title)
 {
+	if (wcslen(title) > 255)
+	{
+		for (int i = 0; i < 256; i++)
+			_windowTitle[i] = title[i];
+		_windowTitle[255] = 0;
+	}
+	else
+		wcscpy(_windowTitle, title);
 	SetWindowText(_hWnd, title);
 }
 
@@ -402,7 +447,7 @@ void Photino::SetTopmost(bool topmost)
 
 void Photino::SetZoom(int zoom)
 {
-	double newZoom = (double)zoom / 100;
+	double newZoom = zoom / 100.0;
 	HRESULT r = _webviewController->put_ZoomFactor(newZoom);
 	//wchar_t msg[50];
 	//swprintf(msg, 50, L"newZoom: %f", newZoom);
@@ -552,33 +597,15 @@ bool Photino::InstallWebView2()
 
 void Photino::AttachWebView()
 {
-	bool isUrl = false;
-	wchar_t startUrl[4096];
-	if (_startUrl != NULL)
-	{
-		isUrl = true;
-		wcscpy_s(startUrl, _startUrl);
-	}
-
-	bool isString = false;
-	wchar_t startString[65536];
-	if (_startString != NULL)
-	{
-		isString = true;
-		wcscpy_s(startString, _startString);
-	}
-
-	int Zoom = _zoom;
-
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, _temporaryFilesPath, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-			[&, Zoom](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+			[&](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }
 				HRESULT envResult = env->QueryInterface(&_webviewEnvironment);
 				if (envResult != S_OK) { return envResult; }
 
 				env->CreateCoreWebView2Controller(_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-					[&, Zoom](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+					[&](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 
 						if (result != S_OK) { return result; }
 
@@ -618,18 +645,13 @@ void Photino::AttachWebView()
 								if (colonPos > 0)
 								{
 									std::wstring scheme = uriString.substr(0, colonPos);
-									std::vector<AutoString>::iterator it = std::find(_customSchemeNames.begin(), _customSchemeNames.end(), scheme);
-
-									//wchar_t* url = _wcsdup(uriString.c_str());
-									//wchar_t msg[100];
-									//swprintf(msg, 100, L"it: %i  .end(): %i,  _customSchemeCallback: %p", it, _customSchemeNames.end(), _customSchemeCallback);
-									//MessageBox(nullptr, msg, L"", MB_OK);
+									std::vector<wchar_t*>::iterator it = std::find(_customSchemeNames.begin(), _customSchemeNames.end(), scheme);
 
 									if (it != _customSchemeNames.end() && _customSchemeCallback != NULL)
 									{
 										int numBytes;
 										AutoString contentType;
-										wil::unique_cotaskmem dotNetResponse(_customSchemeCallback(uriString.c_str(), &numBytes, &contentType));
+										wil::unique_cotaskmem dotNetResponse(_customSchemeCallback((AutoString)uriString.c_str(), &numBytes, &contentType));
 
 										if (dotNetResponse != nullptr && contentType != nullptr)
 										{
@@ -650,14 +672,15 @@ void Photino::AttachWebView()
 						).Get(), &webResourceRequestedToken);
 
 						
-						if (isUrl)
-							NavigateToUrl(startUrl);
-						else if (isString)
-							NavigateToString(startString);
+						if (_startUrl != NULL)
+							NavigateToUrl(_startUrl);
+						else if (_startString != NULL)
+							NavigateToString(_startString);
 						else
 							throw "Neither StartUrl nor StartString was specified";
 
-						SetZoom(_zoom);
+						if (_zoom != 100)
+							SetZoom(_zoom);
 
 						RefitContent();
 

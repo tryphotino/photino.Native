@@ -75,9 +75,9 @@ extern "C"
 		instance->GetSize(width, height);
 	}
 
-	EXPORTED void Photino_GetTitle(Photino* instance, AutoString windowTitle)
+	EXPORTED AutoString Photino_GetTitle(Photino* instance)
 	{
-		instance->GetTitle(windowTitle);
+		return instance->GetTitle();
 	}
 
 	EXPORTED void Photino_GetTopmost(Photino* instance, bool* topmost)

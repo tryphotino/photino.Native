@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <wil/com.h>
 #include <WebView2.h>
-typedef const wchar_t* AutoString;
+typedef wchar_t* AutoString;
 #else
 // AutoString for macOS/Linux
 typedef char* AutoString;
@@ -84,12 +84,14 @@ private:
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
 	ClosingCallback _closingCallback;
-	std::vector<AutoString> _customSchemeNames;
+	std::vector<wchar_t*> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
 
-	AutoString _startUrl;
-	AutoString _startString;
-	AutoString _temporaryFilesPath;
+	wchar_t* _startUrl;
+	wchar_t* _startString;
+	wchar_t* _temporaryFilesPath;
+	wchar_t* _windowTitle;
+
 	int _zoom;
 	Photino* _parent;
 	void Show();
@@ -133,7 +135,7 @@ public:
 	void GetResizable(bool* resizable);
 	unsigned int GetScreenDpi();
 	void GetSize(int* width, int* height);
-	void GetTitle(AutoString title);
+	AutoString GetTitle();
 	void GetTopmost(bool* topmost);
 	void GetZoom(int* zoom);
 	void Maximize();
@@ -153,7 +155,7 @@ public:
 	void WaitForExit();
 
 	//Callbacks
-	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back(scheme); };
+	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back((wchar_t*)scheme); };
 	void GetAllMonitors(GetAllMonitorsCallback callback);
 	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
 	void SetMovedCallback(MovedCallback callback) { _movedCallback = callback; }
