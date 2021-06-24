@@ -87,10 +87,10 @@ private:
 	std::vector<wchar_t*> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
 
-	wchar_t* _startUrl;
-	wchar_t* _startString;
-	wchar_t* _temporaryFilesPath;
-	wchar_t* _windowTitle;
+	AutoString _startUrl;
+	AutoString _startString;
+	AutoString _temporaryFilesPath;
+	AutoString _windowTitle;
 
 	int _zoom;
 	Photino* _parent;
