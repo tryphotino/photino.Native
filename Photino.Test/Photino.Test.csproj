@@ -10,6 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoDllImports.cs" Link="PhotinoDllImports.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoMonitorStruct.cs" Link="PhotinoMonitorStruct.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeDelegates.cs" Link="PhotinoNativeDelegates.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeParameters.cs" Link="PhotinoNativeParameters.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNetDelegates.cs" Link="PhotinoNetDelegates.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoWindow.NET.cs" Link="PhotinoWindow.NET.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Photino.Native\Photino.Native.vcxproj" />
   </ItemGroup>
 
