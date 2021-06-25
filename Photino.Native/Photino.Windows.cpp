@@ -33,7 +33,7 @@ struct ShowMessageParams
 {
 	std::wstring title;
 	std::wstring body;
-	UINT type;
+	UINT type = 0;
 };
 
 void Photino::Register(HINSTANCE hInstance)
@@ -56,8 +56,9 @@ Photino::Photino(PhotinoInitParams* initParams)
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
 		wchar_t msg[200];
-		swprintf(msg, 200, L"Initial parameters passed are %i bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
-		throw msg;
+		swprintf(msg, 200, L"Initial parameters passed are %i bytes, but expected %I64i bytes.", initParams->Size, sizeof(PhotinoInitParams));
+		MessageBox(nullptr, msg, L"Native Initialization Failed", MB_OK);
+		exit(0);
 	}
 
 	_windowTitle = new wchar_t[256];
@@ -306,9 +307,6 @@ void Photino::Center()
 
 void Photino::Close()
 {
-	//SetLastError(er);
-	//throw new std::exception("C++ boom!", 123);
-
 	PostMessage(_hWnd, WM_CLOSE, NULL, NULL);
 }
 
@@ -732,7 +730,10 @@ void Photino::AttachWebView()
 						else if (_startString != NULL)
 							NavigateToString(_startString);
 						else
-							throw "Neither StartUrl nor StartString was specified";
+						{
+							MessageBox(nullptr, L"Neither StartUrl nor StartString was specified", L"Native Initialization Failed", MB_OK);
+							exit(0);
+						}
 
 						if (_contextMenuEnabled == false)
 							SetContextMenuEnabled(false);

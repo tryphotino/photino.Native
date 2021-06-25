@@ -7,7 +7,7 @@ namespace PhotinoNET
 {
     class Program
     {
-        private static bool _logEvents = true;
+        private static readonly bool _logEvents = true;
         private static int _windowNumber = 1;
 
         private static PhotinoWindow mainWindow;
@@ -17,8 +17,8 @@ namespace PhotinoNET
         {
             try
             {
-                FluentStyle();
-                //PropertyInitStyle();
+                //FluentStyle();
+                PropertyInitStyle();
             }
             catch (Exception ex)
             {
@@ -38,7 +38,7 @@ namespace PhotinoNET
                 .Load("wwwroot/main.html")
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
-                //.SetChromeless(true)
+                .SetChromeless(true)
                 //.SetFullScreen(true)
                 //.SetMaximized(true)
                 //.SetMinimized(true)
@@ -87,15 +87,14 @@ namespace PhotinoNET
         {
             mainWindow = new PhotinoWindow
             {
-
                 IconFile = "wwwroot/photino-logo.ico",
                 Title = $"My Photino Window {_windowNumber++}",
 
                 StartUrl = "wwwroot/main.html",
                 //StartString = "<h1>Hello Photino!</h1>",
 
-                //Centered = true,
-                //Chromeless = true,
+                Centered = true,
+                Chromeless = true,
                 //FullScreen = true,
                 //Maximized = true,
                 //Minimized = true,
@@ -103,7 +102,7 @@ namespace PhotinoNET
                 //TopMost = true,
                 UseOsDefaultLocation = false,
                 UseOsDefaultSize = false,
-                //Zoom = 150,
+                Zoom = 150,
 
                 //ContextMenuEnabled = false,
                 //DevToolsEnabled = false,
@@ -124,7 +123,7 @@ namespace PhotinoNET
                 WebMessageReceivedHandler = MessageReceivedFromWindow,
                 WindowClosingHandler = WindowIsClosing,
 
-                TemporaryFilesPath = @"C:\Temp",
+                //TemporaryFilesPath = @"C:\Temp",
 
                 LogVerbosity = _logEvents ? 2 : 0,
             };
@@ -146,7 +145,6 @@ namespace PhotinoNET
             var currentWindow = sender as PhotinoWindow;
 
             contentType = "text/javascript";
-
 
             var js =
 @"
