@@ -1109,9 +1109,9 @@ namespace PhotinoNET
         {
             //fill in the fixed size array of custom scheme names
             var i = 0;
-            foreach (var name in CustomSchemeNames.Take(16))
+            foreach (var name in CustomSchemes.Take(16))
             {
-                _startupParameters.CustomSchemeNames[i] = name;
+                _startupParameters.CustomSchemeNames[i] = name.Key;
                 i++;
             }
 

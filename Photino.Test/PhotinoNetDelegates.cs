@@ -111,8 +111,7 @@ namespace PhotinoNET
         //NOTE: There is 1 callback from C++ to C# which is automatically registered. The .NET callback appropriate for the custom scheme is handled in OnCustomScheme().
 
         public delegate Stream NetCustomSchemeDelegate(object sender, string scheme, string url, out string contentType);
-        public event NetCustomSchemeDelegate CustomScheme;
-        internal List<string> CustomSchemeNames = new List<string>();
+        internal Dictionary<string, NetCustomSchemeDelegate> CustomSchemes = new Dictionary<string, NetCustomSchemeDelegate>();
         ///<summary>Registers user-defined custom schemes (other than 'http', 'https' and 'file') and handler methods to receive callbacks when the native browser control encounters them.</summary>
         public PhotinoWindow RegisterCustomSchemeHandler(string scheme, NetCustomSchemeDelegate handler)
         {
@@ -123,25 +122,26 @@ namespace PhotinoNET
                 throw new ArgumentException("A handler (method) with a signature matching NetCustomSchemeDelegate must be supplied.");
 
             scheme = scheme.ToLower();
-            if (CustomSchemeNames.Contains(scheme))
-                throw new ArgumentException($"Scheme '{scheme}' has already been defined and cannot be re-defined.");
 
             if (_nativeInstance == IntPtr.Zero)
             {
-                if (CustomSchemeNames.Count > 15)
-                    throw new ApplicationException($"No more than 16 custom scheme handlers can be set prior to initialization. Additional handlers can be added after initialization.");
+                if (CustomSchemes.Count > 15 && !CustomSchemes.ContainsKey(scheme))
+                    throw new ApplicationException($"No more than 16 custom schemes can be set prior to initialization. Additional handlers can be added after initialization.");
+                else
+                {
+                    if (!CustomSchemes.ContainsKey(scheme))
+                        CustomSchemes.Add(scheme, null);
+                }
             }
             else
             {
                 Photino_AddCustomSchemeName(_nativeInstance, scheme);
             }
 
-            CustomSchemeNames.Add(scheme);
-            CustomScheme += handler;
+            CustomSchemes[scheme] += handler;
 
             return this;
         }
-
         ///<summary>Invokes registered user-defined handler methods for user-defined custom schemes (other than 'http','https', and 'file') when the native browser control encounters them.</summary>
         public IntPtr OnCustomScheme(string url, out int numBytes, out string contentType)
         {
@@ -152,10 +152,10 @@ namespace PhotinoNET
 
             var scheme = url.Substring(0, colonPos).ToLower();
 
-            if (!CustomSchemeNames.Contains(scheme))
-                throw new ApplicationException($"A handler for the scheme '{scheme}' has not been registered.");
+            if (!CustomSchemes.ContainsKey(scheme))
+                throw new ApplicationException($"A handler for the custom scheme '{scheme}' has not been registered.");
 
-            var responseStream = CustomScheme.Invoke(this, scheme, url, out contentType);
+            var responseStream = CustomSchemes[scheme].Invoke(this, scheme, url, out contentType);
 
             if (responseStream == null)
             {
