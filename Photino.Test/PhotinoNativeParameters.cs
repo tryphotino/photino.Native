@@ -69,8 +69,9 @@ namespace PhotinoNET
 		[MarshalAs(UnmanagedType.I1)] internal bool UseOsDefaultLocation;
 		///<summary>OPTIONAL: If true, overrides Height and Width parameters and lets the OS position the newly created window. Default is true.</summary>
 		[MarshalAs(UnmanagedType.I1)] internal bool UseOsDefaultSize;
+		///<summary>OPTIONAL: If true, requests for access to local resources (camera, microphone, etc.) will automatically be granted. Default is true.</summary>
+		[MarshalAs(UnmanagedType.I1)] internal bool GrantBrowserPermissions;
 
-		
 		///<summary>Set when GetParamErrors() is called, prior to initializing the native window. It is a check to make sure the struct matches what C++ is expecting.</summary>
 		[MarshalAs(UnmanagedType.I4)] internal int Size;
 

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace PhotinoNET
 {
@@ -13,10 +14,11 @@ namespace PhotinoNET
         ///<summary>Parameters set to Photino.Native to start a new instance of a Photino.Native window.</summary>
         private PhotinoNativeParameters _startupParameters = new PhotinoNativeParameters
         {
-            Resizable = true,   //these values can't be initialized within the struct itself
+            Resizable = true,   //These values can't be initialized within the struct itself. Set required defaults.
             ContextMenuEnabled = true,
             CustomSchemeNames = new string[16],
             DevToolsEnabled = true,
+            GrantBrowserPermissions = true,
             TemporaryFilesPath = IsWindowsPlatform
                 ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Photino")
                 : null,
@@ -29,9 +31,9 @@ namespace PhotinoNET
         //Pointers to the type and instance.
         private static IntPtr _nativeType = IntPtr.Zero;
         private IntPtr _nativeInstance;
-        private IntPtr _parentInstance;
+        private readonly int _managedThreadId;
 
- 
+
         //There can only be 1 message loop for all windows.
         private static bool _messageLoopIsStarted = false;
 
@@ -51,7 +53,9 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         throw new ApplicationException("The Photino window is not initialized yet");
 
-                    return Photino_getHwnd_win32(_nativeInstance);
+                    var handle = IntPtr.Zero;
+                    Invoke(() => handle = Photino_getHwnd_win32(_nativeInstance));
+                    return handle;
                 }
                 else
                     throw new PlatformNotSupportedException($"{nameof(WindowHandle)} is only supported on Windows.");
@@ -74,7 +78,7 @@ namespace PhotinoNET
                     return 1;
                 }
 
-                Photino_GetAllMonitors(_nativeInstance, callback);
+                Invoke(() => Photino_GetAllMonitors(_nativeInstance, callback));
 
                 return monitors;
             }
@@ -100,7 +104,9 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     throw new ApplicationException("The Photino window hasn't been initialized yet.");
 
-                return Photino_GetScreenDpi(_nativeInstance);
+                uint dpi = 0;
+                Invoke(() => dpi = Photino_GetScreenDpi(_nativeInstance));
+                return dpi;
             }
         }
 
@@ -112,11 +118,13 @@ namespace PhotinoNET
 
         //READ-WRITE PROPERTIES
         ///<summary>When true, the native window will appear centered on the screen. Default is false. Throws exception if set after native window is initalized.</summary>
-        public bool CenterOnInitialize
+        public bool Centered
         {
             get
             {
-                return _startupParameters.CenterOnInitialize;
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.CenterOnInitialize;
+                return false;
             }
             set
             {
@@ -126,7 +134,7 @@ namespace PhotinoNET
                         _startupParameters.CenterOnInitialize = value;
                 }
                 else
-                    throw new ApplicationException("CenterOnInitialize can only be set before the native window is instantiated.");
+                    Invoke(() => Photino_Center(_nativeInstance));
             }
         }
 
@@ -157,8 +165,9 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.ContextMenuEnabled;
 
-                Photino_GetContextMenuEnabled(_nativeInstance, out bool enabled);
-                    return enabled;
+                var enabled = false;
+                Invoke(() => Photino_GetContextMenuEnabled(_nativeInstance, out enabled));
+                return enabled;
             }
             set
             {
@@ -167,7 +176,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.ContextMenuEnabled = value;
                     else
-                        Photino_SetContextMenuEnabled(_nativeInstance, value);
+                        Invoke(() => Photino_SetContextMenuEnabled(_nativeInstance, value));
                 }
             }
         }
@@ -179,8 +188,9 @@ namespace PhotinoNET
             {
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.DevToolsEnabled;
-                
-                Photino_GetDevToolsEnabled(_nativeInstance, out bool enabled);
+
+                var enabled = false;
+                Invoke(() => Photino_GetDevToolsEnabled(_nativeInstance, out enabled));
                 return enabled;
             }
             set
@@ -190,7 +200,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.DevToolsEnabled = value;
                     else
-                        Photino_SetDevToolsEnabled(_nativeInstance, value);
+                        Invoke(() => Photino_SetDevToolsEnabled(_nativeInstance, value));
                 }
             }
         }
@@ -203,7 +213,9 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.FullScreen;
 
-                Photino_GetSize(_nativeInstance, out int width, out int height);
+                var width = 0;
+                var height = 0;
+                Invoke(() => Photino_GetSize(_nativeInstance, out width, out height));
                 return width == MainMonitor.WorkArea.Width
                     && height == MainMonitor.WorkArea.Height;
             }
@@ -214,7 +226,31 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.FullScreen = value;
                     else
-                        Photino_SetSize(_nativeInstance, MainMonitor.WorkArea.Width, MainMonitor.WorkArea.Height);
+                        Invoke(() => Photino_SetSize(_nativeInstance, MainMonitor.WorkArea.Width, MainMonitor.WorkArea.Height));
+                }
+            }
+        }
+
+        ///<summary>Gets or Sets whether the native browser control grants all requests for access to local resources (camera, microphone, etc.) Default is true.</summary>
+        public bool GrantBrowserPermissions
+        {
+            get
+            {
+                if (_nativeInstance == IntPtr.Zero)
+                    return _startupParameters.GrantBrowserPermissions;
+
+                var grant = false;
+                Invoke(() => Photino_GetGrantBrowserPermissions(_nativeInstance, out grant));
+                return grant;
+            }
+            set
+            {
+                if (GrantBrowserPermissions != value)
+                {
+                    if (_nativeInstance == IntPtr.Zero)
+                        _startupParameters.GrantBrowserPermissions = value;
+                    else
+                        Invoke(() => Photino_SetGrantBrowserPermissions(_nativeInstance, value));
                 }
             }
         }
@@ -253,7 +289,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.WindowIconFile = _iconFile;
                     else
-                        Photino_SetIconFile(_nativeInstance, _iconFile);
+                        Invoke(() => Photino_SetIconFile(_nativeInstance, _iconFile));
                 }
             }
         }
@@ -266,7 +302,9 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return new Point(_startupParameters.Left, _startupParameters.Top);
 
-                Photino_GetPosition(_nativeInstance, out int left, out int top);
+                var left = 0;
+                var top = 0;
+                Invoke(() => Photino_GetPosition(_nativeInstance, out left, out top));
                 return new Point(left, top);
             }
             set
@@ -279,7 +317,7 @@ namespace PhotinoNET
                         _startupParameters.Top = value.Y;
                     }
                     else
-                        Photino_SetPosition(_nativeInstance, value.X, value.Y);
+                        Invoke(() => Photino_SetPosition(_nativeInstance, value.X, value.Y));
                 }
             }
         }
@@ -304,7 +342,7 @@ namespace PhotinoNET
                     return _startupParameters.Maximized;
 
                 bool maximized = false;
-                Photino_IsMaximized(_nativeInstance, maximized);
+                Invoke(() => Photino_IsMaximized(_nativeInstance, maximized));
                 return maximized;
             }
             set
@@ -314,7 +352,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.Maximized = value;
                     else
-                        Photino_IsMaximized(_nativeInstance, value);
+                        Invoke(() => Photino_SetMaximized(_nativeInstance, value));
                 }
             }
         }
@@ -328,7 +366,7 @@ namespace PhotinoNET
                     return _startupParameters.Minimized;
 
                 bool minimized = false;
-                Photino_IsMinimized(_nativeInstance, minimized);
+                Invoke(() => Photino_IsMinimized(_nativeInstance, minimized));
                 return minimized;
             }
             set
@@ -338,7 +376,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.Minimized = value;
                     else
-                        Photino_SetMinimized(_nativeInstance, value);
+                        Invoke(() => Photino_SetMinimized(_nativeInstance, value));
                 }
             }
         }
@@ -356,8 +394,9 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.Resizable;
 
-                Photino_GetResizable(_nativeInstance, out bool resizeable);
-                return resizeable;
+                var resizable = false;
+                Invoke(() => Photino_GetResizable(_nativeInstance, out resizable));
+                return resizable;
             }
             set
             {
@@ -366,7 +405,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.FullScreen = value;
                     else
-                        Photino_SetResizable(_nativeInstance, value);
+                        Invoke(() => Photino_SetResizable(_nativeInstance, value));
                 }
             }
         }
@@ -379,7 +418,9 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return new Size(_startupParameters.Width, _startupParameters.Height);
 
-                Photino_GetSize(_nativeInstance, out int width, out int height);
+                var width = 0;
+                var height = 0;
+                Invoke(() => Photino_GetSize(_nativeInstance, out width, out height));
                 return new Size(width, height);
             }
             set
@@ -392,7 +433,7 @@ namespace PhotinoNET
                         _startupParameters.Width = value.Width;
                     }
                     else
-                        Photino_SetSize(_nativeInstance, value.Width, value.Height);
+                        Invoke(() => Photino_SetSize(_nativeInstance, value.Width, value.Height));
                 }
             }
         }
@@ -459,7 +500,13 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.Title;
 
-                return Marshal.PtrToStringAuto(Photino_GetTitle(_nativeInstance));
+                var title = string.Empty; ;
+                Invoke(() =>
+                {
+                    var ptr = Photino_GetTitle(_nativeInstance);
+                    title = Marshal.PtrToStringAuto(ptr);
+                });
+                return title;
             }
             set
             {
@@ -472,7 +519,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.Title = value;
                     else
-                        Photino_SetTitle(_nativeInstance, value);
+                        Invoke(() => Photino_SetTitle(_nativeInstance, value));
                 }
             }
         }
@@ -496,7 +543,8 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.Topmost;
 
-                Photino_GetTopmost(_nativeInstance, out bool topmost);
+                var topmost = false;
+                Invoke(() => Photino_GetTopmost(_nativeInstance, out topmost));
                 return topmost;
             }
             set
@@ -506,7 +554,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.Topmost = value;
                     else
-                        Photino_SetTopmost(_nativeInstance, value ? 1 : 0);
+                        Invoke(() => Photino_SetTopmost(_nativeInstance, value ? 1 : 0));
                 }
             }
         }
@@ -648,7 +696,8 @@ namespace PhotinoNET
                 if (_nativeInstance == IntPtr.Zero)
                     return _startupParameters.Zoom;
 
-                Photino_GetZoom(_nativeInstance, out int zoom);
+                var zoom = 0;
+                Invoke(() => Photino_GetZoom(_nativeInstance, out zoom));
                 return zoom;
             }
             set
@@ -658,7 +707,7 @@ namespace PhotinoNET
                     if (_nativeInstance == IntPtr.Zero)
                         _startupParameters.Zoom = value;
                     else
-                       Photino_SetZoom(_nativeInstance, value);
+                        Invoke(() => Photino_SetZoom(_nativeInstance, value));
                 }
             }
         }
@@ -675,6 +724,8 @@ namespace PhotinoNET
         public PhotinoWindow(PhotinoWindow parent = null)
         {
             _dotNetParent = parent;
+            _managedThreadId = Thread.CurrentThread.ManagedThreadId;
+
 
             if (IsWindowsPlatform)
             {
@@ -682,12 +733,12 @@ namespace PhotinoNET
                 if (_nativeType == IntPtr.Zero)
                 {
                     _nativeType = Marshal.GetHINSTANCE(typeof(PhotinoWindow).Module);
-                    Photino_register_win32(_nativeType);
+                    Invoke(() => Photino_register_win32(_nativeType));
                 }
             }
             else if (IsMacOsPlatform)
             {
-                Photino_register_mac();
+                Invoke(() => Photino_register_mac());
             }
 
             //Wire up handlers from C++ to C#
@@ -700,12 +751,24 @@ namespace PhotinoNET
 
 
 
+
         //FLUENT METHODS FOR INITIALIZING STARTUP PARAMETERS FOR NEW WINDOWS
 
         //CAN ALSO BE CALLED AFTER INITIALIZATION TO SET VALUES
 
         //ONE OF THESE 3 METHODS *MUST* BE CALLED PRIOR TO CALLING WAITFORCLOSE() OR CREATECHILDWINDOW()
-        
+
+        ///<summary>Dispatches an Action to the UI thread if called from another thread.</summary>
+        public PhotinoWindow Invoke(Action workItem)
+        {
+            // If we're already on the UI thread, no need to dispatch
+            if (Thread.CurrentThread.ManagedThreadId == _managedThreadId)
+                workItem();
+            else
+                Photino_Invoke(_nativeInstance, workItem.Invoke);
+            return this;
+        }
+
         ///<summary>Loads the specified file or url into the browser control. Load() or LoadString() must be called before native window is initialized.</summary>
         public PhotinoWindow Load(Uri uri)
         {
@@ -713,7 +776,7 @@ namespace PhotinoNET
             if (_nativeInstance == IntPtr.Zero)
                 _startupParameters.StartUrl = uri.ToString();
             else
-                Photino_NavigateToUrl(_nativeInstance, uri.ToString());
+                Invoke(() => Photino_NavigateToUrl(_nativeInstance, uri.ToString()));
             return this;
         }
 
@@ -757,7 +820,7 @@ namespace PhotinoNET
             if (_nativeInstance == IntPtr.Zero)
                 _startupParameters.StartString = content;
             else
-                Photino_NavigateToString(_nativeInstance, content);
+                Invoke(() => Photino_NavigateToString(_nativeInstance, content));
             return this;
         }
 
@@ -767,17 +830,8 @@ namespace PhotinoNET
         public PhotinoWindow Center()
         {
             Log(".Center()");
-            if (_nativeInstance == IntPtr.Zero)
-            {
-                _startupParameters.CenterOnInitialize = true;
-                return this;
-            }
-            Size workAreaSize= MainMonitor.WorkArea.Size;
-            var centeredPosition = new Point(
-                ((workAreaSize.Width / 2) - (Width / 2)),
-                ((workAreaSize.Height / 2) - (Height / 2))
-            );
-            return SetLocation(centeredPosition);
+            Centered = true;
+            return this;
         }
 
         ///<summary>Moves the native window to the specified location on the screen in pixels using a Point.</summary>
@@ -895,6 +949,14 @@ namespace PhotinoNET
         {
             Log($".SetFullScreen({fullScreen})");
             FullScreen = fullScreen;
+            return this;
+        }
+
+        ///<summary>Sets the native browser control to grant all requests for access to local resources (camera, microphone, etc.) Default is true.</summary>
+        public PhotinoWindow SetGrantBrowserPermissions(bool grant)
+        {
+            Log($".SetGrantBrowserPermission({grant})");
+            GrantBrowserPermissions = grant;
             return this;
         }
 
@@ -1063,7 +1125,7 @@ namespace PhotinoNET
                 OnWindowCreating();
                 try  //All C++ exceptions will bubble up to here.
                 {
-                    _nativeInstance = Photino_ctor(_startupParameters);
+                    Invoke(() => _nativeInstance = Photino_ctor(_startupParameters));
                 }
                 catch (Exception ex)
                 {
@@ -1081,7 +1143,7 @@ namespace PhotinoNET
                     _messageLoopIsStarted = true;
                     try
                     {
-                        Photino_WaitForExit(_nativeInstance);       //start the message loop. there can only be 1 message loop for all windows.
+                        Invoke(() => Photino_WaitForExit(_nativeInstance));       //start the message loop. there can only be 1 message loop for all windows.
                     }
                     catch (Exception ex)
                     {
@@ -1110,7 +1172,7 @@ namespace PhotinoNET
             Log(".Close()");
             if (_nativeInstance == IntPtr.Zero)
                 throw new ApplicationException("Close cannot be called until after the Photino window is initialized.");
-            Photino_Close(_nativeInstance);
+            Invoke(() => Photino_Close(_nativeInstance));
         }
 
         ///<summary>Opens a native alert (MessageBox) on the native window with a title and message. Throws an exception if the window is not initialized.</summary>
@@ -1119,7 +1181,7 @@ namespace PhotinoNET
             Log($".OpenAlertWindow({title}, {message})");
             if (_nativeInstance == IntPtr.Zero)
                 throw new ApplicationException("OpenAlertWindow cannot be called until after the Photino window is initialized.");
-            Photino_ShowMessage(_nativeInstance, title, message, /* MB_OK */ 0);
+            Invoke(() => Photino_ShowMessage(_nativeInstance, title, message, /* MB_OK */ 0));
         }
 
         ///<summary>Send a message to the ative window's native browser control's JavaScript context. Throws an exception if the window is not initialized.</summary>
@@ -1128,7 +1190,7 @@ namespace PhotinoNET
             Log($".SendWebMessage({message})");
             if (_nativeInstance == IntPtr.Zero)
                 throw new ApplicationException("SendWebMessage cannot be called until after the Photino window is initialized.");
-            Photino_SendWebMessage(_nativeInstance, message);
+            Invoke(() => Photino_SendWebMessage(_nativeInstance, message));
         }
 
 

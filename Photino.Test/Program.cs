@@ -48,8 +48,9 @@ namespace PhotinoNET
                 .SetUseOsDefaultSize(false)
                 //.SetZoom(150)
 
-                .SetContextMenuEnabled(true)
-                .SetDevToolsEnabled(false)
+                //.SetContextMenuEnabled(false)
+                //.SetDevToolsEnabled(false)
+                //.SetGrantBrowserPermissions(false)
 
                 //.Center()
                 //.SetSize(new Size(800, 600))
@@ -93,6 +94,7 @@ namespace PhotinoNET
                 StartUrl = "wwwroot/main.html",
                 //StartString = "<h1>Hello Photino!</h1>",
 
+                //Centered = true,
                 //Chromeless = true,
                 //FullScreen = true,
                 //Maximized = true,
@@ -103,8 +105,9 @@ namespace PhotinoNET
                 UseOsDefaultSize = false,
                 //Zoom = 150,
 
-                ContextMenuEnabled = true,
-                DevToolsEnabled = false,
+                //ContextMenuEnabled = false,
+                //DevToolsEnabled = false,
+                //GrantBrowserPermissions = false,
 
                 //CenterOnInitialize = true,
                 //Size = new Size(800, 600),
@@ -139,38 +142,37 @@ namespace PhotinoNET
         //These are the event handlers I'm hooking up
         private static Stream AppCustomSchemeUsed(object sender, string scheme, string url, out string contentType)
         {
+            Log(sender, $"Custom scheme '{scheme}' was used.");
             var currentWindow = sender as PhotinoWindow;
-            Log(null, $"Custom scheme '{scheme}' was used.");
 
             contentType = "text/javascript";
 
 
             var js =
-                @"
-                    (() =>{
-                        window.setTimeout(() => {
-                            const title = document.getElementById('Title');
-                            title.innerHTML = "
+@"
+(() =>{
+    window.setTimeout(() => {
+        const title = document.getElementById('Title');
+        const lineage = document.getElementById('Lineage');
+        title.innerHTML = "
 
-                + $"'{currentWindow.Title}'"
+            + $"'{currentWindow.Title}';" + "\n"
 
-                + "           alert(`🎉 Dynamically inserted JavaScript."
-
-                + $" \n\nPhotinoWindow Id: {currentWindow.Id}";
+            + $"        lineage.innerHTML = `PhotinoWindow Id: {currentWindow.Id} <br>`;" + "\n"; 
 
             //show lineage of this window
             var p = currentWindow.Parent;
             while (p != null)
             {
-                js += $" \nParentId: {p.Id}";
+                js += $"        lineage.innerHTML += `Parent Id: {p.Id} <br>`;" + "\n";
                 p = p.Parent;
             }
 
-            js += 
-                @"`);
-                        }, 1000);
-                    })();
-                 ";
+            js +=
+@"        alert(`🎉 Dynamically inserted JavaScript.`);
+    }, 1000);
+})();
+";
 
             return new MemoryStream(Encoding.UTF8.GetBytes(js));
         }
@@ -180,7 +182,7 @@ namespace PhotinoNET
             Log(sender, $"MessageRecievedFromWindow Callback Fired.");
 
             var currentWindow = sender as PhotinoWindow;
-            if (string.Compare(message, "random-window", true) == 0)
+            if (string.Compare(message, "child-window", true) == 0)
             {
                 var x = new PhotinoWindow(currentWindow)
                     .SetTitle($"Child Window {_windowNumber++}")
@@ -210,21 +212,24 @@ namespace PhotinoNET
             }
             else if (string.Compare(message, "zoom-in", true) == 0)
             {
-                if (currentWindow != null)
-                    currentWindow.Zoom += 5;
+                currentWindow.Zoom += 5;
+                Log(sender, $"Zoom: {currentWindow.Zoom}");
             }
             else if (string.Compare(message, "zoom-out", true) == 0)
             {
-                if (currentWindow != null)
-                    currentWindow.Zoom -= 5;
+                currentWindow.Zoom -= 5;
+                Log(sender, $"Zoom: {currentWindow.Zoom}");
+            }
+            else if (string.Compare(message, "center", true) == 0)
+            {
+                currentWindow.Center();
             }
             else if (string.Compare(message, "close", true) == 0)
             {
-                if (currentWindow != null)
-                    currentWindow.Close();
+                currentWindow.Close();
             }
             else
-                throw new Exception($"WTF? Unknown message '{message}'");
+                throw new Exception($"Unknown message '{message}'");
         }
 
         private static void WindowCreating(object sender, EventArgs e)

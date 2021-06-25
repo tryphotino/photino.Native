@@ -94,6 +94,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
+	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
 
 	_zoom = initParams->Zoom;
 
@@ -325,6 +326,11 @@ void Photino::GetDevToolsEnabled(bool* enabled)
 	settings->get_AreDevToolsEnabled((BOOL*)enabled);
 }
 
+void Photino::GetGrantBrowserPermissions(bool* grant)
+{
+	*grant = _grantBrowserPermissions;
+}
+
 void Photino::GetMaximized(bool* isMaximized)
 {
 	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
@@ -429,6 +435,11 @@ void Photino::SetDevToolsEnabled(bool enabled)
 	ICoreWebView2Settings* settings;
 	HRESULT r = _webviewWindow->get_Settings(&settings);
 	settings->put_AreDevToolsEnabled(enabled);
+}
+
+void Photino::SetGrantBrowserPermissions(bool grant)
+{
+	_grantBrowserPermissions = grant;
 }
 
 void Photino::SetIconFile(AutoString filename)
@@ -654,7 +665,6 @@ void Photino::AttachWebView()
 						Settings->put_AreDefaultScriptDialogsEnabled(TRUE);
 						Settings->put_IsWebMessageEnabled(TRUE);
 
-						// Register interop APIs
 						EventRegistrationToken webMessageToken;
 						_webviewWindow->AddScriptToExecuteOnDocumentCreated(L"window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };", nullptr);
 						_webviewWindow->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>(
@@ -706,6 +716,16 @@ void Photino::AttachWebView()
 							}
 						).Get(), &webResourceRequestedToken);
 
+						EventRegistrationToken permissionRequestedToken;
+						_webviewWindow->add_PermissionRequested(
+							Callback<ICoreWebView2PermissionRequestedEventHandler>(
+								[&](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)	-> HRESULT {
+									if (_grantBrowserPermissions)
+									args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW);
+									return S_OK;
+								})
+							.Get(),
+									&permissionRequestedToken);
 						
 						if (_startUrl != NULL)
 							NavigateToUrl(_startUrl);

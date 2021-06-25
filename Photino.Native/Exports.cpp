@@ -55,6 +55,11 @@ extern "C"
 		instance->GetDevToolsEnabled(enabled);
 	}
 
+	EXPORTED void GetGrantBrowserPermissions(Photino* instance, bool* grant)
+	{
+		instance->GetGrantBrowserPermissions(grant);
+	}
+
 	EXPORTED void Photino_GetMaximized(Photino* instance, bool* isMaximized)
 	{
 		instance->GetMaximized(isMaximized);
@@ -140,6 +145,11 @@ extern "C"
 		instance->SetDevToolsEnabled(enabled);
 	}
 
+	EXPORTED void SetGrantBrowserPermissions(Photino* instance, bool grant)
+	{
+		instance->SetGrantBrowserPermissions(grant);
+	}
+
 	EXPORTED void Photino_SetIconFile(Photino* instance, AutoString filename)
 	{
 		instance->SetIconFile(filename);
@@ -212,8 +222,6 @@ extern "C"
 	{
 		instance->SetResizedCallback(callback);
 	}
-
-
 
 	EXPORTED void Photino_Invoke(Photino* instance, ACTION callback)
 	{

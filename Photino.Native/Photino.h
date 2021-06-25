@@ -75,6 +75,7 @@ struct PhotinoInitParams
 	bool Topmost;
 	bool UseOsDefaultLocation;
 	bool UseOsDefaultSize;
+	bool GrantBrowserPermissions;
 
 	int Size;
 };
@@ -96,6 +97,7 @@ private:
 
 	bool _contextMenuEnabled;
 	bool _devToolsEnabled;
+	bool _grantBrowserPermissions;
 
 	int _zoom;
 
@@ -137,6 +139,7 @@ public:
 	void Close();
 	void GetContextMenuEnabled(bool* enabled);
 	void GetDevToolsEnabled(bool* enabled);
+	void GetGrantBrowserPermissions(bool* grant);
 	void GetMaximized(bool* isMaximized);
 	void GetMinimized(bool* isMinimized);
 	void GetPosition(int* x, int* y);
@@ -154,6 +157,7 @@ public:
 	void SendWebMessage(AutoString message);
 	void SetContextMenuEnabled(bool enabled);
 	void SetDevToolsEnabled(bool enabled);
+	void SetGrantBrowserPermissions(bool grant);
 	void SetIconFile(AutoString filename);
 	void SetPosition(int x, int y);
 	void SetResizable(bool resizable);

@@ -5,22 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photino</title>
-</head>
-<body>
-    <h1 id="Title"></h1>
-    <button onclick="OpenChildWindow()" class="primary center">Open Child Window</button>
-    <button onclick="ZoomIn()" class="primary center">Zoom In</button>
-    <button onclick="ZoomOut()" class="primary center">Zoom Out</button>
-    <button onclick="Close()" class="center">Close</button>
 
     <script src="app://dynamic.js"></script>
 
     <script>
         function OpenChildWindow() {
-            window.external.sendMessage('random-window');
-
-            const title = document.getElementById('Title');
-            title.innerHTML = 'Yo';
+            window.external.sendMessage('child-window');
         }
 
         function ZoomIn() {
@@ -31,9 +21,112 @@
             window.external.sendMessage('zoom-out');
         }
 
+        function Center() {
+            window.external.sendMessage('center');
+        }
+
         function Close() {
             window.external.sendMessage('close');
         }
+
+        //Photo stuff
+        //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
+        (function () {
+            var width = 320;    // We will scale the photo width to this
+            var height = 0;     // This will be computed based on the input stream
+            var streaming = false;
+            var video = null;
+            var canvas = null;
+            var photo = null;
+            var startbutton = null;
+
+            function startup() {
+                video = document.getElementById('video');
+                canvas = document.getElementById('canvas');
+                photo = document.getElementById('photo');
+                startbutton = document.getElementById('startbutton');
+
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                    .then(function (stream) {
+                        video.srcObject = stream;
+                        video.play();
+                    })
+                    .catch(function (err) {
+                        console.log("An error occurred: " + err);
+                    });
+
+                video.addEventListener('canplay', function (ev) {
+                    if (!streaming) {
+                        height = video.videoHeight / (video.videoWidth / width);
+                        if (isNaN(height)) {
+                            height = width / (4 / 3);
+                        }
+
+                        video.setAttribute('width', width);
+                        video.setAttribute('height', height);
+                        photo.setAttribute('width', width);
+                        photo.setAttribute('height', height);
+                        streaming = true;
+                    }
+                }, false);
+
+                startbutton.addEventListener('click', function (ev) {
+                    takepicture();
+                    ev.preventDefault();
+                }, false);
+
+                clearphoto();
+            }
+
+            function clearphoto() {
+                var context = canvas.getContext('2d');
+                context.fillStyle = "#AAA";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                var data = canvas.toDataURL('image/png');
+                photo.setAttribute('src', data);
+            }
+
+            function takepicture() {
+                var context = canvas.getContext('2d');
+                if (width && height) {
+                    canvas.width = width;
+                    canvas.height = height;
+                    context.drawImage(video, 0, 0, width, height);
+
+                    var data = canvas.toDataURL('image/png');
+                    photo.setAttribute('src', data);
+                } else {
+                    clearphoto();
+                }
+            }
+
+            window.addEventListener('load', startup, false);
+        })();
     </script>
+</head>
+<body>
+    <h1 id="Title"></h1>
+
+    <button onclick="OpenChildWindow()">Open Child Window</button>
+    <button onclick="ZoomIn()">Zoom In</button>
+    <button onclick="ZoomOut()">Zoom Out</button>
+    <button onclick="Center()">Center</button>
+    <button id="startbutton">Take Picture</button>
+    <button onclick="Close()">Close</button>
+
+    <p>
+        <div id="Lineage"></div>
+    </p>
+
+    <span>
+        <video id="video">Video stream not available.</video>
+    </span>
+
+    <span>
+        <img id="photo" alt="The screen capture will appear in this box.">
+    </span>
+
+    <canvas id="canvas" style="visibility:hidden">required to render the photo, but not visible</canvas>
 </body>
 </html>
