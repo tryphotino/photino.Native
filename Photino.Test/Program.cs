@@ -137,18 +137,42 @@ namespace PhotinoNET
 
 
         //These are the event handlers I'm hooking up
-        private static Stream AppCustomSchemeUsed(string scheme, out string contentType)
+        private static Stream AppCustomSchemeUsed(object sender, string scheme, string url, out string contentType)
         {
+            var currentWindow = sender as PhotinoWindow;
             Log(null, $"Custom scheme '{scheme}' was used.");
 
             contentType = "text/javascript";
-            return new MemoryStream(Encoding.UTF8.GetBytes(@"
-                                (() =>{
-                                    window.setTimeout(() => {
-                                        alert(`🎉 Dynamically inserted JavaScript.`);
-                                    }, 1000);
-                                })();
-                            "));
+
+
+            var js =
+                @"
+                    (() =>{
+                        window.setTimeout(() => {
+                            const title = document.getElementById('Title');
+                            title.innerHTML = "
+
+                + $"'{currentWindow.Title}'"
+
+                + "           alert(`🎉 Dynamically inserted JavaScript."
+
+                + $" \n\nPhotinoWindow Id: {currentWindow.Id}";
+
+            //show lineage of this window
+            var p = currentWindow.Parent;
+            while (p != null)
+            {
+                js += $" \nParentId: {p.Id}";
+                p = p.Parent;
+            }
+
+            js += 
+                @"`);
+                        }, 1000);
+                    })();
+                 ";
+
+            return new MemoryStream(Encoding.UTF8.GetBytes(js));
         }
 
         private static void MessageReceivedFromWindow(object sender, string message)
@@ -158,9 +182,9 @@ namespace PhotinoNET
             var currentWindow = sender as PhotinoWindow;
             if (string.Compare(message, "random-window", true) == 0)
             {
-                var x = new PhotinoWindow()
+                var x = new PhotinoWindow(currentWindow)
                     .SetTitle($"Child Window {_windowNumber++}")
-                    .Load("wwwroot/child.html")
+                    .Load("wwwroot/main.html")
 
                     .SetUseOsDefaultLocation(true)
                     .SetHeight(600)
@@ -172,6 +196,8 @@ namespace PhotinoNET
                     .RegisterSizeChangedHandler(WindowSizeChanged)
                     .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
                     .RegisterWindowClosingHandler(WindowIsClosing)
+
+                    .RegisterCustomSchemeHandler("app", AppCustomSchemeUsed)
 
                     .SetTemporaryFilesPath(currentWindow.TemporaryFilesPath)
                     .SetLogVerbosity(_logEvents ? 2 : 0);

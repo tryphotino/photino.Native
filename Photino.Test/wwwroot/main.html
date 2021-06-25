@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Photino</title>
 </head>
 <body>
-    <h1>Main Window</h1>
+    <h1 id="Title"></h1>
     <button onclick="OpenChildWindow()" class="primary center">Open Child Window</button>
     <button onclick="ZoomIn()" class="primary center">Zoom In</button>
     <button onclick="ZoomOut()" class="primary center">Zoom Out</button>
@@ -18,6 +18,9 @@
     <script>
         function OpenChildWindow() {
             window.external.sendMessage('random-window');
+
+            const title = document.getElementById('Title');
+            title.innerHTML = 'Yo';
         }
 
         function ZoomIn() {

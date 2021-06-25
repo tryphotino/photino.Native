@@ -110,7 +110,7 @@ namespace PhotinoNET
 
         //NOTE: There is 1 callback from C++ to C# which is automatically registered. The .NET callback appropriate for the custom scheme is handled in OnCustomScheme().
 
-        public delegate Stream NetCustomSchemeDelegate(string url, out string contentType);
+        public delegate Stream NetCustomSchemeDelegate(object sender, string scheme, string url, out string contentType);
         public event NetCustomSchemeDelegate CustomScheme;
         internal List<string> CustomSchemeNames = new List<string>();
         ///<summary>Registers user-defined custom schemes (other than 'http', 'https' and 'file') and handler methods to receive callbacks when the native browser control encounters them.</summary>
@@ -155,7 +155,7 @@ namespace PhotinoNET
             if (!CustomSchemeNames.Contains(scheme))
                 throw new ApplicationException($"A handler for the scheme '{scheme}' has not been registered.");
 
-            var responseStream = CustomScheme.Invoke(url, out contentType);
+            var responseStream = CustomScheme.Invoke(this, scheme, url, out contentType);
 
             if (responseStream == null)
             {

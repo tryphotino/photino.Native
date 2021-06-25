@@ -29,6 +29,8 @@ namespace PhotinoNET
         //Pointers to the type and instance.
         private static IntPtr _nativeType = IntPtr.Zero;
         private IntPtr _nativeInstance;
+        private IntPtr _parentInstance;
+
  
         //There can only be 1 message loop for all windows.
         private static bool _messageLoopIsStarted = false;
@@ -340,6 +342,11 @@ namespace PhotinoNET
                 }
             }
         }
+
+
+        private PhotinoWindow _dotNetParent;
+        ///<summary>Optional. Reference to parent PhotinoWindow instance. Can only be set in constructor.</summary>
+        public PhotinoWindow Parent { get { return _dotNetParent;  } }
 
         ///<summary>Gets or sets whether the native window can be resized by the user. Default is true.</summary>
         public bool Resizable
@@ -665,8 +672,10 @@ namespace PhotinoNET
 
         //CONSTRUCTOR
         ///<summary>.NET class that represents a native window with a native browser control taking up the entire client area.</summary>
-        public PhotinoWindow()
+        public PhotinoWindow(PhotinoWindow parent = null)
         {
+            _dotNetParent = parent;
+
             if (IsWindowsPlatform)
             {
                 //This only has to be done once
@@ -1043,6 +1052,10 @@ namespace PhotinoNET
                 _startupParameters.CustomSchemeNames[i] = name;
                 i++;
             }
+
+            _startupParameters.NativeParent = _dotNetParent == null 
+                ? IntPtr.Zero 
+                : _dotNetParent._nativeInstance;
 
             var errors = _startupParameters.GetParamErrors();
             if (errors.Count == 0)

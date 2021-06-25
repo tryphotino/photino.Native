@@ -1,23 +1,36 @@
-<h1>Child Window</h1>
-<button onclick="OpenChildWindow()" class="center">Open Child Window</button>
-<button onclick="ZoomIn()" class="center">Zoom In</button>
-<button onclick="ZoomOut()" class="center">Zoom Out</button>
-<button onclick="Close()" class="center">Close</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photino</title>
+</head>
+<body>
+    <h1>Child Window</h1>
+    <button onclick="OpenChildWindow()" class="center">Open Child Window</button>
+    <button onclick="ZoomIn()" class="center">Zoom In</button>
+    <button onclick="ZoomOut()" class="center">Zoom Out</button>
+    <button onclick="Close()" class="center">Close</button>
 
-<script>
-    function OpenChildWindow() {
-        window.external.sendMessage('random-window');
-    }
+    <script src="app://dynamic.js"></script>
 
-    function ZoomIn() {
-        window.external.sendMessage('zoom-in');
-    }
+    <script>
+        function OpenChildWindow() {
+            window.external.sendMessage('random-window');
+        }
 
-    function ZoomOut() {
-        window.external.sendMessage('zoom-out');
-    }
+        function ZoomIn() {
+            window.external.sendMessage('zoom-in');
+        }
 
-    function Close() {
-        window.external.sendMessage('close');
-    }
-</script>
+        function ZoomOut() {
+            window.external.sendMessage('zoom-out');
+        }
+
+        function Close() {
+            window.external.sendMessage('close');
+        }
+    </script>
+</body>
+</html>

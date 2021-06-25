@@ -19,8 +19,8 @@ namespace PhotinoNET
 		///<summary>WINDOWS: OPTIONAL: Path to store temp files for browser control. Defaults is user's AppDataLocal folder.</summary>
 		[MarshalAs(UnmanagedType.LPWStr)] internal string TemporaryFilesPath;
 
-		///<summary>OPTIONAL: If this window is created from another window.</summary>
-		internal IntPtr Parent;
+		///<summary>OPTIONAL: If native window is created from another native windowm this is the pointer to the parent window. It is set automatically in WaitforExit().</summary>
+		internal IntPtr NativeParent;
 
 		///<summary>SET BY PHOTINIWINDOW CONSTRUCTOR</summary>
 		[MarshalAs(UnmanagedType.FunctionPtr)] internal CppClosingDelegate ClosingHandler;
