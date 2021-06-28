@@ -149,8 +149,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 		initParams->Height = GetSystemMetrics(SM_CYSCREEN);
 	}
 
-	//MessageBox(nullptr, _startUrl, L"", MB_OK);
-
 	//Create the window
 	_hWnd = CreateWindowEx(
 		0,                      //Optional window styles.

@@ -10,6 +10,8 @@
 #include <sstream>
 #include <iomanip>
 
+std::mutex invokeLockMutex;
+
 struct InvokeWaitInfo
 {
 	ACTION callback;
@@ -29,14 +31,15 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 {
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
-		char msg[200];
-		swprintf(msg, 200, L"Initial parameters passed are %i bytes, but expected %u bytes.", initParams->Size, sizeof(PhotinoInitParams));
-		throw msg;
+		GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Initial parameters passed are %i bytes, but expected %lui bytes.", initParams->Size, sizeof(PhotinoInitParams));
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+		exit(0);
 	}
 
 	_windowTitle = new char[256];
 	if (initParams->Title != NULL)
-		wcscpy(_windowTitle, initParams->Title);
+		strcpy(_windowTitle, initParams->Title);
 	else
 		_windowTitle[0] = 0;
 
@@ -46,15 +49,15 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	{
 		_startUrl = new char[2048];
 		if (_startUrl == NULL) exit(0);
-		wcscpy(_startUrl, initParams->StartUrl);
+		strcpy(_startUrl, initParams->StartUrl);
 	}
 
 	_startString = NULL;
 	if (initParams->StartString != NULL)
 	{
-		_startString = new char[wcslen(initParams->StartString) + 1];
+		_startString = new char[strlen(initParams->StartString) + 1];
 		if (_startString == NULL) exit(0);
-		wcscpy(_startString, initParams->StartString);
+		strcpy(_startString, initParams->StartString);
 	}
 
 	_temporaryFilesPath = NULL;
@@ -62,12 +65,12 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	{
 		_temporaryFilesPath = new char[256];
 		if (_temporaryFilesPath == NULL) exit(0);
-		wcscpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
-
+		strcpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
 	}
 
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
+	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
 
 	_zoom = initParams->Zoom;
 
@@ -79,20 +82,18 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
-	int i = 0;
-	while (i < 16)
+	for (int i = 0; i < 16; ++i)
 	{
 		if (initParams->CustomSchemeNames[i] != NULL)
-			_customSchemeNames.push_back(initParams->CustomSchemeNames[i]);
-		i++;
+		{
+			char* name = new char[50];
+			strcpy(name, initParams->CustomSchemeNames[i]);
+			_customSchemeNames.push_back(name);
+		}
 	}
 
 	_parent = initParams->ParentInstance;
 
-	//wchar_t msg[50];
-	//swprintf(msg, 50, L"Height: %i  Width: %i  Left: %d  Top: %d", initParams->Height, initParams->Width, initParams->Left, initParams->Top);
-	//MessageBox(nullptr, msg, L"", MB_OK);
-	
 	// It makes xlib thread safe.
 	// Needed for get_position.
 	XInitThreads();
@@ -130,15 +131,16 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	if (initParams->Chromeless)
 	{
 		gtk_window_set_decorated(GTK_WINDOW(_window), false);
+	}
 
 	if (initParams->CenterOnInitialize)
 		Photino::Center();
 
-	if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != L"")
+	if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != "")
 		Photino::SetIconFile(initParams->WindowIconFile);
 
 	if (initParams->Minimized)
-		Photino::Minimize();;
+		Photino::Minimize();
 
 	if (initParams->Maximized)
 		Photino::Maximize();
@@ -161,6 +163,8 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 			G_CALLBACK(on_configure_event),
 			this);
 	}
+
+	Photino::Show();
 }
 
 Photino::~Photino()
@@ -183,12 +187,17 @@ void Photino::Close()
 
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
-
+    //TODO
 }
 
 void Photino::GetDevToolsEnabled(bool* enabled)
 {
+    //TODO:
+}
 
+void Photino::GetGrantBrowserPermissions(bool* grant)
+{
+    //TODO:
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -198,6 +207,7 @@ void Photino::GetMaximized(bool* isMaximized)
 
 void Photino::GetMinimized(bool* isMinimized)
 {
+	//TODO:
 	//GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WINDOW(_window));
 	//*isMinimized = GtkStateFlags.
 }
@@ -225,13 +235,14 @@ void Photino::GetSize(int* width, int* height)
 	gtk_window_get_size(GTK_WINDOW(_window), width, height);
 }
 
-void Photino::GetTitle(AutoString windowTitle)
+AutoString Photino::GetTitle()
 {
-	windowTitle = (AutoString)gtk_window_get_title(GTK_WINDOW(_window));
+	return (AutoString)gtk_window_get_title(GTK_WINDOW(_window));
 }
 
 void Photino::GetTopmost(bool* topmost)
 {
+	//TODO:
 	//GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WINDOW(_window));
 	//*topmost = GtkStateFlags.
 }
@@ -240,7 +251,7 @@ void Photino::GetZoom(int* zoom)
 {
 	double rawValue = 0;
 	rawValue = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(_webview));
-	rawValue = (rawValue * 100) + 0.5;
+	rawValue = (rawValue * 100.0) + 0.5;
 	*zoom = (int)rawValue;
 }
 
@@ -316,12 +327,17 @@ void Photino::SendWebMessage(AutoString message)
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
-
+    //TODO:
 }
 
 void Photino::SetDevToolsEnabled(bool enabled)
 {
+    //TODO:
+}
 
+void Photino::SetGrantBrowserPermissions(bool grant)
+{
+	//TODO:
 }
 
 void Photino::SetIconFile(AutoString filename)
@@ -356,7 +372,7 @@ void Photino::SetTopmost(bool topmost)
 
 void Photino::SetZoom(int zoom)
 {
-	double newZoom = (double)zoom / 100;
+	double newZoom = zoom / 100.0;
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(_webview), newZoom);
 }
 
@@ -401,29 +417,29 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 	}
 }
 
-//static gboolean invokeCallback(gpointer data)
-//{
-//	InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)data;
-//	waitInfo->callback();
-//	{
-//		std::lock_guard<std::mutex> guard(invokeLockMutex);
-//		waitInfo->isCompleted = true;
-//	}
-//	waitInfo->completionNotifier.notify_one();
-//	return false;
-//}
+static gboolean invokeCallback(gpointer data)
+{
+	InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)data;
+	waitInfo->callback();
+	{
+		std::lock_guard<std::mutex> guard(invokeLockMutex);
+		waitInfo->isCompleted = true;
+	}
+	waitInfo->completionNotifier.notify_one();
+	return false;
+}
 
-//void Photino::Invoke(ACTION callback)
-//{
-//	InvokeWaitInfo waitInfo = { };
-//	waitInfo.callback = callback;
-//	gdk_threads_add_idle(invokeCallback, &waitInfo);
-//
-//	// Block until the callback is actually executed and completed
-//	// TODO: Add return values, exception handling, etc.
-//	std::unique_lock<std::mutex> uLock(invokeLockMutex);
-//	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
-//}
+void Photino::Invoke(ACTION callback)
+{
+	InvokeWaitInfo waitInfo = { };
+	waitInfo.callback = callback;
+	gdk_threads_add_idle(invokeCallback, &waitInfo);
+
+	// Block until the callback is actually executed and completed
+	// TODO: Add return values, exception handling, etc.
+	std::unique_lock<std::mutex> uLock(invokeLockMutex);
+	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
+}
 
 
 

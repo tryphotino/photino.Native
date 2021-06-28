@@ -87,7 +87,7 @@ private:
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
 	ClosingCallback _closingCallback;
-	std::vector<wchar_t*> _customSchemeNames;
+	std::vector<AutoString> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
 
 	AutoString _startUrl;
@@ -169,7 +169,7 @@ public:
 	void WaitForExit();
 
 	//Callbacks
-	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back((wchar_t*)scheme); };
+	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back((AutoString)scheme); };
 	void GetAllMonitors(GetAllMonitorsCallback callback);
 	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
 	void SetMovedCallback(MovedCallback callback) { _movedCallback = callback; }
