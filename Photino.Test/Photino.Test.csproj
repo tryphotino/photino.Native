@@ -33,8 +33,4 @@
 
   </Target>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="COPY ..\Photino.Native\x64\Debug\Photino.Native.dll .\bin\Debug\net5.0\&#xD;&#xA;COPY ..\Photino.Native\x64\Debug\Photino.Native.pdb .\bin\Debug\net5.0\&#xD;&#xA;COPY ..\Photino.Native\x64\Debug\WebView2Loader.dll .\bin\Debug\net5.0\" />
-  </Target>
-
 </Project>

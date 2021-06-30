@@ -29,13 +29,24 @@ gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
 
 Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 {
-	if (initParams->Size != sizeof(PhotinoInitParams))
-	{
-		GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Initial parameters passed are %i bytes, but expected %lui bytes.", initParams->Size, sizeof(PhotinoInitParams));
-		gtk_dialog_run(GTK_DIALOG(dialog));
-		gtk_widget_destroy(dialog);
+	// It makes xlib thread safe.
+	// Needed for get_position.
+	//XInitThreads();
+
+	gtk_init(0, NULL);
+
+	//if (initParams->Size != sizeof(PhotinoInitParams))
+	//{
+		//GtkWidget* dialog = gtk_message_dialog_new(
+		//	nullptr
+		//	, GTK_DIALOG_DESTROY_WITH_PARENT
+		//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+		//	, "sz %i"
+		//	, initParams->sz);
+		//gtk_dialog_run(GTK_DIALOG(dialog));
+		//gtk_widget_destroy(dialog);
 		exit(0);
-	}
+	//}
 
 	_windowTitle = new char[256];
 	if (initParams->Title != NULL)
@@ -94,11 +105,6 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 
 	_parent = initParams->ParentInstance;
 
-	// It makes xlib thread safe.
-	// Needed for get_position.
-	XInitThreads();
-
-	gtk_init(0, NULL);
 	_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	
 	if (initParams->FullScreen)
