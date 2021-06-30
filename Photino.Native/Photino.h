@@ -43,8 +43,6 @@ typedef bool (*ClosingCallback)();
 class Photino;
 struct PhotinoInitParams
 {
-	int sz;
-
 	AutoString StartString;
 	AutoString StartUrl;
 	AutoString Title;

@@ -53,9 +53,9 @@ void Photino::Register(HINSTANCE hInstance)
 
 Photino::Photino(PhotinoInitParams* initParams)
 {
-	wchar_t msg[50];
-	swprintf(msg, 50, L"sz: %i", initParams->sz);
-	MessageBox(nullptr, msg, L"", MB_OK);
+	//wchar_t msg[50];
+	//swprintf(msg, 50, L"sz: %i", initParams->sz);
+	//MessageBox(nullptr, msg, L"", MB_OK);
 
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{

@@ -31,22 +31,22 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 {
 	// It makes xlib thread safe.
 	// Needed for get_position.
-	//XInitThreads();
-
+	XInitThreads();
 	gtk_init(0, NULL);
 
-	//if (initParams->Size != sizeof(PhotinoInitParams))
-	//{
-		//GtkWidget* dialog = gtk_message_dialog_new(
-		//	nullptr
-		//	, GTK_DIALOG_DESTROY_WITH_PARENT
-		//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
-		//	, "sz %i"
-		//	, initParams->sz);
-		//gtk_dialog_run(GTK_DIALOG(dialog));
-		//gtk_widget_destroy(dialog);
+	if (initParams->Size != sizeof(PhotinoInitParams))
+	{
+		GtkWidget* dialog = gtk_message_dialog_new(
+			nullptr
+			, GTK_DIALOG_DESTROY_WITH_PARENT
+			, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+			, "Initial parameters passed are %i bytes, but expected %lu bytes."
+			, initParams->Size
+			, sizeof(PhotinoInitParams));
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
 		exit(0);
-	//}
+	}
 
 	_windowTitle = new char[256];
 	if (initParams->Title != NULL)
@@ -98,7 +98,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 		if (initParams->CustomSchemeNames[i] != NULL)
 		{
 			char* name = new char[50];
-			strcpy(name, initParams->CustomSchemeNames[i]);
+			//strcpy(name, initParams->CustomSchemeNames[i]);
 			_customSchemeNames.push_back(name);
 		}
 	}
@@ -132,7 +132,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	else
 		gtk_window_set_default_size(GTK_WINDOW(_window), initParams->Width, initParams->Height);
 
-	SetTitle(initParams->Title);
+	SetTitle(_windowTitle);
 
 	if (initParams->Chromeless)
 	{
@@ -499,6 +499,13 @@ void Photino::Show()
 		g_signal_connect(contentManager, "script-message-received::Photinointerop",
 			G_CALLBACK(HandleWebMessage), (void*)_webMessageReceivedCallback);
 		webkit_user_content_manager_register_script_message_handler(contentManager, "Photinointerop");
+
+		if (_startUrl != NULL)
+			Photino::NavigateToUrl(_startUrl);
+		else if (_startString != NULL)
+			Photino::NavigateToString(_startString);
+		//else
+		//TODO Message box
 	}
 
 	gtk_widget_show_all(_window);
