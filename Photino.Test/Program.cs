@@ -87,13 +87,13 @@ namespace PhotinoNET
         {
             mainWindow = new PhotinoWindow
             {
-                IconFile = "wwwroot/photino-logo.ico",
+                IconFile = "wwwroot/photino-logo.png",
                 Title = $"My Photino Window {_windowNumber++}",
 
                 StartUrl = "wwwroot/main.html",
                 //StartString = "<h1>Hello Photino!</h1>",
 
-                //Centered = true,
+                Centered = true,
                 //Chromeless = true,
                 //FullScreen = true,
                 //Maximized = true,
@@ -101,8 +101,8 @@ namespace PhotinoNET
                 //Resizable = false,
                 //TopMost = true,
                 //UseOsDefaultLocation = false,
-                //UseOsDefaultSize = false,
-                //Zoom = 150,
+                UseOsDefaultSize = false,
+                //Zoom = 300,
 
                 //ContextMenuEnabled = false,
                 //DevToolsEnabled = false,
@@ -110,11 +110,11 @@ namespace PhotinoNET
 
                 //CenterOnInitialize = true,
                 //Size = new Size(800, 600),
-                //Height = 600,
-                //Width = 800,
+                Height = 600,
+                Width = 800,
                 //Location = new Point(50, 50),
-                Top = 50,
-                Left = 50,
+                //Top = 50,
+                //Left = 50,
 
                 WindowCreatingHandler = WindowCreating,
                 WindowCreatedHandler = WindowCreated,
@@ -133,7 +133,7 @@ namespace PhotinoNET
 
             mainWindow.WaitForClose();
 
-            mainWindow.Center(); //will never happen - this is blocking.
+            Console.WriteLine("Done Blocking!");
         }
 
 

@@ -113,7 +113,7 @@ private:
 	bool InstallWebView2();
 	void AttachWebView();
 #elif __linux__
-	GtkWidget* _window;
+	//GtkWidget* _window;
 	GtkWidget* _webview;
 #elif __APPLE__
     // NSApplication *_app;
@@ -128,6 +128,12 @@ public:
 	static void Register(HINSTANCE hInstance);
 	HWND getHwnd();
 	void RefitContent();
+#elif __linux__
+	GtkWidget* _window;
+	int _lastHeight;
+	int _lastWidth;
+	int _lastTop;
+	int _lastLeft;
 #elif __APPLE__
 	static void Register();
 #endif

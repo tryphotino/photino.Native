@@ -24,7 +24,8 @@ struct InvokeJSWaitInfo
 	bool isCompleted;
 };
 
-void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self);
+//void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self);
+//window size or position changed
 gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
 
 Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
@@ -162,15 +163,19 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 		g_signal_connect(G_OBJECT(_window), "destroy",
 			G_CALLBACK(+[](GtkWidget* w, gpointer arg) { gtk_main_quit(); }),
 			this);
-		g_signal_connect(G_OBJECT(_window), "size-allocate",
-			G_CALLBACK(on_size_allocate),
-			this);
-		g_signal_connect(G_OBJECT(_window), "configure-event",
-			G_CALLBACK(on_configure_event),
-			this);
 	}
+	//g_signal_connect(G_OBJECT(_window), "size-allocate",
+	//	G_CALLBACK(on_size_allocate),
+	//	this);
+	g_signal_connect(G_OBJECT(_window), "configure-event",
+		G_CALLBACK(on_configure_event),
+		this);
+	
 
 	Photino::Show();
+	
+	if (_zoom != 100.0)
+		SetZoom(_zoom);
 }
 
 Photino::~Photino()
@@ -358,7 +363,7 @@ void Photino::SetPosition(int x, int y)
 
 void Photino::SetResizable(bool resizable)
 {
-	gtk_window_set_resizable(GTK_WINDOW(_window), resizable ? TRUE : FALSE);
+	gtk_window_set_resizable(GTK_WINDOW(_window), resizable);
 }
 
 void Photino::SetSize(int width, int height)
@@ -515,17 +520,31 @@ gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self)
 {
 	if (event->type == GDK_CONFIGURE)
 	{
-		((Photino*)self)->InvokeMove(event->configure.x, event->configure.y);
+		Photino* instance = ((Photino*)self);
+
+		if (instance->_lastLeft != event->configure.x || instance->_lastTop != event->configure.y)
+		{
+			instance->InvokeMove(event->configure.x, event->configure.y);
+			instance->_lastLeft = event->configure.x;
+			instance->_lastTop = event->configure.y;
+		}
+
+		if (instance->_lastHeight != event->configure.height || instance->_lastWidth != event->configure.width)
+		{
+			instance->InvokeResize(event->configure.width, event->configure.height);
+			instance->_lastWidth = event->configure.width;
+			instance->_lastHeight = event->configure.height;
+		}
 	}
 	return FALSE;
 }
 
-void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self)
-{
-	int width, height;
-	gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
-	((Photino*)self)->InvokeResize(width, height);
-}
+//void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self)
+//{
+//	int width, height;
+//	gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
+//	((Photino*)self)->InvokeResize(width, height);
+//}
 
 void HandleCustomSchemeRequest(WebKitURISchemeRequest* request, gpointer user_data)
 {
