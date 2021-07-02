@@ -24,9 +24,13 @@ struct InvokeJSWaitInfo
 	bool isCompleted;
 };
 
-//void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self);
 //window size or position changed
 gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
+gboolean on_webview_context_menu (WebKitWebView* web_view,
+               GtkWidget* default_menu,
+               WebKitHitTestResult* hit_test_result,
+               gboolean triggered_with_keyboard,
+               gpointer user_data);
 
 Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 {
@@ -152,7 +156,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	if (initParams->Maximized)
 		Photino::Maximize();
 
-	if (initParams->Resizable == false)
+	if (!initParams->Resizable)
 		Photino::SetResizable(false);
 
 	if (initParams->Topmost)
@@ -170,9 +174,16 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	g_signal_connect(G_OBJECT(_window), "configure-event",
 		G_CALLBACK(on_configure_event),
 		this);
-	
 
 	Photino::Show();
+
+	//These must be called after the webview control is initialized.
+	if (!_contextMenuEnabled)
+	{
+		g_signal_connect(G_OBJECT(_webview), "context-menu",
+			G_CALLBACK(on_webview_context_menu),
+			this);
+	}
 
 	Photino::AddCustomSchemeHandlers();
 	
@@ -190,7 +201,15 @@ Photino::~Photino()
 
 void Photino::Center()
 {
-	gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_CENTER);
+	gint windowWidth, windowHeight;
+    gtk_window_get_size(GTK_WINDOW(_window), &windowWidth, &windowHeight);
+	
+	GdkRectangle screen = { 0 };
+	gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &screen);
+
+    gtk_window_move (GTK_WINDOW(_window), 
+		(screen.width - windowWidth) / 2, 
+		(screen.height - windowHeight) / 2);
 }
 
 void Photino::Close()
@@ -489,9 +508,9 @@ void Photino::Show()
 		webkit_settings_set_allow_top_navigation_to_data_urls(settings, TRUE);
 		webkit_settings_set_allow_universal_access_from_file_urls(settings, TRUE);
 
-		webkit_settings_set_enable_back_forwart_navigation_gestures(settings, TRUE);
-		webkit_settings_set_caret_browsing(settings, TRUE);
-		webkit_settings_set_enable_developer_extras(settings, TRUE);
+		webkit_settings_set_enable_back_forward_navigation_gestures(settings, TRUE);
+		webkit_settings_set_enable_caret_browsing(settings, TRUE);
+		webkit_settings_set_enable_developer_extras(settings, _devToolsEnabled);
 		webkit_settings_set_enable_media_capabilities(settings, TRUE);
 		webkit_settings_set_enable_media_stream(settings, TRUE);
 
@@ -564,6 +583,12 @@ gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self)
 	return FALSE;
 }
 
+gboolean on_webview_context_menu (WebKitWebView* web_view, GtkWidget* default_menu,
+    WebKitHitTestResult* hit_test_result, gboolean triggered_with_keyboard, gpointer user_data)
+{
+	return TRUE;	//disable context menu
+}
+
 //void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self)
 //{
 //	int width, height;
@@ -585,16 +610,16 @@ void HandleCustomSchemeRequest(WebKitURISchemeRequest* request, gpointer user_da
 	delete[] contentType;
 }
 
-void Photio::AddCustomSchemeHandlers()
+void Photino::AddCustomSchemeHandlers()
 {
-	WebKitContext* context = webkit_web_context_get_default();
+	WebKitWebContext* context = webkit_web_context_get_default();
 	for (const auto& value: _customSchemeNames)
 	{
 		webkit_web_context_register_uri_scheme(
 			context
 			, value
 			, (WebKitURISchemeRequestCallback)HandleCustomSchemeRequest
-			, (void*)
+			, (void*)_customSchemeCallback
 			, NULL);
 	}
 }
