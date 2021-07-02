@@ -115,6 +115,8 @@ private:
 #elif __linux__
 	//GtkWidget* _window;
 	GtkWidget* _webview;
+	void AddCustomSchemeHandlers();
+
 #elif __APPLE__
     // NSApplication *_app;
     NSWindow *_window;

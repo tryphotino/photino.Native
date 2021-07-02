@@ -99,7 +99,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 		if (initParams->CustomSchemeNames[i] != NULL)
 		{
 			char* name = new char[50];
-			//strcpy(name, initParams->CustomSchemeNames[i]);
+			strcpy(name, initParams->CustomSchemeNames[i]);
 			_customSchemeNames.push_back(name);
 		}
 	}
@@ -120,31 +120,31 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 
 		gtk_window_fullscreen(GTK_WINDOW(_window));
 	}
-
-	if (initParams->UseOsDefaultLocation && !initParams->FullScreen)
-		gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_NONE);
-	else if (initParams->CenterOnInitialize && !initParams->FullScreen)
-		gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_CENTER);
 	else
-		gtk_window_move(GTK_WINDOW(_window), initParams->Left, initParams->Top);
+	{
+		if (initParams->UseOsDefaultSize)
+			gtk_window_set_default_size(GTK_WINDOW(_window), -1, -1);
+		else
+			gtk_window_set_default_size(GTK_WINDOW(_window), initParams->Width, initParams->Height);
 
-	if (initParams->UseOsDefaultSize && !initParams->FullScreen)
-		gtk_window_set_default_size(GTK_WINDOW(_window), -1, -1);
-	else
-		gtk_window_set_default_size(GTK_WINDOW(_window), initParams->Width, initParams->Height);
+		if (initParams->UseOsDefaultLocation)
+			gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_NONE);
+		else if (initParams->CenterOnInitialize && !initParams->FullScreen)
+			gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_CENTER);
+		else
+			gtk_window_move(GTK_WINDOW(_window), initParams->Left, initParams->Top);
+	}
 
 	SetTitle(_windowTitle);
 
 	if (initParams->Chromeless)
-	{
 		gtk_window_set_decorated(GTK_WINDOW(_window), false);
-	}
-
-	if (initParams->CenterOnInitialize)
-		Photino::Center();
 
 	if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != "")
 		Photino::SetIconFile(initParams->WindowIconFile);
+
+	if (initParams->CenterOnInitialize)
+		Photino::Center();
 
 	if (initParams->Minimized)
 		Photino::Minimize();
@@ -173,6 +173,8 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	
 
 	Photino::Show();
+
+	Photino::AddCustomSchemeHandlers();
 	
 	if (_zoom != 100.0)
 		SetZoom(_zoom);
@@ -479,9 +481,22 @@ void Photino::Show()
 		WebKitUserContentManager* contentManager = webkit_user_content_manager_new();
 		_webview = webkit_web_view_new_with_user_content_manager(contentManager);
 
-		/* Enable the developer extras */
+		//https://webkit.org/reference/webkit2gtk/unstable/WebKitSettings.html#WebKitSettings--allow-file-access-from-file-urls
 		WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+
+		webkit_settings_set_allow_file_access_from_file_urls(settings, TRUE);
+		webkit_settings_set_allow_modal_dialogs(settings, TRUE);
+		webkit_settings_set_allow_top_navigation_to_data_urls(settings, TRUE);
+		webkit_settings_set_allow_universal_access_from_file_urls(settings, TRUE);
+
+		webkit_settings_set_enable_back_forwart_navigation_gestures(settings, TRUE);
+		webkit_settings_set_caret_browsing(settings, TRUE);
 		webkit_settings_set_enable_developer_extras(settings, TRUE);
+		webkit_settings_set_enable_media_capabilities(settings, TRUE);
+		webkit_settings_set_enable_media_stream(settings, TRUE);
+
+		webkit_settings_set_javascript_can_access_clipboard(settings, TRUE);
+		webkit_settings_set_javascript_can_open_windows_automatically(settings, TRUE);
 
 		gtk_container_add(GTK_CONTAINER(_window), _webview);
 
@@ -509,8 +524,18 @@ void Photino::Show()
 			Photino::NavigateToUrl(_startUrl);
 		else if (_startString != NULL)
 			Photino::NavigateToString(_startString);
-		//else
-		//TODO Message box
+		else
+		{
+			GtkWidget* dialog = gtk_message_dialog_new(
+				nullptr
+				, GTK_DIALOG_DESTROY_WITH_PARENT
+				, GTK_MESSAGE_ERROR
+				, GTK_BUTTONS_CLOSE
+				, "Neither StartUrl not StartString was specified");
+			gtk_dialog_run(GTK_DIALOG(dialog));
+			gtk_widget_destroy(dialog);
+			exit(0);
+		}
 	}
 
 	gtk_widget_show_all(_window);
@@ -558,6 +583,20 @@ void HandleCustomSchemeRequest(WebKitURISchemeRequest* request, gpointer user_da
 	webkit_uri_scheme_request_finish(request, (GInputStream*)stream, -1, contentType);
 	g_object_unref(stream);
 	delete[] contentType;
+}
+
+void Photio::AddCustomSchemeHandlers()
+{
+	WebKitContext* context = webkit_web_context_get_default();
+	for (const auto& value: _customSchemeNames)
+	{
+		webkit_web_context_register_uri_scheme(
+			context
+			, value
+			, (WebKitURISchemeRequestCallback)HandleCustomSchemeRequest
+			, (void*)
+			, NULL);
+	}
 }
 #endif
 
