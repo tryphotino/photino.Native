@@ -31,6 +31,7 @@ gboolean on_webview_context_menu (WebKitWebView* web_view,
                WebKitHitTestResult* hit_test_result,
                gboolean triggered_with_keyboard,
                gpointer user_data);
+gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest* request, gpointer user_data);
 
 Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 {
@@ -173,6 +174,9 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	//	this);
 	g_signal_connect(G_OBJECT(_window), "configure-event",
 		G_CALLBACK(on_configure_event),
+		this);
+	g_signal_connect(G_OBJECT(_webview), "permission-request",
+		G_CALLBACK(on_permission_request),
 		this);
 
 	Photino::Show();
@@ -587,6 +591,21 @@ gboolean on_webview_context_menu (WebKitWebView* web_view, GtkWidget* default_me
     WebKitHitTestResult* hit_test_result, gboolean triggered_with_keyboard, gpointer user_data)
 {
 	return TRUE;	//disable context menu
+}
+
+gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest* request, gpointer user_data)
+{
+	GtkWidget* dialog = gtk_message_dialog_new(
+		nullptr
+		, GTK_DIALOG_DESTROY_WITH_PARENT
+		, GTK_MESSAGE_ERROR
+		, GTK_BUTTONS_CLOSE
+		, "Permission Requested - Allowing!");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+
+	webkit_permission_request_allow(request);
+	return FALSE;
 }
 
 //void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self)
