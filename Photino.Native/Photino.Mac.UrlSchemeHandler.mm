@@ -1,3 +1,4 @@
+#ifdef __APPLE__
 #import "Photino.Mac.UrlSchemeHandler.h"
 
 @implementation UrlSchemeHandler : NSObject
@@ -30,3 +31,4 @@
 }
 
 @end
+#endif

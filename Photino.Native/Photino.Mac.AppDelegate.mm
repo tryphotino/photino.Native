@@ -1,3 +1,4 @@
+#ifdef __APPLE__
 #import "Photino.Mac.AppDelegate.h"
 
 @implementation AppDelegate : NSObject
@@ -23,3 +24,4 @@
 }
 
 @end
+#endif

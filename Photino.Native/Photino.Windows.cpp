@@ -71,7 +71,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 	else
 		_windowTitle[0] = 0;
 
-
 	_startUrl = NULL;
 	if (initParams->StartUrl != NULL)
 	{
@@ -569,76 +568,6 @@ void Photino::Invoke(ACTION callback)
 
 
 //private methods
-void Photino::RefitContent()
-{
-	if (_webviewController)
-	{
-		RECT bounds;
-		GetClientRect(_hWnd, &bounds);
-		_webviewController->put_Bounds(bounds);
-	}
-}
-
-void Photino::Show()
-{
-	ShowWindow(_hWnd, SW_SHOWDEFAULT);
-
-	// Strangely, it only works to create the webview2 *after* the window has been shown,
-	// so defer it until here. This unfortunately means you can't call the Navigate methods
-	// until the window is shown.
-	if (!_webviewController)
-	{
-		if (Photino::EnsureWebViewIsInstalled())
-			Photino::AttachWebView();
-		else
-			exit(0);
-	}
-}
-
-bool Photino::EnsureWebViewIsInstalled()
-{
-	LPWSTR* versionInfo = new wchar_t* [100];
-	HRESULT ensureInstalledResult = GetAvailableCoreWebView2BrowserVersionString(nullptr, versionInfo);
-
-	if (ensureInstalledResult != S_OK)
-		return InstallWebView2();
-
-	return true;
-}
-
-bool Photino::InstallWebView2()
-{
-	const wchar_t* srcURL = L"https://go.microsoft.com/fwlink/p/?LinkId=2124703";
-	const wchar_t* destFile = L"MicrosoftEdgeWebview2Setup.exe";
-
-	if (S_OK == URLDownloadToFile(NULL, srcURL, destFile, 0, NULL))
-	{
-		LPWSTR command = new wchar_t[100]{ L"MicrosoftEdgeWebview2Setup.exe\0" };	//add these switches? /silent /install
-
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
-
-		ZeroMemory(&si, sizeof(si));
-		si.cb = sizeof(si);
-		ZeroMemory(&pi, sizeof(pi));
-
-		bool installed = CreateProcess(
-			NULL,		// No module name (use command line)
-			command,	// Command line
-			NULL,       // Process handle not inheritable
-			NULL,       // Thread handle not inheritable
-			FALSE,      // Set handle inheritance to FALSE
-			0,          // No creation flags
-			NULL,       // Use parent's environment block
-			NULL,       // Use parent's starting directory 
-			&si,        // Pointer to STARTUPINFO structure
-			&pi);		// Pointer to PROCESS_INFORMATION structure
-
-		return installed;
-	}
-
-	return false;
-}
 
 void Photino::AttachWebView()
 {
@@ -657,7 +586,7 @@ void Photino::AttachWebView()
 						HRESULT envResult = controller->QueryInterface(&_webviewController);
 						if (envResult != S_OK) { return envResult; }
 						_webviewController->get_CoreWebView2(&_webviewWindow);
-						
+
 						ICoreWebView2Settings* Settings;
 						_webviewWindow->get_Settings(&Settings);
 						Settings->put_AreHostObjectsAllowed(TRUE);
@@ -721,12 +650,12 @@ void Photino::AttachWebView()
 							Callback<ICoreWebView2PermissionRequestedEventHandler>(
 								[&](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)	-> HRESULT {
 									if (_grantBrowserPermissions)
-									args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW);
+										args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW);
 									return S_OK;
 								})
 							.Get(),
 									&permissionRequestedToken);
-						
+
 						if (_startUrl != NULL)
 							NavigateToUrl(_startUrl);
 						else if (_startString != NULL)
@@ -760,3 +689,75 @@ void Photino::AttachWebView()
 		MessageBox(_hWnd, errMsg, L"Error instantiating webview", MB_OK);
 	}
 }
+
+bool Photino::EnsureWebViewIsInstalled()
+{
+	LPWSTR* versionInfo = new wchar_t* [100];
+	HRESULT ensureInstalledResult = GetAvailableCoreWebView2BrowserVersionString(nullptr, versionInfo);
+
+	if (ensureInstalledResult != S_OK)
+		return InstallWebView2();
+
+	return true;
+}
+
+bool Photino::InstallWebView2()
+{
+	const wchar_t* srcURL = L"https://go.microsoft.com/fwlink/p/?LinkId=2124703";
+	const wchar_t* destFile = L"MicrosoftEdgeWebview2Setup.exe";
+
+	if (S_OK == URLDownloadToFile(NULL, srcURL, destFile, 0, NULL))
+	{
+		LPWSTR command = new wchar_t[100]{ L"MicrosoftEdgeWebview2Setup.exe\0" };	//add these switches? /silent /install
+
+		STARTUPINFO si;
+		PROCESS_INFORMATION pi;
+
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		ZeroMemory(&pi, sizeof(pi));
+
+		bool installed = CreateProcess(
+			NULL,		// No module name (use command line)
+			command,	// Command line
+			NULL,       // Process handle not inheritable
+			NULL,       // Thread handle not inheritable
+			FALSE,      // Set handle inheritance to FALSE
+			0,          // No creation flags
+			NULL,       // Use parent's environment block
+			NULL,       // Use parent's starting directory 
+			&si,        // Pointer to STARTUPINFO structure
+			&pi);		// Pointer to PROCESS_INFORMATION structure
+
+		return installed;
+	}
+
+	return false;
+}
+
+void Photino::RefitContent()
+{
+	if (_webviewController)
+	{
+		RECT bounds;
+		GetClientRect(_hWnd, &bounds);
+		_webviewController->put_Bounds(bounds);
+	}
+}
+
+void Photino::Show()
+{
+	ShowWindow(_hWnd, SW_SHOWDEFAULT);
+
+	// Strangely, it only works to create the webview2 *after* the window has been shown,
+	// so defer it until here. This unfortunately means you can't call the Navigate methods
+	// until the window is shown.
+	if (!_webviewController)
+	{
+		if (Photino::EnsureWebViewIsInstalled())
+			Photino::AttachWebView();
+		else
+			exit(0);
+	}
+}
+

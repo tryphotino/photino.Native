@@ -1,3 +1,4 @@
+#ifdef __APPLE__
 #pragma once
 #include <Cocoa/Cocoa.h>
 
@@ -5,3 +6,4 @@
     NSWindow * window;
 }
 @end
+#endif

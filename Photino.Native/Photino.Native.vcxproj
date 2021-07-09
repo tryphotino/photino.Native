@@ -160,9 +160,16 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net5.0\</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Photino.h" />
+    <ClInclude Include="Photino.Mac.AppDelegate.h" />
+    <ClInclude Include="Photino.Mac.UiDelegate.h" />
+    <ClInclude Include="Photino.Mac.UrlSchemeHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Photino.Mac.AppDelegate.mm" />
+    <None Include="Photino.Mac.mm" />
+    <None Include="Photino.Mac.UiDelegate.mm" />
+    <None Include="Photino.Mac.UrlSchemeHandler.mm" />
     <None Include="Photino.Native.nuspec">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </None>
