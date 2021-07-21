@@ -65,7 +65,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_temporaryFilesPath = NULL;
 	if (initParams->TemporaryFilesPath != NULL)
 	{
-		_temporaryFilesPath = new char*[256];
+		_temporaryFilesPath = new char[256];
 		if (_temporaryFilesPath == NULL) exit(0);
 		strcpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
 
@@ -109,11 +109,11 @@ Photino::Photino(PhotinoInitParams* initParams)
         backing: NSBackingStoreBuffered
         defer: true];
     
-    SetTitle(title);
-    SetPosition(x, y);
-    SetSize(width, height);
+    SetTitle(_windowTitle);
+    SetPosition(initParams->Left, initParams->Top);
+    SetSize(initParams->Width, initParams->Height);
 
-    if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != "")
+    if (initParams->WindowIconFile != NULL && initParams->WindowIconFile[0] != '\0')
 		Photino::SetIconFile(initParams->WindowIconFile);
 
 	if (initParams->CenterOnInitialize)
@@ -161,20 +161,7 @@ Photino::~Photino()
 
 
 
-
-void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
-{
-    // Note that this can only be done *before* the WKWebView is instantiated, so we only let this
-    // get called from the options callback in the constructor
-    UrlSchemeHandler* schemeHandler = [[[UrlSchemeHandler alloc] init] autorelease];
-    schemeHandler->requestHandler = requestHandler;
-
-    [_webviewConfiguration
-        setURLSchemeHandler: schemeHandler
-        forURLScheme: [NSString stringWithUTF8String: scheme]];
-}
-
-Photino::Center()
+void Photino::Center()
 {
     //???
 }
@@ -241,7 +228,7 @@ void Photino::GetSize(int* width, int* height)
 
 AutoString Photino::GetTitle()
 {
-    //???
+    return _windowTitle; //???
 }
 
 void Photino::GetTopmost(bool* topmost)
@@ -402,6 +389,18 @@ void Photino::SetZoom(int zoom)
     //???
 }
 
+void EnsureInvoke(dispatch_block_t block)
+{
+    if ([NSThread isMainThread])
+    {
+        block();
+    }
+    else
+    {
+        dispatch_async(dispatch_get_main_queue(), block);
+    }
+}
+
 void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 {
     EnsureInvoke(^{
@@ -494,17 +493,6 @@ void Photino::Invoke(ACTION callback)
     });
 }
 
-void EnsureInvoke(dispatch_block_t block)
-{
-    if ([NSThread isMainThread])
-    {
-        block();
-    }
-    else
-    {
-        dispatch_async(dispatch_get_main_queue(), block);
-    }
-}
 
 
 
@@ -568,6 +556,15 @@ void Photino::AttachWebView()
         selector: @selector(windowDidMove:)
         name: NSWindowDidMoveNotification
         object: _window];
+
+    if (_startUrl != NULL)
+        NavigateToUrl(_startUrl);
+    else if (_startString != NULL)
+        NavigateToString(_startString);
+    else
+    {
+
+    }
 }
 
 void Photino::Show()

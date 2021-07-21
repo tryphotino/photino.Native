@@ -123,6 +123,7 @@ private:
     WKWebView *_webview;
 	WKWebViewConfiguration *_webviewConfiguration;
     std::vector<Monitor *> GetMonitors();
+	void AttachWebView();
 #endif
 
 public:
