@@ -176,10 +176,10 @@ Photino::Photino(PhotinoInitParams* initParams)
 		Photino::Center();
 
 	if (initParams->Minimized)
-		Minimize();
+		SetMinimized(true);
 
 	if (initParams->Maximized)
-		Maximize();
+		SetMaximized(true);
 
 	if (initParams->Resizable == false)
 		SetResizable(false);
@@ -311,6 +311,8 @@ void Photino::Close()
 	PostMessage(_hWnd, WM_CLOSE, NULL, NULL);
 }
 
+
+
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
 	ICoreWebView2Settings* settings;
@@ -392,15 +394,7 @@ void Photino::GetZoom(int* zoom)
 	*zoom = (int)rawValue;
 }
 
-void Photino::Minimize()
-{
-	ShowWindow(_hWnd, SW_MINIMIZE);
-}
 
-void Photino::Maximize()
-{
-	ShowWindow(_hWnd, SW_MAXIMIZE);
-}
 
 void Photino::NavigateToString(AutoString content)
 {
@@ -421,6 +415,8 @@ void Photino::SendWebMessage(AutoString message)
 {
 	_webviewWindow->PostWebMessageAsString(message);
 }
+
+
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
@@ -451,6 +447,22 @@ void Photino::SetIconFile(AutoString filename)
 		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
 		SendMessage(_hWnd, WM_SETICON, ICON_BIG, (LPARAM)iconBig);
 	}
+}
+
+void Photino::SetMinimized(bool minimized)
+{
+	if (minimized)
+		ShowWindow(_hWnd, SW_MINIMIZE);
+	else
+		ShowWindow(_hWnd, SW_NORMAL);
+}
+
+void Photino::SetMaximized(bool maximized)
+{
+	if (maximized)
+		ShowWindow(_hWnd, SW_MAXIMIZE);
+	else
+		ShowWindow(_hWnd, SW_NORMAL);
 }
 
 void Photino::SetPosition(int x, int y)
@@ -497,6 +509,8 @@ void Photino::SetZoom(int zoom)
 	//swprintf(msg, 50, L"newZoom: %f", newZoom);
 	//MessageBox(nullptr, msg, L"Setter", MB_OK);
 }
+
+
 
 void Photino::ShowMessage(AutoString title, AutoString body, UINT type)
 {

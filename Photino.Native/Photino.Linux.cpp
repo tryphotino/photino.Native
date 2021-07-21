@@ -221,6 +221,8 @@ void Photino::Close()
 	gtk_window_close(GTK_WINDOW(_window));
 }
 
+
+
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
     //TODO
@@ -291,15 +293,7 @@ void Photino::GetZoom(int* zoom)
 	*zoom = (int)rawValue;
 }
 
-void Photino::Minimize()
-{
-	gtk_window_iconify(GTK_WINDOW(_window));
-}
 
-void Photino::Maximize()
-{
-	gtk_window_maximize(GTK_WINDOW(_window));
-}
 
 void Photino::NavigateToString(AutoString content)
 {
@@ -361,6 +355,8 @@ void Photino::SendWebMessage(AutoString message)
 	}
 }
 
+
+
 void Photino::SetContextMenuEnabled(bool enabled)
 {
     //TODO:
@@ -379,6 +375,22 @@ void Photino::SetGrantBrowserPermissions(bool grant)
 void Photino::SetIconFile(AutoString filename)
 {
 	gtk_window_set_icon_from_file(GTK_WINDOW(_window), filename, NULL);
+}
+
+void Photino::SetMinimized(bool minimized)
+{
+	if (minimized)
+		gtk_window_iconify(GTK_WINDOW(_window));
+	else
+		gtk_window_iconify(GTK_WINDOW(_window)); //TODO:
+}
+
+void Photino::SetMaximized(bool maximized)
+{
+	if (maximized)
+		gtk_window_maximize(GTK_WINDOW(_window));
+	else
+		gtk_window_maximize(GTK_WINDOW(_window));	//TODO:
 }
 
 void Photino::SetPosition(int x, int y)
