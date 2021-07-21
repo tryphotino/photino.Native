@@ -190,7 +190,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 	Photino::Show();
 }
 
-// Needn't to release the handles.
 Photino::~Photino() 
 {
 	if (_startUrl != NULL) delete[]_startUrl;
@@ -203,7 +202,6 @@ HWND Photino::getHwnd()
 {
 	return _hWnd;
 }
-
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
