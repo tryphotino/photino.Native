@@ -180,17 +180,20 @@ void Photino::Close()
 
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
-    //???
+    //TODO
+    *enabled = true;
 }
 
 void Photino::GetDevToolsEnabled(bool* enabled)
 {
-    //???
+    //TODO
+    *enabled = true;
 }
 
 void Photino::GetGrantBrowserPermissions(bool* grant)
 {
-    //???
+    //TODO
+    *grant = true;
 }
 
 void Photino::GetMaximized(bool* isMaximized)

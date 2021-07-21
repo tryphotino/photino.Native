@@ -55,7 +55,7 @@ extern "C"
 		instance->GetDevToolsEnabled(enabled);
 	}
 
-	EXPORTED void GetGrantBrowserPermissions(Photino* instance, bool* grant)
+	EXPORTED void Photino_GetGrantBrowserPermissions(Photino* instance, bool* grant)
 	{
 		instance->GetGrantBrowserPermissions(grant);
 	}
@@ -75,7 +75,7 @@ extern "C"
 		instance->GetPosition(x, y);
 	}
 
-	EXPORTED void GetResizable(Photino* instance, bool* resizable)
+	EXPORTED void Photino_GetResizable(Photino* instance, bool* resizable)
 	{
 		instance->GetResizable(resizable);
 	}
@@ -135,7 +135,7 @@ extern "C"
 		instance->SetDevToolsEnabled(enabled);
 	}
 
-	EXPORTED void SetGrantBrowserPermissions(Photino* instance, bool grant)
+	EXPORTED void Photino_SetGrantBrowserPermissions(Photino* instance, bool grant)
 	{
 		instance->SetGrantBrowserPermissions(grant);
 	}

@@ -228,12 +228,55 @@ namespace PhotinoNET
             }
             else if (string.Compare(message, "minimize", true) == 0)
             {
-                currentWindow.SetMinimized(true);
+                currentWindow.SetMinimized(!currentWindow.Minimized);
             }
             else if (string.Compare(message, "maximize", true) == 0)
             {
-                currentWindow.SetMaximized(true);
+                currentWindow.SetMaximized(!currentWindow.Maximized);
             }
+            else if (string.Compare(message, "setcontextmenuenabled", true) == 0)
+            {
+                currentWindow.SetContextMenuEnabled(!currentWindow.ContextMenuEnabled);
+            }
+            else if (string.Compare(message, "setdevtoolsenabled", true) == 0)
+            {
+                currentWindow.SetDevToolsEnabled(!currentWindow.DevToolsEnabled);
+            }
+            else if (string.Compare(message, "setgrantbrowserpermissions", true) == 0)
+            {
+                currentWindow.SetGrantBrowserPermissions(!currentWindow.GrantBrowserPermissions);
+            }
+            else if (string.Compare(message, "seticonfile", true) == 0)
+            {
+                currentWindow.SetIconFile("???");
+            }
+            else if (string.Compare(message, "setposition", true) == 0)
+            {
+                currentWindow.SetLeft(currentWindow.Left + 5);
+                currentWindow.SetTop(currentWindow.Top + 5);
+            }
+            else if (string.Compare(message, "setresizable", true) == 0)
+            {
+                currentWindow.SetResizable(!currentWindow.Resizable);
+            }
+            else if (string.Compare(message, "setsize-up", true) == 0)
+            {
+                currentWindow.SetHeight(currentWindow.Height + 5);
+                currentWindow.SetWidth(currentWindow.Width + 5);
+            }
+            else if (string.Compare(message, "setsize-down", true) == 0)
+            {
+                currentWindow.SetHeight(currentWindow.Height - 5);
+                currentWindow.SetWidth(currentWindow.Width - 5);
+            }              
+            else if (string.Compare(message, "settitle", true) == 0)
+            {
+                currentWindow.SetTitle(currentWindow.Title + "*");
+            } 
+            else if (string.Compare(message, "settopmost", true) == 0)
+            {
+                currentWindow.SetTopMost(!currentWindow.TopMost);
+            } 
             else
                 throw new Exception($"Unknown message '{message}'");
         }

@@ -37,6 +37,49 @@
             window.external.sendMessage('maximize');
         }
 
+        function SetContextMenuEnabled() {
+            window.external.sendMessage('setcontextmenuenabled');
+        }
+        
+        function SetDevToolsEnabled() {
+            window.external.sendMessage('setdevtoolsenabled');
+        }
+
+        function SetGrantBrowserPermissions() {
+            window.external.sendMessage('setgrantbrowserpermissions');
+        }
+
+        function SetIconFile() {
+            window.external.sendMessage('seticonfile');
+        }
+
+        function SetPosition() {
+            window.external.sendMessage('setposition');
+        }
+
+        function SetResizable() {
+            window.external.sendMessage('setresizable');
+        }
+
+        function SetSizeUp() {
+            window.external.sendMessage('setsize-up');
+        }
+
+        function SetSizeDown() {
+            window.external.sendMessage('setsize-down');
+        }
+
+        function SetTitle() {
+            window.external.sendMessage('settitle');
+        }
+
+        function SetTopmost() {
+            window.external.sendMessage('settopmost');
+        }
+
+
+
+
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
         (function () {
@@ -125,6 +168,17 @@
     <br>
     <button onclick="Minimize()">Minimize</button>
     <button onclick="Maximize()">Maximize</button>
+    <button onclick="SetContextMenuEnabled()">Context Menu</button>
+    <button onclick="SetDevToolsEnabled()">Dev Tools</button>
+    <button onclick="SetGrantBrowserPermissions()">Browser Permissions</button>
+    <button onclick="SetIconFile()">Icon</button>
+    <button onclick="SetPosition()">Position</button>
+    <br>
+    <button onclick="SetResizable()">Resizable</button>
+    <button onclick="SetSizeUp()">Size Up</button>
+    <button onclick="SetSizeDown()">Size Down</button>
+    <button onclick="SetTitle()">Title</button>
+    <button onclick="SetTopmost()">Topmost</button>
 
     <p>
         <div id="Lineage"></div>
