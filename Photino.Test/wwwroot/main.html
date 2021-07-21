@@ -29,6 +29,14 @@
             window.external.sendMessage('close');
         }
 
+        function Minimize() {
+            window.external.sendMessage('minimize');
+        }
+
+        function Maximize() {
+            window.external.sendMessage('maximize');
+        }
+
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
         (function () {
@@ -114,6 +122,9 @@
     <button onclick="Center()">Center</button>
     <button id="startbutton">Take Picture</button>
     <button onclick="Close()">Close</button>
+    <br>
+    <button onclick="Minimize()">Minimize</button>
+    <button onclick="Maximize()">Maximize</button>
 
     <p>
         <div id="Lineage"></div>

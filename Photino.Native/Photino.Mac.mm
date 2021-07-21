@@ -120,10 +120,10 @@ Photino::Photino(PhotinoInitParams* initParams)
 		Photino::Center();
 
 	if (initParams->Minimized)
-		Minimize();
+		SetMinimized(true);
 
 	if (initParams->Maximized)
-		Maximize();
+		SetMaximized(true);
 
 	if (initParams->Resizable == false)
 		SetResizable(false);
@@ -163,7 +163,14 @@ Photino::~Photino()
 
 void Photino::Center()
 {
-    //???
+    [_window center];
+    [_window makeKeyAndOrderFront: _window];
+
+    //NSRect screen = [[_window screen] visibleFrame];
+    //NSRect window = [_window frame];
+    //CGFloat xPos = NSWidth(screen) / 2 + screen.origin.x - NSWidth(window) / 2;
+    //CGFloat yPos = NSHeight(screen) / 2 + screen.origin.y - NSHeight(window) / 2;
+    //[_window setFrame: NSMakeRect(xPos, yPos, NSWidth(window), NSHeight(window)) display:YES];
 }
 
 void Photino::Close()
@@ -198,15 +205,12 @@ void Photino::GetMinimized(bool* isMinimized)
 
 void Photino::GetPosition(int* x, int* y)
 {
-    NSRect frame = [_window frame];
+    //NSRect screen = [[_window screen] visibleFrame];
+    NSRect window = [_window frame];
+    NSRect rect = [_window convertRectToScreen: window];
 
-    std::vector<Monitor*> monitors = GetMonitors();
-    Monitor monitor = *monitors[0];
-
-    int height = (int)roundf(frame.size.height);
-
-    *x = (int)roundf(frame.origin.x);
-    *y = (int)(monitor.work.height - ((int)roundf(frame.origin.y) + height)); // Assuming window is on monitor 0
+    *x = (int)roundf(rect.origin.x);
+    *y = (int)roundf(rect.origin.y); // Assuming window is on monitor 0
 }
 
 void Photino::GetResizable(bool* resizable)
@@ -239,16 +243,6 @@ void Photino::GetTopmost(bool* topmost)
 void Photino::GetZoom(int* zoom)
 {
     //???
-}
-
-void Photino::Minimize()
-{
-	//???
-}
-
-void Photino::Maximize()
-{
-	//???
 }
 
 void Photino::NavigateToString(AutoString content)
@@ -325,6 +319,21 @@ void Photino::SetIconFile(AutoString filename)
     {
         [[_window standardWindowButton: NSWindowDocumentIconButton] setImage:icon];
     }
+}
+
+void Photino::SetMinimized(bool minimized)
+{
+    if (_window.isMiniaturized == minimized) return;
+
+    if (minimized)
+        [_window miniaturize: NULL];
+    else
+	    [_window deminiaturize: NULL];
+}
+
+void Photino::SetMaximized(bool maximized)
+{
+    [_window toggleFullScreen: NULL];
 }
 
 void Photino::SetPosition(int x, int y)

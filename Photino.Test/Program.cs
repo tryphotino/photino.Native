@@ -226,6 +226,14 @@ namespace PhotinoNET
             {
                 currentWindow.Close();
             }
+            else if (string.Compare(message, "minimize", true) == 0)
+            {
+                currentWindow.SetMinimized(true);
+            }
+            else if (string.Compare(message, "maximize", true) == 0)
+            {
+                currentWindow.SetMaximized(true);
+            }
             else
                 throw new Exception($"Unknown message '{message}'");
         }

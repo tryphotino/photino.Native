@@ -158,16 +158,18 @@ public:
 	AutoString GetTitle();
 	void GetTopmost(bool* topmost);
 	void GetZoom(int* zoom);
-	void Maximize();
-	void Minimize();
+
 	void NavigateToString(AutoString content);
 	void NavigateToUrl(AutoString url);
 	void Restore();
+	
 	void SendWebMessage(AutoString message);
 	void SetContextMenuEnabled(bool enabled);
 	void SetDevToolsEnabled(bool enabled);
 	void SetGrantBrowserPermissions(bool grant);
 	void SetIconFile(AutoString filename);
+	void SetMaximized(bool maximized);
+	void SetMinimized(bool minimized);
 	void SetPosition(int x, int y);
 	void SetResizable(bool resizable);
 	void SetSize(int width, int height);

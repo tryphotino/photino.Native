@@ -105,16 +105,6 @@ extern "C"
 		instance->GetZoom(zoom);
 	}
 
-	EXPORTED void Photino_Maximize(Photino* instance)
-	{
-		instance->Maximize();
-	}
-
-	EXPORTED void Photino_Minimize(Photino* instance)
-	{
-		instance->Minimize();
-	}
-
 	EXPORTED void Photino_NavigateToString(Photino* instance, AutoString content)
 	{
 		instance->NavigateToString(content);
@@ -153,6 +143,16 @@ extern "C"
 	EXPORTED void Photino_SetIconFile(Photino* instance, AutoString filename)
 	{
 		instance->SetIconFile(filename);
+	}
+
+	EXPORTED void Photino_SetMaximized(Photino* instance, bool maximized)
+	{
+		instance->SetMaximized(maximized);
+	}
+
+	EXPORTED void Photino_SetMinimized(Photino* instance, bool minimized)
+	{
+		instance->SetMinimized(minimized);
 	}
 
 	EXPORTED void Photino_SetPosition(Photino* instance, int x, int y)
