@@ -93,7 +93,7 @@ namespace PhotinoNET
                 StartUrl = "wwwroot/main.html",
                 //StartString = "<h1>Hello Photino!</h1>",
 
-                Centered = true,
+                //Centered = true,
                 //Chromeless = true,
                 //FullScreen = true,
                 //Maximized = true,
@@ -101,17 +101,17 @@ namespace PhotinoNET
                 //Resizable = false,
                 //TopMost = true,
                 //UseOsDefaultLocation = false,
-                UseOsDefaultSize = false,
+                //UseOsDefaultSize = false,
                 //Zoom = 300,
 
                 //ContextMenuEnabled = false,
-                //DevToolsEnabled = false,
+                DevToolsEnabled = false,
                 //GrantBrowserPermissions = false,
 
                 //CenterOnInitialize = true,
                 //Size = new Size(800, 600),
-                Height = 600,
-                Width = 800,
+                //Height = 600,
+                //Width = 800,
                 //Location = new Point(50, 50),
                 //Top = 50,
                 //Left = 50,
@@ -277,6 +277,15 @@ namespace PhotinoNET
             {
                 currentWindow.SetTopMost(!currentWindow.TopMost);
             } 
+            else if (string.Compare(message, "setfullscreen", true) == 0)
+            {
+                currentWindow.SetFullScreen(!currentWindow.FullScreen);
+            } 
+            else if (string.Compare(message, "showproperties", true) == 0)
+            {
+                var properties = GetPropertiesDisplay(currentWindow);
+                currentWindow.SendWebMessage($"alert('{properties}');");
+            }
             else
                 throw new Exception($"Unknown message '{message}'");
         }
@@ -309,6 +318,27 @@ namespace PhotinoNET
 
 
 
+
+        private static string GetPropertiesDisplay(PhotinoWindow currentWindow)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"     ContextMenuEnabled: {currentWindow.ContextMenuEnabled}");
+            sb.AppendLine($"        DevToolsEnabled: {currentWindow.DevToolsEnabled}");
+            sb.AppendLine($"GrantBrowserPermissions: {currentWindow.GrantBrowserPermissions}");
+            sb.AppendLine($"                    Top: {currentWindow.Top}");
+            sb.AppendLine($"                   Left: {currentWindow.Left}");
+            sb.AppendLine($"              Resizable: {currentWindow.Resizable}");
+            sb.AppendLine($"             Screen DPI: {currentWindow.ScreenDpi}");
+            sb.AppendLine($"                 Height: {currentWindow.Height}");
+            sb.AppendLine($"                  Width: {currentWindow.Width}");
+            sb.AppendLine($"                  Title: {currentWindow.Title}");
+            sb.AppendLine($"                Topmost: {currentWindow.TopMost}");
+            sb.AppendLine($"                   Zoom: {currentWindow.Zoom}");
+            sb.AppendLine($"              Maximized: {currentWindow.Maximized}");
+            sb.AppendLine($"              Minimized: {currentWindow.Minimized}");
+            
+            return sb.ToString();
+        }
 
         private static void Log(object sender, string message)
         {

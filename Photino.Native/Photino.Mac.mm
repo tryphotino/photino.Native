@@ -68,10 +68,9 @@ Photino::Photino(PhotinoInitParams* initParams)
 		_temporaryFilesPath = new char[256];
 		if (_temporaryFilesPath == NULL) exit(0);
 		strcpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
-
 	}
 
-	_contextMenuEnabled = initParams->ContextMenuEnabled;
+	_contextMenuEnabled = true; //not configurable on mac //initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
 
@@ -97,6 +96,23 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	_parent = initParams->ParentInstance;
     
+    if (initParams->UseOsDefaultSize)
+	{
+		initParams->Width = 800; //CW_USEDEFAULT;
+		initParams->Height = 600; //CW_USEDEFAULT;
+	}
+	else
+	{
+		if (initParams->Width < 0) initParams->Width = 800; //CW_USEDEFAULT;
+		if (initParams->Height < 0) initParams->Height = 600; //CW_USEDEFAULT;
+	}
+
+	if (initParams->UseOsDefaultLocation)
+	{
+		initParams->Left = 0; //CW_USEDEFAULT;
+		initParams->Top = 0; //CW_USEDEFAULT;
+	}
+
     // Create Window
     NSRect frame = NSMakeRect(0, 0, 0, 0);
 
@@ -130,18 +146,22 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	if (initParams->Topmost)
 		SetTopmost(true);
-
-    //TODO: Move to Show()?
+  
     _webviewConfiguration = [[WKWebViewConfiguration alloc] init];
-    [_webviewConfiguration.preferences
-        setValue: @YES
-        forKey: @"developerExtrasEnabled"];
+    if (_contextMenuEnabled) {} //Not configurable on mac
+    if (_devToolsEnabled)
+        [_webviewConfiguration.preferences setValue: @YES forKey: @"developerExtrasEnabled"];
 
     _webview = nil;
-
     AttachWebView();
 
+    if (_grantBrowserPermissions)
+        SetGrantBrowserPermissions(_grantBrowserPermissions);
+
     Show();
+    
+    if (initParams->FullScreen)
+        SetFullScreen(true);
 }
 
 Photino::~Photino()
@@ -180,30 +200,32 @@ void Photino::Close()
 
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
-    //TODO
-    *enabled = true;
+    *enabled = _contextMenuEnabled;
 }
 
 void Photino::GetDevToolsEnabled(bool* enabled)
 {
-    //TODO
-    *enabled = true;
+    *enabled = _devToolsEnabled;
+}
+
+void Photino::GetFullScreen(bool* fullScreen)
+{
+    *fullScreen = ([_window.contentView isInFullScreenMode]);
 }
 
 void Photino::GetGrantBrowserPermissions(bool* grant)
 {
-    //TODO
-    *grant = true;
+    *grant = _grantBrowserPermissions;
 }
 
 void Photino::GetMaximized(bool* isMaximized)
 {
-	//???
+    *isMaximized = (([_window styleMask] & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen);
 }
 
 void Photino::GetMinimized(bool* isMinimized)
 {
-	//???
+	*isMinimized = [_window isMiniaturized];
 }
 
 void Photino::GetPosition(int* x, int* y)
@@ -218,12 +240,13 @@ void Photino::GetPosition(int* x, int* y)
 
 void Photino::GetResizable(bool* resizable)
 {
-    //???
+   *resizable = (([_window styleMask] & NSWindowStyleMaskResizable) == NSWindowStyleMaskResizable);
 }
 
 unsigned int Photino::GetScreenDpi()
 {
-	return 72;  //???
+    //not supported on macOS - _window's devices collection does have dpi
+	return 72;  //https://stackoverflow.com/questions/2621439/hot-to-get-screen-dpi-linux-mac-programaticaly
 }
 
 void Photino::GetSize(int* width, int* height)
@@ -235,24 +258,24 @@ void Photino::GetSize(int* width, int* height)
 
 AutoString Photino::GetTitle()
 {
-    return _windowTitle; //???
+    return _windowTitle;
 }
 
 void Photino::GetTopmost(bool* topmost)
 {
-    //???
+    *topmost = ([_window level] & NSFloatingWindowLevel) == NSFloatingWindowLevel;
 }
 
 void Photino::GetZoom(int* zoom)
 {
-    //???
+	CGFloat rawValue = [_webview magnification];
+	rawValue = (rawValue * 100.0) + 0.5;
+	*zoom = (int)rawValue;
 }
 
 void Photino::NavigateToString(AutoString content)
 {
-    [_webview
-        loadHTMLString: [NSString stringWithUTF8String: content]
-        baseURL: nil];
+    [_webview loadHTMLString: [NSString stringWithUTF8String: content] baseURL: nil];
 }
 
 void Photino::NavigateToUrl(AutoString url)
@@ -260,17 +283,23 @@ void Photino::NavigateToUrl(AutoString url)
     NSString* nsurlstring = [NSString stringWithUTF8String: url];
     NSURL *nsurl= [NSURL URLWithString: nsurlstring];
     NSURLRequest *nsrequest= [NSURLRequest requestWithURL: nsurl];
-    
     [_webview loadRequest: nsrequest];
 }
 
 void Photino::Restore()
 {
-	//???
+    bool minimized;
+    bool maximized;
+    GetMinimized(&minimized);
+    GetMaximized(&maximized);
+	if (minimized) SetMinimized(false);
+    if (maximized) SetMaximized(false);
 }
 
 void Photino::SendWebMessage(AutoString message)
 {
+    //ShowMessage((AutoString)@"Debug", message, 0);
+
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String: message];
 
@@ -293,35 +322,45 @@ void Photino::SendWebMessage(AutoString message)
 
     NSString *javaScriptToEval = [NSString stringWithFormat: @"__dispatchMessageCallback(%@)", nsmessageJson];
 
-    [_webview
-        evaluateJavaScript: javaScriptToEval
-        completionHandler: nil];
+    [_webview evaluateJavaScript: javaScriptToEval completionHandler: nil];
 }
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
-    //??
+    //Can't be changed after initialization on mac
+    //_contextMenuEnabled = enabled;
+    //TODO:
 }
 
 void Photino::SetDevToolsEnabled(bool enabled)
 {
-    //???
+    //Can't be changed after initialization on mac
+    //_devToolsEnabled = enabled;
+    //[_webview configuration: preferences: enableDevExtras: YES];
+}
+
+void Photino::SetFullScreen(bool fullScreen)
+{
+    if (fullScreen)
+        [_window.contentView enterFullScreenMode: [NSScreen mainScreen] withOptions: nil];
+    else
+        [_window.contentView exitFullScreenModeWithOptions: nil];
 }
 
 void Photino::SetGrantBrowserPermissions(bool grant)
 {
-    //???
+    //not available until macOS 11.3 aka 10.15.?
+    //_grantBrowserPermissions = grant;
+    //[_webview setCameraCaptureState: WKMediaCaptureStateActive];
+    //[_webview setMicrophoneCaptureState: WKMediaCaptureStateActive];  
 }
 
 void Photino::SetIconFile(AutoString filename)
 {
 	NSString* path = [NSString stringWithUTF8String: filename];
     NSImage* icon = [[NSImage alloc] initWithContentsOfFile: path];
-
     if (icon != nil)
-    {
         [[_window standardWindowButton: NSWindowDocumentIconButton] setImage:icon];
-    }
 }
 
 void Photino::SetMinimized(bool minimized)
@@ -342,51 +381,37 @@ void Photino::SetMaximized(bool maximized)
 void Photino::SetPosition(int x, int y)
 {
     NSRect frame = [_window frame];
-
     std::vector<Monitor*> monitors = GetMonitors();
     Monitor monitor = *monitors[0];
-
     int height = (int)roundf(frame.size.height);
-
     CGFloat left = (CGFloat)x;
     CGFloat top = (CGFloat)(monitor.work.height - (y + height)); // Assuming window is on monitor 0
-
     CGPoint position = CGPointMake(left, top);
-
     [_window setFrameOrigin: position];
 }
 
 void Photino::SetResizable(bool resizable)
 {
     if (resizable)
-    {
         _window.styleMask |= NSWindowStyleMaskResizable;
-    }
     else
-    {
         _window.styleMask &= ~NSWindowStyleMaskResizable;
-    }
 }
 
 void Photino::SetSize(int width, int height)
 {
     NSRect frame = [_window frame];
-    
     CGFloat fw = (CGFloat)width;
     CGFloat fh = (CGFloat)height;
-    
     CGFloat oldHeight = frame.size.height;
-
     frame.size = CGSizeMake(fw, fh);
     frame.origin.y -= fh - oldHeight;
-
-    [_window
-        setFrame: frame
-        display: true];
+    [_window setFrame: frame display: true];
 }
 
 void Photino::SetTitle(AutoString title)
 {
+    strcpy(_windowTitle, title);
     [_window setTitle: [NSString stringWithUTF8String:title]];
 }
 
@@ -398,19 +423,16 @@ void Photino::SetTopmost(bool topmost)
 
 void Photino::SetZoom(int zoom)
 {
-    //???
+    CGFloat newZoom = zoom / 100.0;
+	[_webview setMagnification: newZoom];
 }
 
 void EnsureInvoke(dispatch_block_t block)
 {
     if ([NSThread isMainThread])
-    {
         block();
-    }
     else
-    {
         dispatch_async(dispatch_get_main_queue(), block);
-    }
 }
 
 void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
@@ -575,15 +597,14 @@ void Photino::AttachWebView()
         NavigateToString(_startString);
     else
     {
-
+        //ShowMessage((AutoString)@"Debug", (AutoString)@"No navigation provided", 0);
     }
 }
 
 void Photino::Show()
 {
-    if (_webview == nil) {
+    if (_webview == nil)
         AttachWebView();
-    }
 
     [_window makeKeyAndOrderFront: _window];
     [_window orderFrontRegardless];

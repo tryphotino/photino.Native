@@ -55,6 +55,11 @@ extern "C"
 		instance->GetDevToolsEnabled(enabled);
 	}
 
+	EXPORTED void Photino_GetFullScreen(Photino* instance, bool* fullScreen)
+	{
+		instance->GetFullScreen(fullScreen);
+	}
+
 	EXPORTED void Photino_GetGrantBrowserPermissions(Photino* instance, bool* grant)
 	{
 		instance->GetGrantBrowserPermissions(grant);
@@ -133,6 +138,11 @@ extern "C"
 	EXPORTED void Photino_SetDevToolsEnabled(Photino* instance, bool enabled)
 	{
 		instance->SetDevToolsEnabled(enabled);
+	}
+
+	EXPORTED void Photino_SetFullScreen(Photino* instance, bool fullScreen)
+	{
+		instance->SetFullScreen(fullScreen);
 	}
 
 	EXPORTED void Photino_SetGrantBrowserPermissions(Photino* instance, bool grant)

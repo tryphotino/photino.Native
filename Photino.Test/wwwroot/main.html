@@ -45,6 +45,10 @@
             window.external.sendMessage('setdevtoolsenabled');
         }
 
+        function SetFullScreen() {
+            window.external.sendMessage('setfullscreen');
+        }
+
         function SetGrantBrowserPermissions() {
             window.external.sendMessage('setgrantbrowserpermissions');
         }
@@ -77,7 +81,9 @@
             window.external.sendMessage('settopmost');
         }
 
-
+        function ShowState() {
+            window.external.sendMessage('showproperties');
+        }
 
 
         //Photo stuff
@@ -179,6 +185,9 @@
     <button onclick="SetSizeDown()">Size Down</button>
     <button onclick="SetTitle()">Title</button>
     <button onclick="SetTopmost()">Topmost</button>
+    <button onclick="SetFullScreen()">Kiosk</button>
+    <br>
+    <button onclick="ShowState()">Show State</button>
 
     <p>
         <div id="Lineage"></div>

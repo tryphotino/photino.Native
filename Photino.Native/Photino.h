@@ -13,6 +13,7 @@ typedef char* AutoString;
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #include <WebKit/WebKit.h>
+//#include <WebKit/WKPreferences.h>
 #endif
 
 #ifdef __linux__
@@ -146,8 +147,10 @@ public:
 
 	void Center();
 	void Close();
+
 	void GetContextMenuEnabled(bool* enabled);
 	void GetDevToolsEnabled(bool* enabled);
+	void GetFullScreen(bool* fullScreen);
 	void GetGrantBrowserPermissions(bool* grant);
 	void GetMaximized(bool* isMaximized);
 	void GetMinimized(bool* isMinimized);
@@ -161,11 +164,12 @@ public:
 
 	void NavigateToString(AutoString content);
 	void NavigateToUrl(AutoString url);
-	void Restore();
-	
+	void Restore();		//required anymore?backward compat?
 	void SendWebMessage(AutoString message);
+
 	void SetContextMenuEnabled(bool enabled);
 	void SetDevToolsEnabled(bool enabled);
+	void SetFullScreen(bool fullScreen);
 	void SetGrantBrowserPermissions(bool grant);
 	void SetIconFile(AutoString filename);
 	void SetMaximized(bool maximized);
@@ -176,6 +180,7 @@ public:
 	void SetTitle(AutoString title);
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
+	
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void WaitForExit();
 
