@@ -230,13 +230,16 @@ void Photino::GetMinimized(bool* isMinimized)
 
 void Photino::GetPosition(int* x, int* y)
 {
-    //NSRect screen = [[_window screen] visibleFrame];
-    NSRect window = [_window frame];
-    NSRect rect = [_window convertRectToScreen: window];
+    NSRect frame = [_window frame];
 
-    *x = (int)roundf(rect.origin.x);
-    *y = (int)roundf(rect.origin.y); // Assuming window is on monitor 0
-}
+    std::vector<Monitor*> monitors = GetMonitors();
+    Monitor monitor = *monitors[0];
+
+    int height = (int)roundf(frame.size.height);
+
+    *x = (int)roundf(frame.origin.x);
+    *y = (int)(monitor.monitor.height - ((int)roundf(frame.origin.y) + height)); // Assuming window is on monitor 0
+ }
 
 void Photino::GetResizable(bool* resizable)
 {
@@ -385,7 +388,7 @@ void Photino::SetPosition(int x, int y)
     Monitor monitor = *monitors[0];
     int height = (int)roundf(frame.size.height);
     CGFloat left = (CGFloat)x;
-    CGFloat top = (CGFloat)(monitor.work.height - (y + height)); // Assuming window is on monitor 0
+    CGFloat top = (CGFloat)(monitor.monitor.height - (y + height)); // Assuming window is on monitor 0
     CGPoint position = CGPointMake(left, top);
     [_window setFrameOrigin: position];
 }
