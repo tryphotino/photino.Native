@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PhotinoNET
@@ -30,8 +31,12 @@ namespace PhotinoNET
 
         private static void FluentStyle()
         {
+            var iconFile = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "wwwroot/photino-logo.ico"
+                : "wwwroot/photino-logo.png";
+
             mainWindow = new PhotinoWindow()
-                .SetIconFile("wwwroot/photino-logo.ico")
+                .SetIconFile(iconFile)
                 .SetTitle($"My Photino Window {_windowNumber++}")
 
                 //.Load(new Uri("https://google.com"))
@@ -85,9 +90,13 @@ namespace PhotinoNET
 
         private static void PropertyInitStyle()
         {
+            var iconFile = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "wwwroot/photino-logo.ico"
+                : "wwwroot/photino-logo.png";
+
             mainWindow = new PhotinoWindow
             {
-                IconFile = "wwwroot/photino-logo.png",
+                IconFile = iconFile,
                 Title = $"My Photino Window {_windowNumber++}",
 
                 StartUrl = "wwwroot/main.html",
@@ -105,7 +114,7 @@ namespace PhotinoNET
                 //Zoom = 300,
 
                 //ContextMenuEnabled = false,
-                DevToolsEnabled = false,
+                //DevToolsEnabled = false,
                 //GrantBrowserPermissions = false,
 
                 //CenterOnInitialize = true,
@@ -182,13 +191,20 @@ namespace PhotinoNET
             var currentWindow = sender as PhotinoWindow;
             if (string.Compare(message, "child-window", true) == 0)
             {
+                var iconFile = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "wwwroot/photino-logo.ico"
+                    : "wwwroot/photino-logo.png";
+
                 var x = new PhotinoWindow(currentWindow)
                     .SetTitle($"Child Window {_windowNumber++}")
+                    //.SetIconFile(iconFile)
                     .Load("wwwroot/main.html")
 
                     .SetUseOsDefaultLocation(true)
                     .SetHeight(600)
                     .SetWidth(800)
+
+                    .SetGrantBrowserPermissions(false)
 
                     .RegisterWindowCreatingHandler(WindowCreating)
                     .RegisterWindowCreatedHandler(WindowCreated)
@@ -248,7 +264,11 @@ namespace PhotinoNET
             }
             else if (string.Compare(message, "seticonfile", true) == 0)
             {
-                currentWindow.SetIconFile("???");
+                var iconFile = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "wwwroot/photino-logo.ico"
+                    : "wwwroot/photino-logo.png";
+
+                currentWindow.SetIconFile(iconFile);
             }
             else if (string.Compare(message, "setposition", true) == 0)
             {

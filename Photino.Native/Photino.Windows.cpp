@@ -325,6 +325,12 @@ void Photino::GetDevToolsEnabled(bool* enabled)
 	settings->get_AreDevToolsEnabled((BOOL*)enabled);
 }
 
+void Photino::GetFullScreen(bool* fullScreen)
+{
+	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	if (lStyles & WS_POPUP) *fullScreen = true;
+}
+
 void Photino::GetGrantBrowserPermissions(bool* grant)
 {
 	*grant = _grantBrowserPermissions;
@@ -353,7 +359,7 @@ void Photino::GetPosition(int* x, int* y)
 void Photino::GetResizable(bool* resizable)
 {
 	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
-	if (lStyles & WS_MINIMIZEBOX & WS_MAXIMIZEBOX & WS_THICKFRAME) *resizable = true;
+	if (lStyles & WS_THICKFRAME) *resizable = true;
 }
 
 unsigned int Photino::GetScreenDpi()
@@ -421,6 +427,7 @@ void Photino::SetContextMenuEnabled(bool enabled)
 	ICoreWebView2Settings* settings;
 	HRESULT r = _webviewWindow->get_Settings(&settings);
 	settings->put_AreDefaultContextMenusEnabled(enabled);
+	_webviewWindow->Reload();
 }
 
 void Photino::SetDevToolsEnabled(bool enabled)
@@ -428,6 +435,25 @@ void Photino::SetDevToolsEnabled(bool enabled)
 	ICoreWebView2Settings* settings;
 	HRESULT r = _webviewWindow->get_Settings(&settings);
 	settings->put_AreDevToolsEnabled(enabled);
+	_webviewWindow->Reload();
+}
+
+void Photino::SetFullScreen(bool fullScreen)
+{
+	LONG_PTR style = GetWindowLongPtr(_hWnd, GWL_STYLE);
+	if (fullScreen)
+	{
+		style |= WS_POPUP;
+		style &= (~WS_OVERLAPPEDWINDOW);
+		SetPosition(0, 0);
+		SetSize(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+	}
+	else
+	{
+		style |= WS_OVERLAPPEDWINDOW;
+		style &= (~WS_POPUP);
+	}
+	SetWindowLongPtr(_hWnd, GWL_STYLE, style);
 }
 
 void Photino::SetGrantBrowserPermissions(bool grant)
@@ -437,8 +463,8 @@ void Photino::SetGrantBrowserPermissions(bool grant)
 
 void Photino::SetIconFile(AutoString filename)
 {
-	HICON iconSmall = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 16, 16, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
-	HICON iconBig = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 32, 32, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
+	HICON iconSmall = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 16, 16, LR_LOADFROMFILE | LR_LOADTRANSPARENT | LR_SHARED);
+	HICON iconBig = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 32, 32, LR_LOADFROMFILE | LR_LOADTRANSPARENT | LR_SHARED);
 
 	if (iconSmall && iconBig)
 	{
@@ -496,6 +522,10 @@ void Photino::SetTitle(AutoString title)
 
 void Photino::SetTopmost(bool topmost)
 {
+	LONG_PTR style = GetWindowLongPtr(_hWnd, GWL_STYLE);
+	if (topmost) style |= WS_EX_TOPMOST;
+	else style &= (~WS_EX_TOPMOST);
+	SetWindowLongPtr(_hWnd, GWL_STYLE, style);
 	SetWindowPos(_hWnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
