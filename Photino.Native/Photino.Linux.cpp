@@ -152,10 +152,10 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 		Photino::Center();
 
 	if (initParams->Minimized)
-		Photino::Minimize();
+		Photino::SetMinimized(true);
 
 	if (initParams->Maximized)
-		Photino::Maximize();
+		Photino::SetMaximized(true);
 
 	if (!initParams->Resizable)
 		Photino::SetResizable(false);
