@@ -114,17 +114,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	
 	if (initParams->FullScreen)
-	{
-		GdkRectangle geometry = { 0 };
-		gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &geometry);
-
-		initParams->Left = 0;
-		initParams->Top = 0;
-		initParams->Width = geometry.width;
-		initParams->Height = geometry.height;
-
-		gtk_window_fullscreen(GTK_WINDOW(_window));
-	}
+		SetFullScreen(true);
 	else
 	{
 		if (initParams->UseOsDefaultSize)
@@ -225,17 +215,24 @@ void Photino::Close()
 
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
-    //TODO
+    if (_contextMenuEnabled) *enabled = true;	//TODO:
 }
 
 void Photino::GetDevToolsEnabled(bool* enabled)
 {
-    //TODO:
+	WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+	_devToolsEnabled = webkit_settings_get_enable_developer_extras(settings);
+    if (_devToolsEnabled) *enabled = true;
+}
+
+void Photino::GetFullScreen(bool* fullScreen)
+{
+	*fullScreen = _isFullScreen;
 }
 
 void Photino::GetGrantBrowserPermissions(bool* grant)
 {
-    //TODO:
+    if (_grantBrowserPermissions) *grant = true;
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -245,9 +242,8 @@ void Photino::GetMaximized(bool* isMaximized)
 
 void Photino::GetMinimized(bool* isMinimized)
 {
-	//TODO:
-	//GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WINDOW(_window));
-	//*isMinimized = GtkStateFlags.
+	GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WIDGET(_window));
+	*isMinimized = flags & GDK_WINDOW_STATE_ICONIFIED;
 }
 
 void Photino::GetPosition(int* x, int* y)
@@ -280,9 +276,8 @@ AutoString Photino::GetTitle()
 
 void Photino::GetTopmost(bool* topmost)
 {
-	//TODO:
-	//GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WINDOW(_window));
-	//*topmost = GtkStateFlags.
+	GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WIDGET(_window));
+	*topmost = flags & GDK_WINDOW_STATE_ABOVE;
 }
 
 void Photino::GetZoom(int* zoom)
@@ -359,17 +354,29 @@ void Photino::SendWebMessage(AutoString message)
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
-    //TODO:
+    _contextMenuEnabled = enabled;	//TODO:
 }
 
 void Photino::SetDevToolsEnabled(bool enabled)
 {
-    //TODO:
+	_devToolsEnabled = enabled;
+	WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+	webkit_settings_set_enable_developer_extras(settings, _devToolsEnabled);
+}
+
+void Photino::SetFullScreen(bool fullScreen)
+{
+	if (fullScreen)
+		gtk_window_fullscreen(GTK_WINDOW(_window));
+	else
+		gtk_window_unfullscreen(GTK_WINDOW(_window));
+	
+	_isFullScreen = fullScreen;
 }
 
 void Photino::SetGrantBrowserPermissions(bool grant)
 {
-	//TODO:
+	_grantBrowserPermissions = grant;
 }
 
 void Photino::SetIconFile(AutoString filename)
@@ -382,15 +389,16 @@ void Photino::SetMinimized(bool minimized)
 	if (minimized)
 		gtk_window_iconify(GTK_WINDOW(_window));
 	else
-		gtk_window_iconify(GTK_WINDOW(_window)); //TODO:
+		gtk_window_deiconify(GTK_WINDOW(_window));
 }
 
 void Photino::SetMaximized(bool maximized)
 {
+	_isFullScreen = maximized;
 	if (maximized)
 		gtk_window_maximize(GTK_WINDOW(_window));
 	else
-		gtk_window_maximize(GTK_WINDOW(_window));	//TODO:
+		gtk_window_unmaximize(GTK_WINDOW(_window));
 }
 
 void Photino::SetPosition(int x, int y)
@@ -415,7 +423,7 @@ void Photino::SetTitle(AutoString title)
 
 void Photino::SetTopmost(bool topmost)
 {
-	gtk_window_set_keep_above(GTK_WINDOW(_window), topmost ? TRUE : FALSE);
+	gtk_window_set_keep_above(GTK_WINDOW(_window), topmost);
 }
 
 void Photino::SetZoom(int zoom)

@@ -117,6 +117,7 @@ private:
 	//GtkWidget* _window;
 	GtkWidget* _webview;
 	void AddCustomSchemeHandlers();
+	bool _isFullScreen;
 
 #elif __APPLE__
     // NSApplication *_app;
