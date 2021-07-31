@@ -110,7 +110,7 @@ namespace PhotinoNET
                 //Resizable = false,
                 //TopMost = true,
                 //UseOsDefaultLocation = false,
-                //UseOsDefaultSize = false,
+                UseOsDefaultSize = false,
                 //Zoom = 300,
 
                 //ContextMenuEnabled = false,
@@ -119,8 +119,8 @@ namespace PhotinoNET
 
                 //CenterOnInitialize = true,
                 //Size = new Size(800, 600),
-                //Height = 600,
-                //Width = 800,
+                Height = 600,
+                Width = 800,
                 //Location = new Point(50, 50),
                 //Top = 50,
                 //Left = 50,

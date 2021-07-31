@@ -10,6 +10,21 @@
 #include <sstream>
 #include <iomanip>
 
+
+/* --- PRINTF_BINARY_FORMAT macro's --- */
+//#define FMT_BUF_SIZE (CHAR_BIT*sizeof(uintmax_t)+1)
+//
+//char *binary_fmt(uintmax_t x, char buf[FMT_BUF_SIZE])
+//{
+//    char *s = buf + FMT_BUF_SIZE;
+//    *--s = 0;
+//    if (!x) *--s = '0';
+//    for (; x; x /= 2) *--s = '0' + x%2;
+//    return s;
+//}
+/* --- end macro --- */
+
+
 std::mutex invokeLockMutex;
 
 struct InvokeWaitInfo
@@ -159,25 +174,25 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 			G_CALLBACK(+[](GtkWidget* w, gpointer arg) { gtk_main_quit(); }),
 			this);
 	}
+
 	//g_signal_connect(G_OBJECT(_window), "size-allocate",
 	//	G_CALLBACK(on_size_allocate),
 	//	this);
+	
 	g_signal_connect(G_OBJECT(_window), "configure-event",
 		G_CALLBACK(on_configure_event),
-		this);
-	g_signal_connect(G_OBJECT(_webview), "permission-request",
-		G_CALLBACK(on_permission_request),
 		this);
 
 	Photino::Show();
 
 	//These must be called after the webview control is initialized.
-	if (!_contextMenuEnabled)
-	{
-		g_signal_connect(G_OBJECT(_webview), "context-menu",
-			G_CALLBACK(on_webview_context_menu),
-			this);
-	}
+	g_signal_connect(G_OBJECT(_webview), "context-menu",
+		G_CALLBACK(on_webview_context_menu),
+		this);
+
+	g_signal_connect(G_OBJECT(_webview), "permission-request",
+		G_CALLBACK(on_permission_request),
+		this);
 
 	Photino::AddCustomSchemeHandlers();
 	
@@ -215,7 +230,7 @@ void Photino::Close()
 
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
-    if (_contextMenuEnabled) *enabled = true;	//TODO:
+    if (_contextMenuEnabled) *enabled = true;
 }
 
 void Photino::GetDevToolsEnabled(bool* enabled)
@@ -242,7 +257,8 @@ void Photino::GetMaximized(bool* isMaximized)
 
 void Photino::GetMinimized(bool* isMinimized)
 {
-	GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WIDGET(_window));
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	GdkWindowState flags = gdk_window_get_state(gdk_window);
 	*isMinimized = flags & GDK_WINDOW_STATE_ICONIFIED;
 }
 
@@ -267,6 +283,17 @@ unsigned int Photino::GetScreenDpi()
 void Photino::GetSize(int* width, int* height)
 {
 	gtk_window_get_size(GTK_WINDOW(_window), width, height);
+
+	//TODO: Uncomment this and it works properly. Commented, it only changes width.
+	//GtkWidget* dialog = gtk_message_dialog_new(
+	//	nullptr
+	//	, GTK_DIALOG_DESTROY_WITH_PARENT
+	//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+	//	, "width: %i bytes, height %i"
+	//	, *width
+	//	, *height);
+	//gtk_dialog_run(GTK_DIALOG(dialog));
+	//gtk_widget_destroy(dialog);
 }
 
 AutoString Photino::GetTitle()
@@ -276,8 +303,26 @@ AutoString Photino::GetTitle()
 
 void Photino::GetTopmost(bool* topmost)
 {
-	GtkStateFlags flags = gtk_widget_get_state_flags(GTK_WIDGET(_window));
+	//TODO: This flag is not set in GDK3. WebKit does not support GTK5 yet.
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	GdkWindowState flags = gdk_window_get_state(gdk_window);
 	*topmost = flags & GDK_WINDOW_STATE_ABOVE;
+
+	//char tmp1[FMT_BUF_SIZE];
+	//char tmp2[FMT_BUF_SIZE];
+	//char tmp3[FMT_BUF_SIZE];
+	//GtkWidget* dialog = gtk_message_dialog_new(
+	//	nullptr
+	//	, GTK_DIALOG_DESTROY_WITH_PARENT
+	//	, GTK_MESSAGE_ERROR
+	//	, GTK_BUTTONS_CLOSE
+	//	, "flags: %s \n above: %s \n and: %s \n topmost: %s"
+	//	, binary_fmt(flags, tmp1)
+	//	, binary_fmt(GDK_WINDOW_STATE_ABOVE, tmp2)
+	//	, binary_fmt(flags & GDK_WINDOW_STATE_ABOVE, tmp3)
+	//	, *topmost ? "T" : "F");
+	//gtk_dialog_run(GTK_DIALOG(dialog));
+	//gtk_widget_destroy(dialog);
 }
 
 void Photino::GetZoom(int* zoom)
@@ -354,7 +399,7 @@ void Photino::SendWebMessage(AutoString message)
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
-    _contextMenuEnabled = enabled;	//TODO:
+    _contextMenuEnabled = enabled;
 }
 
 void Photino::SetDevToolsEnabled(bool enabled)
@@ -414,6 +459,17 @@ void Photino::SetResizable(bool resizable)
 void Photino::SetSize(int width, int height)
 {
 	gtk_window_resize(GTK_WINDOW(_window), width, height);
+
+	//TODO: Uncomment this and it works properly. Commented, it only changes width.
+	//GtkWidget* dialog = gtk_message_dialog_new(
+	//	nullptr
+	//	, GTK_DIALOG_DESTROY_WITH_PARENT
+	//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+	//	, "width: %i bytes, height %i"
+	//	, width
+	//	, height);
+	//gtk_dialog_run(GTK_DIALOG(dialog));
+	//gtk_widget_destroy(dialog);
 }
 
 void Photino::SetTitle(AutoString title)
@@ -423,7 +479,8 @@ void Photino::SetTitle(AutoString title)
 
 void Photino::SetTopmost(bool topmost)
 {
-	gtk_window_set_keep_above(GTK_WINDOW(_window), topmost);
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	gdk_window_set_keep_above(gdk_window, topmost);
 }
 
 void Photino::SetZoom(int zoom)
@@ -608,9 +665,10 @@ gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self)
 }
 
 gboolean on_webview_context_menu (WebKitWebView* web_view, GtkWidget* default_menu,
-    WebKitHitTestResult* hit_test_result, gboolean triggered_with_keyboard, gpointer user_data)
+    WebKitHitTestResult* hit_test_result, gboolean triggered_with_keyboard, gpointer self)
 {
-	return TRUE;	//disable context menu
+	Photino* instance = ((Photino*)self);
+	return !instance->_contextMenuEnabled;
 }
 
 gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest* request, gpointer user_data)
@@ -627,13 +685,6 @@ gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest*
 	webkit_permission_request_allow(request);
 	return FALSE;
 }
-
-//void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self)
-//{
-//	int width, height;
-//	gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
-//	((Photino*)self)->InvokeResize(width, height);
-//}
 
 void HandleCustomSchemeRequest(WebKitURISchemeRequest* request, gpointer user_data)
 {

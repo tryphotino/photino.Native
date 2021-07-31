@@ -96,10 +96,6 @@ private:
 	AutoString _temporaryFilesPath;
 	AutoString _windowTitle;
 
-	bool _contextMenuEnabled;
-	bool _devToolsEnabled;
-	bool _grantBrowserPermissions;
-
 	int _zoom;
 
 	Photino* _parent;
@@ -129,6 +125,10 @@ private:
 #endif
 
 public:
+	bool _contextMenuEnabled;
+	bool _devToolsEnabled;
+	bool _grantBrowserPermissions;
+
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
 	HWND getHwnd();
