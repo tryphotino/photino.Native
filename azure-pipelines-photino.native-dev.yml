@@ -42,6 +42,15 @@ jobs:
         command: 'restore'
         restoreSolution: 'Photino.Native.sln'
         feedsToUse: 'select'
+
+    - task: DotNetCoreCLI@2
+      displayName: dotnet restore
+      inputs:
+        command: restore
+        projects: '**/*.csproj'
+        #feedsToUse: 'select'
+        #vstsFeed: '<projectName>/<feedName>'
+        includeNuGetOrg: true
         
     #Build
     - task: VSBuild@1
