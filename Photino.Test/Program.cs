@@ -304,7 +304,7 @@ namespace PhotinoNET
             else if (string.Compare(message, "showproperties", true) == 0)
             {
                 var properties = GetPropertiesDisplay(currentWindow);
-                currentWindow.SendWebMessage($"alert('{properties}');");
+                currentWindow.OpenAlertWindow("Settings", properties);
             }
             else
                 throw new Exception($"Unknown message '{message}'");
@@ -342,20 +342,23 @@ namespace PhotinoNET
         private static string GetPropertiesDisplay(PhotinoWindow currentWindow)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"     ContextMenuEnabled: {currentWindow.ContextMenuEnabled}");
-            sb.AppendLine($"        DevToolsEnabled: {currentWindow.DevToolsEnabled}");
+            sb.AppendLine($"Title: {currentWindow.Title}");
+            sb.AppendLine($"Zoom: {currentWindow.Zoom}");
+            sb.AppendLine();
+            sb.AppendLine($"ContextMenuEnabled: {currentWindow.ContextMenuEnabled}");
+            sb.AppendLine($"DevToolsEnabled: {currentWindow.DevToolsEnabled}");
             sb.AppendLine($"GrantBrowserPermissions: {currentWindow.GrantBrowserPermissions}");
-            sb.AppendLine($"                    Top: {currentWindow.Top}");
-            sb.AppendLine($"                   Left: {currentWindow.Left}");
-            sb.AppendLine($"              Resizable: {currentWindow.Resizable}");
-            sb.AppendLine($"             Screen DPI: {currentWindow.ScreenDpi}");
-            sb.AppendLine($"                 Height: {currentWindow.Height}");
-            sb.AppendLine($"                  Width: {currentWindow.Width}");
-            sb.AppendLine($"                  Title: {currentWindow.Title}");
-            sb.AppendLine($"                Topmost: {currentWindow.Topmost}");
-            sb.AppendLine($"                   Zoom: {currentWindow.Zoom}");
-            sb.AppendLine($"              Maximized: {currentWindow.Maximized}");
-            sb.AppendLine($"              Minimized: {currentWindow.Minimized}");
+            sb.AppendLine();
+            sb.AppendLine($"Top: {currentWindow.Top}");
+            sb.AppendLine($"Left: {currentWindow.Left}");
+            sb.AppendLine($"Height: {currentWindow.Height}");
+            sb.AppendLine($"Width: {currentWindow.Width}");
+            sb.AppendLine();
+            sb.AppendLine($"Resizable: {currentWindow.Resizable}");
+            sb.AppendLine($"Screen DPI: {currentWindow.ScreenDpi}");
+            sb.AppendLine($"Topmost: {currentWindow.Topmost}");
+            sb.AppendLine($"Maximized: {currentWindow.Maximized}");
+            sb.AppendLine($"Minimized: {currentWindow.Minimized}");
             
             return sb.ToString();
         }
