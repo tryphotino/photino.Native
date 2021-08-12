@@ -7,6 +7,8 @@
 
 using namespace std;
 
+//Creates an instance of the 'application' under which, all windows will run
+//Only called once!
 void Photino::Register()
 {
     [NSAutoreleasePool new];
@@ -173,8 +175,8 @@ Photino::~Photino()
 
     [_webviewConfiguration release];
     [_webview release];
-    [_window close];
-    [NSApp release];
+    [_window performClose: _window];
+    //[NSApp release];
 }
 
 
@@ -301,7 +303,10 @@ void Photino::Restore()
 
 void Photino::SendWebMessage(AutoString message)
 {
-    //ShowMessage((AutoString)@"Debug", message, 0);
+    NSString *msg = [NSString stringWithUTF8String: message];
+    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    [alert setMessageText:msg];
+    [alert runModal];
 
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String: message];
@@ -599,8 +604,10 @@ void Photino::AttachWebView()
     else if (_startString != NULL)
         NavigateToString(_startString);
     else
-    {
-        //ShowMessage((AutoString)@"Debug", (AutoString)@"No navigation provided", 0);
+    {    
+        NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+        [alert setMessageText:@"Neither StartUrl nor StartString was specified"];
+        [alert runModal];
     }
 }
 

@@ -116,7 +116,6 @@ private:
 	bool _isFullScreen;
 
 #elif __APPLE__
-    // NSApplication *_app;
     NSWindow *_window;
     WKWebView *_webview;
 	WKWebViewConfiguration *_webviewConfiguration;
