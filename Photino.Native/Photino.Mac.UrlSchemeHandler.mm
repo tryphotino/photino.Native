@@ -4,7 +4,11 @@
 @implementation UrlSchemeHandler : NSObject
 
 - (void)webView:(WKWebView *)webView startURLSchemeTask:(id <WKURLSchemeTask>)urlSchemeTask
-{
+{ 
+    //NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    //[alert setMessageText:@"startURLSchemeTask"];
+    //[alert runModal];
+
     NSURL *url = [[urlSchemeTask request] URL];
     char *urlUtf8 = (char *)[url.absoluteString UTF8String];
     int numBytes;

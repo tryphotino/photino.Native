@@ -121,6 +121,7 @@ private:
 	WKWebViewConfiguration *_webviewConfiguration;
     std::vector<Monitor *> GetMonitors();
 	void AttachWebView();
+	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
 #endif
 
 public:

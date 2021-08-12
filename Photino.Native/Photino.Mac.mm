@@ -154,6 +154,12 @@ Photino::Photino(PhotinoInitParams* initParams)
     if (_devToolsEnabled)
         [_webviewConfiguration.preferences setValue: @YES forKey: @"developerExtrasEnabled"];
 
+    //wire up custom url schemes
+    for (auto & scheme : _customSchemeNames)
+    {
+        AddCustomScheme(scheme, _customSchemeCallback);
+    }
+
     _webview = nil;
     AttachWebView();
 
@@ -303,10 +309,10 @@ void Photino::Restore()
 
 void Photino::SendWebMessage(AutoString message)
 {
-    NSString *msg = [NSString stringWithUTF8String: message];
-    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-    [alert setMessageText:msg];
-    [alert runModal];
+    //NSString *msg = [NSString stringWithUTF8String: message];
+    //NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    //[alert setMessageText:msg];
+    //[alert runModal];
 
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String: message];
@@ -541,6 +547,18 @@ void Photino::Invoke(ACTION callback)
 
 
 //private methods
+void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
+{
+    // Note that this can only be done *before* the WKWebView is instantiated, so we only let this
+    // get called from the options callback in the constructor
+    UrlSchemeHandler* schemeHandler = [[[UrlSchemeHandler alloc] init] autorelease];
+    schemeHandler->requestHandler = requestHandler;
+
+    [_webviewConfiguration
+        setURLSchemeHandler: schemeHandler
+        forURLScheme: [NSString stringWithUTF8String: scheme]];
+}
+
 void Photino::AttachWebView()
 {
     NSString *initScriptSource = @"window.__receiveMessageCallbacks = [];"
