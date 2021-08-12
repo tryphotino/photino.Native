@@ -43,11 +43,12 @@ jobs:
         restoreSolution: 'Photino.Native.sln'
         feedsToUse: 'select'
 
-    - task: DotNetCoreCLI@2
-      displayName: dotnet restore
-      inputs:
-        command: restore
-        projects: '**/*.csproj'
+    #NOTE: Release build configuration should not build Test project - it has linked files and will not build
+    #- task: DotNetCoreCLI@2
+    #  displayName: dotnet restore
+    #  inputs:
+    #    command: restore
+    #    projects: '**/*.csproj'
         
     #Build
     - task: VSBuild@1
