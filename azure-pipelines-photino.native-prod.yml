@@ -78,7 +78,7 @@ jobs:
       condition: eq(variables.rid, 'osx-x64')
       inputs:
         workingDirectory: './Photino.Native'
-        script: 'gcc -shared -lstdc++ -DOS_MAC -framework Cocoa -framework WebKit Photino.Mac.mm Exports.cpp Photino.Mac.AppDelegate.mm Photino.Mac.UiDelegate.mm Photino.Mac.UrlSchemeHandler.m -o x64/$(buildConfiguration)/Photino.Native.dylib'
+        script: 'gcc -shared -lstdc++ -DOS_MAC -framework Cocoa -framework WebKit Photino.Mac.mm Exports.cpp Photino.Mac.AppDelegate.mm Photino.Mac.UiDelegate.mm Photino.Mac.UrlSchemeHandler.mm -o x64/$(buildConfiguration)/Photino.Native.dylib'
 
     #Publish native output to Artifacts
     - task: PublishPipelineArtifact@1
