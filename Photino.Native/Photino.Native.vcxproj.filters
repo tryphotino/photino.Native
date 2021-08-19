@@ -28,10 +28,31 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Photino.Native.nuspec" />
+    <None Include="Photino.Mac.AppDelegate.mm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Photino.Mac.mm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Photino.Mac.UiDelegate.mm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Photino.Mac.UrlSchemeHandler.mm">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Photino.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Mac.AppDelegate.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Mac.UiDelegate.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Mac.UrlSchemeHandler.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

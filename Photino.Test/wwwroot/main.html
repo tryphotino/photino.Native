@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photino</title>
+
+    <script src="app://dynamic.js"></script>
+
+    <script>
+        function OpenChildWindow() {
+            window.external.sendMessage('child-window');
+        }
+
+        function ZoomIn() {
+            window.external.sendMessage('zoom-in');
+        }
+
+        function ZoomOut() {
+            window.external.sendMessage('zoom-out');
+        }
+
+        function Center() {
+            window.external.sendMessage('center');
+        }
+
+        function Close() {
+            window.external.sendMessage('close');
+        }
+
+        function Minimize() {
+            window.external.sendMessage('minimize');
+        }
+
+        function Maximize() {
+            window.external.sendMessage('maximize');
+        }
+
+        function SetContextMenuEnabled() {
+            window.external.sendMessage('setcontextmenuenabled');
+        }
+        
+        function SetDevToolsEnabled() {
+            window.external.sendMessage('setdevtoolsenabled');
+        }
+
+        function SetFullScreen() {
+            window.external.sendMessage('setfullscreen');
+        }
+
+        function SetGrantBrowserPermissions() {
+            window.external.sendMessage('setgrantbrowserpermissions');
+        }
+
+        function SetIconFile() {
+            window.external.sendMessage('seticonfile');
+        }
+
+        function SetPosition() {
+            window.external.sendMessage('setposition');
+        }
+
+        function SetResizable() {
+            window.external.sendMessage('setresizable');
+        }
+
+        function SetSizeUp() {
+            window.external.sendMessage('setsize-up');
+        }
+
+        function SetSizeDown() {
+            window.external.sendMessage('setsize-down');
+        }
+
+        function SetTitle() {
+            window.external.sendMessage('settitle');
+        }
+
+        function SetTopmost() {
+            window.external.sendMessage('settopmost');
+        }
+
+        function ShowState() {
+            window.external.sendMessage('showproperties');
+        }
+
+
+        //Photo stuff
+        //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
+        (function () {
+            var width = 320;    // We will scale the photo width to this
+            var height = 0;     // This will be computed based on the input stream
+            var streaming = false;
+            var video = null;
+            var canvas = null;
+            var photo = null;
+            var startbutton = null;
+
+            function startup() {
+                video = document.getElementById('video');
+                canvas = document.getElementById('canvas');
+                photo = document.getElementById('photo');
+                startbutton = document.getElementById('startbutton');
+
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                    .then(function (stream) {
+                        video.srcObject = stream;
+                        video.play();
+                    })
+                    .catch(function (err) {
+                        console.log("An error occurred: " + err);
+                    });
+
+                video.addEventListener('canplay', function (ev) {
+                    if (!streaming) {
+                        height = video.videoHeight / (video.videoWidth / width);
+                        if (isNaN(height)) {
+                            height = width / (4 / 3);
+                        }
+
+                        video.setAttribute('width', width);
+                        video.setAttribute('height', height);
+                        photo.setAttribute('width', width);
+                        photo.setAttribute('height', height);
+                        streaming = true;
+                    }
+                }, false);
+
+                startbutton.addEventListener('click', function (ev) {
+                    takepicture();
+                    ev.preventDefault();
+                }, false);
+
+                clearphoto();
+            }
+
+            function clearphoto() {
+                var context = canvas.getContext('2d');
+                context.fillStyle = "#AAA";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                var data = canvas.toDataURL('image/png');
+                photo.setAttribute('src', data);
+            }
+
+            function takepicture() {
+                var context = canvas.getContext('2d');
+                if (width && height) {
+                    canvas.width = width;
+                    canvas.height = height;
+                    context.drawImage(video, 0, 0, width, height);
+
+                    var data = canvas.toDataURL('image/png');
+                    photo.setAttribute('src', data);
+                } else {
+                    clearphoto();
+                }
+            }
+
+            window.addEventListener('load', startup, false);
+        })();
+    </script>
+</head>
+<body>
+    <h1 id="Title"></h1>
+
+    <button onclick="OpenChildWindow()">Open Child Window</button>
+    <button onclick="ZoomIn()">Zoom In</button>
+    <button onclick="ZoomOut()">Zoom Out</button>
+    <button onclick="Center()">Center</button>
+    <button id="startbutton">Take Picture</button>
+    <button onclick="Close()">Close</button>
+    <br>
+    <button onclick="Minimize()">Minimize</button>
+    <button onclick="Maximize()">Maximize</button>
+    <button onclick="SetContextMenuEnabled()">Context Menu</button>
+    <button onclick="SetDevToolsEnabled()">Dev Tools</button>
+    <button onclick="SetGrantBrowserPermissions()">Browser Permissions</button>
+    <button onclick="SetIconFile()">Icon</button>
+    <button onclick="SetPosition()">Position</button>
+    <br>
+    <button onclick="SetResizable()">Resizable</button>
+    <button onclick="SetSizeUp()">Size Up</button>
+    <button onclick="SetSizeDown()">Size Down</button>
+    <button onclick="SetTitle()">Title</button>
+    <button onclick="SetTopmost()">Topmost</button>
+    <button onclick="SetFullScreen()">Kiosk</button>
+    <br>
+    <button onclick="ShowState()">Show State</button>
+
+    <p>
+        <div id="Lineage"></div>
+    </p>
+
+    <span>
+        <video id="video">Video stream not available.</video>
+    </span>
+
+    <span>
+        <img id="photo" alt="The screen capture will appear in this box.">
+    </span>
+
+    <canvas id="canvas" style="visibility:hidden">required to render the photo, but not visible</canvas>
+</body>
+</html>

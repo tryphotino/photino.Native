@@ -25,20 +25,9 @@ extern "C"
 	}
 #endif
 
-	EXPORTED Photino* Photino_ctor(
-		AutoString title, 
-		AutoString starturl,
-		Photino* parent, 
-		WebMessageReceivedCallback webMessageReceivedCallback, 
-		bool fullscreen, 
-		int x, 
-		int y, 
-		int width, 
-		int height, 
-		AutoString windowIcon,
-		bool chromeless)
+	EXPORTED Photino* Photino_ctor(PhotinoInitParams* initParams)
 	{
-		return new Photino(title, starturl, parent, webMessageReceivedCallback, fullscreen, x, y, width, height, windowIcon, chromeless);
+		return new Photino(initParams);
 	}
 
 	EXPORTED void Photino_dtor(Photino* instance)
@@ -46,39 +35,9 @@ extern "C"
 		delete instance;
 	}
 
-	EXPORTED void Photino_SetTitle(Photino* instance, AutoString title)
+	EXPORTED void Photino_Center(Photino* instance)
 	{
-		instance->SetTitle(title);
-	}
-
-	EXPORTED void Photino_Show(Photino* instance)
-	{
-		instance->Show();
-	}
-
-	EXPORTED void Photino_Minimize(Photino* instance)
-	{
-		instance->Minimize();
-	}
-
-	EXPORTED void Photino_IsMinimized(Photino* instance, bool* isMinimized)
-	{
-		instance->Minimize();
-	}
-
-	EXPORTED void Photino_Maximize(Photino* instance)
-	{
-		instance->Maximize();
-	}
-
-	EXPORTED void Photino_IsMaximized(Photino* instance, bool* isMaximized)
-	{
-		instance->Maximize();
-	}
-
-	EXPORTED void Photino_Restore(Photino* instance)
-	{
-		instance->Restore();
+		instance->Center();
 	}
 
 	EXPORTED void Photino_Close(Photino* instance)
@@ -86,19 +45,69 @@ extern "C"
 		instance->Close();
 	}
 
-	EXPORTED void Photino_WaitForExit(Photino* instance)
+	EXPORTED void Photino_GetContextMenuEnabled(Photino* instance, bool* enabled)
 	{
-		instance->WaitForExit();
+		instance->GetContextMenuEnabled(enabled);
 	}
 
-	EXPORTED void Photino_ShowMessage(Photino* instance, AutoString title, AutoString body, unsigned int type)
+	EXPORTED void Photino_GetDevToolsEnabled(Photino* instance, bool* enabled)
 	{
-		instance->ShowMessage(title, body, type);
+		instance->GetDevToolsEnabled(enabled);
 	}
 
-	EXPORTED void Photino_Invoke(Photino* instance, ACTION callback)
+	EXPORTED void Photino_GetFullScreen(Photino* instance, bool* fullScreen)
 	{
-		instance->Invoke(callback);
+		instance->GetFullScreen(fullScreen);
+	}
+
+	EXPORTED void Photino_GetGrantBrowserPermissions(Photino* instance, bool* grant)
+	{
+		instance->GetGrantBrowserPermissions(grant);
+	}
+
+	EXPORTED void Photino_GetMaximized(Photino* instance, bool* isMaximized)
+	{
+		instance->GetMaximized(isMaximized);
+	}
+
+	EXPORTED void Photino_GetMinimized(Photino* instance, bool* isMinimized)
+	{
+		instance->GetMinimized(isMinimized);
+	}
+
+	EXPORTED void Photino_GetPosition(Photino* instance, int* x, int* y)
+	{
+		instance->GetPosition(x, y);
+	}
+
+	EXPORTED void Photino_GetResizable(Photino* instance, bool* resizable)
+	{
+		instance->GetResizable(resizable);
+	}
+
+	EXPORTED unsigned int Photino_GetScreenDpi(Photino* instance)
+	{
+		return instance->GetScreenDpi();
+	}
+
+	EXPORTED void Photino_GetSize(Photino* instance, int* width, int* height)
+	{
+		instance->GetSize(width, height);
+	}
+
+	EXPORTED AutoString Photino_GetTitle(Photino* instance)
+	{
+		return instance->GetTitle();
+	}
+
+	EXPORTED void Photino_GetTopmost(Photino* instance, bool* topmost)
+	{
+		instance->GetTopmost(topmost);
+	}
+
+	EXPORTED void Photino_GetZoom(Photino* instance, int* zoom)
+	{
+		instance->GetZoom(zoom);
 	}
 
 	EXPORTED void Photino_NavigateToString(Photino* instance, AutoString content)
@@ -111,49 +120,49 @@ extern "C"
 		instance->NavigateToUrl(url);
 	}
 
+	EXPORTED void Photino_Restore(Photino* instance)
+	{
+		instance->Restore();
+	}
+
 	EXPORTED void Photino_SendWebMessage(Photino* instance, AutoString message)
 	{
 		instance->SendWebMessage(message);
 	}
 
-	EXPORTED void Photino_AddCustomScheme(Photino* instance, AutoString scheme, WebResourceRequestedCallback requestHandler)
+	EXPORTED void Photino_SetContextMenuEnabled(Photino* instance, bool enabled)
 	{
-		instance->AddCustomScheme(scheme, requestHandler);
+		instance->SetContextMenuEnabled(enabled);
 	}
 
-	EXPORTED void Photino_SetResizable(Photino* instance, int resizable)
+	EXPORTED void Photino_SetDevToolsEnabled(Photino* instance, bool enabled)
 	{
-		instance->SetResizable(resizable);
+		instance->SetDevToolsEnabled(enabled);
 	}
 
-	EXPORTED void Photino_GetSize(Photino* instance, int* width, int* height)
+	EXPORTED void Photino_SetFullScreen(Photino* instance, bool fullScreen)
 	{
-		instance->GetSize(width, height);
+		instance->SetFullScreen(fullScreen);
 	}
 
-	EXPORTED void Photino_SetSize(Photino* instance, int width, int height)
+	EXPORTED void Photino_SetGrantBrowserPermissions(Photino* instance, bool grant)
 	{
-		instance->SetSize(width, height);
+		instance->SetGrantBrowserPermissions(grant);
 	}
 
-	EXPORTED void Photino_SetResizedCallback(Photino* instance, ResizedCallback callback)
+	EXPORTED void Photino_SetIconFile(Photino* instance, AutoString filename)
 	{
-		instance->SetResizedCallback(callback);
+		instance->SetIconFile(filename);
 	}
 
-	EXPORTED void Photino_GetAllMonitors(Photino* instance, GetAllMonitorsCallback callback)
+	EXPORTED void Photino_SetMaximized(Photino* instance, bool maximized)
 	{
-		instance->GetAllMonitors(callback);
+		instance->SetMaximized(maximized);
 	}
 
-	EXPORTED unsigned int Photino_GetScreenDpi(Photino* instance)
+	EXPORTED void Photino_SetMinimized(Photino* instance, bool minimized)
 	{
-		return instance->GetScreenDpi();
-	}
-
-	EXPORTED void Photino_GetPosition(Photino* instance, int* x, int* y)
-	{
-		instance->GetPosition(x, y);
+		instance->SetMinimized(minimized);
 	}
 
 	EXPORTED void Photino_SetPosition(Photino* instance, int x, int y)
@@ -161,9 +170,52 @@ extern "C"
 		instance->SetPosition(x, y);
 	}
 
-	EXPORTED void Photino_SetMovedCallback(Photino* instance, MovedCallback callback)
+	EXPORTED void Photino_SetResizable(Photino* instance, bool resizable)
 	{
-		instance->SetMovedCallback(callback);
+		instance->SetResizable(resizable);
+	}
+
+	EXPORTED void Photino_SetSize(Photino* instance, int width, int height)
+	{
+		instance->SetSize(width, height);
+	}
+
+	EXPORTED void Photino_SetTitle(Photino* instance, AutoString title)
+	{
+		instance->SetTitle(title);
+	}
+
+	EXPORTED void Photino_SetTopmost(Photino* instance, bool topmost)
+	{
+		instance->SetTopmost(topmost);
+	}
+
+	EXPORTED void Photino_SetZoom(Photino* instance, int zoom)
+	{
+		instance->SetZoom(zoom);
+	}
+
+	EXPORTED void Photino_ShowMessage(Photino* instance, AutoString title, AutoString body, unsigned int type)
+	{
+		instance->ShowMessage(title, body, type);
+	}
+
+	EXPORTED void Photino_WaitForExit(Photino* instance)
+	{
+		instance->WaitForExit();
+	}
+
+
+
+	//Callbacks
+	EXPORTED void Photino_AddCustomSchemeName(Photino* instance, AutoString scheme)
+	{
+		instance->AddCustomSchemeName(scheme);
+	}
+
+	EXPORTED void Photino_GetAllMonitors(Photino* instance, GetAllMonitorsCallback callback)
+	{
+		instance->GetAllMonitors(callback);
 	}
 
 	EXPORTED void Photino_SetClosingCallback(Photino* instance, ClosingCallback callback)
@@ -171,13 +223,18 @@ extern "C"
 		instance->SetClosingCallback(callback);
 	}
 
-	EXPORTED void Photino_SetTopmost(Photino* instance, int topmost)
+	EXPORTED void Photino_SetMovedCallback(Photino* instance, MovedCallback callback)
 	{
-		instance->SetTopmost(topmost);
+		instance->SetMovedCallback(callback);
 	}
 
-	EXPORTED void Photino_SetIconFile(Photino* instance, AutoString filename)
+	EXPORTED void Photino_SetResizedCallback(Photino* instance, ResizedCallback callback)
 	{
-		instance->SetIconFile(filename);
+		instance->SetResizedCallback(callback);
+	}
+
+	EXPORTED void Photino_Invoke(Photino* instance, ACTION callback)
+	{
+		instance->Invoke(callback);
 	}
 }

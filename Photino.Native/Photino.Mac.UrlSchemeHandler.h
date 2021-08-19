@@ -1,3 +1,4 @@
+#ifdef __APPLE__
 #pragma once
 #include "Photino.h"
 
@@ -6,3 +7,4 @@
     WebResourceRequestedCallback requestHandler;
 }
 @end
+#endif

@@ -10,6 +10,21 @@
 #include <sstream>
 #include <iomanip>
 
+
+/* --- PRINTF_BINARY_FORMAT macro's --- */
+//#define FMT_BUF_SIZE (CHAR_BIT*sizeof(uintmax_t)+1)
+//
+//char *binary_fmt(uintmax_t x, char buf[FMT_BUF_SIZE])
+//{
+//    char *s = buf + FMT_BUF_SIZE;
+//    *--s = 0;
+//    if (!x) *--s = '0';
+//    for (; x; x /= 2) *--s = '0' + x%2;
+//    return s;
+//}
+/* --- end macro --- */
+
+
 std::mutex invokeLockMutex;
 
 struct InvokeWaitInfo
@@ -24,63 +39,165 @@ struct InvokeJSWaitInfo
 	bool isCompleted;
 };
 
-void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self);
+//window size or position changed
 gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
+gboolean on_webview_context_menu (WebKitWebView* web_view,
+               GtkWidget* default_menu,
+               WebKitHitTestResult* hit_test_result,
+               gboolean triggered_with_keyboard,
+               gpointer user_data);
+gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest* request, gpointer user_data);
 
-Photino::Photino(
-	AutoString title,
-	AutoString starturl,
-	Photino* parent, 
-	WebMessageReceivedCallback webMessageReceivedCallback, 
-	bool fullscreen, 
-	int x, 
-	int y, 
-	int width, 
-	int height, 
-	AutoString windowIconFile,
-	bool chromeless) : _webview(nullptr)
+Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 {
-	_startUrl = starturl;
-	_webMessageReceivedCallback = webMessageReceivedCallback;
-
 	// It makes xlib thread safe.
 	// Needed for get_position.
 	XInitThreads();
-
 	gtk_init(0, NULL);
-	_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	
-	if (fullscreen)
+
+	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
-		GdkRectangle geometry = { 0 };
-		gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &geometry);
-
-		x = 0;
-		y = 0;
-		width = geometry.width;
-		height = geometry.height;
-
-		gtk_window_fullscreen(GTK_WINDOW(_window));
+		GtkWidget* dialog = gtk_message_dialog_new(
+			nullptr
+			, GTK_DIALOG_DESTROY_WITH_PARENT
+			, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+			, "Initial parameters passed are %i bytes, but expected %lu bytes."
+			, initParams->Size
+			, sizeof(PhotinoInitParams));
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+		exit(0);
 	}
 
-	gtk_window_move(GTK_WINDOW(_window), x, y);
-	gtk_window_set_default_size(GTK_WINDOW(_window), width, height);
+	_windowTitle = new char[256];
+	if (initParams->Title != NULL)
+		strcpy(_windowTitle, initParams->Title);
+	else
+		_windowTitle[0] = 0;
 
 
-	SetTitle(title);
+	_startUrl = NULL;
+	if (initParams->StartUrl != NULL)
+	{
+		_startUrl = new char[2048];
+		if (_startUrl == NULL) exit(0);
+		strcpy(_startUrl, initParams->StartUrl);
+	}
 
-	if (parent == NULL)
+	_startString = NULL;
+	if (initParams->StartString != NULL)
+	{
+		_startString = new char[strlen(initParams->StartString) + 1];
+		if (_startString == NULL) exit(0);
+		strcpy(_startString, initParams->StartString);
+	}
+
+	_temporaryFilesPath = NULL;
+	if (initParams->TemporaryFilesPath != NULL)
+	{
+		_temporaryFilesPath = new char[256];
+		if (_temporaryFilesPath == NULL) exit(0);
+		strcpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
+	}
+
+	_contextMenuEnabled = initParams->ContextMenuEnabled;
+	_devToolsEnabled = initParams->DevToolsEnabled;
+	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
+
+	_zoom = initParams->Zoom;
+
+	//these handlers are ALWAYS hooked up
+	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
+	_resizedCallback = (ResizedCallback)initParams->ResizedHandler;
+	_movedCallback = (MovedCallback)initParams->MovedHandler;
+	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
+	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
+
+	//copy strings from the fixed size array passed, but only if they have a value.
+	for (int i = 0; i < 16; ++i)
+	{
+		if (initParams->CustomSchemeNames[i] != NULL)
+		{
+			char* name = new char[50];
+			strcpy(name, initParams->CustomSchemeNames[i]);
+			_customSchemeNames.push_back(name);
+		}
+	}
+
+	_parent = initParams->ParentInstance;
+
+	_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	
+	if (initParams->FullScreen)
+		SetFullScreen(true);
+	else
+	{
+		if (initParams->UseOsDefaultSize)
+			gtk_window_set_default_size(GTK_WINDOW(_window), -1, -1);
+		else
+			gtk_window_set_default_size(GTK_WINDOW(_window), initParams->Width, initParams->Height);
+
+		if (initParams->UseOsDefaultLocation)
+			gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_NONE);
+		else if (initParams->CenterOnInitialize && !initParams->FullScreen)
+			gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_CENTER);
+		else
+			gtk_window_move(GTK_WINDOW(_window), initParams->Left, initParams->Top);
+	}
+
+	SetTitle(_windowTitle);
+
+	if (initParams->Chromeless)
+		gtk_window_set_decorated(GTK_WINDOW(_window), false);
+
+	if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != "")
+		Photino::SetIconFile(initParams->WindowIconFile);
+
+	if (initParams->CenterOnInitialize)
+		Photino::Center();
+
+	if (initParams->Minimized)
+		Photino::SetMinimized(true);
+
+	if (initParams->Maximized)
+		Photino::SetMaximized(true);
+
+	if (!initParams->Resizable)
+		Photino::SetResizable(false);
+
+	if (initParams->Topmost)
+		Photino::SetTopmost(true);
+
+	if (_parent == NULL)
 	{
 		g_signal_connect(G_OBJECT(_window), "destroy",
 			G_CALLBACK(+[](GtkWidget* w, gpointer arg) { gtk_main_quit(); }),
 			this);
-		g_signal_connect(G_OBJECT(_window), "size-allocate",
-			G_CALLBACK(on_size_allocate),
-			this);
-		g_signal_connect(G_OBJECT(_window), "configure-event",
-			G_CALLBACK(on_configure_event),
-			this);
 	}
+
+	//g_signal_connect(G_OBJECT(_window), "size-allocate",
+	//	G_CALLBACK(on_size_allocate),
+	//	this);
+	
+	g_signal_connect(G_OBJECT(_window), "configure-event",
+		G_CALLBACK(on_configure_event),
+		this);
+
+	Photino::Show();
+
+	//These must be called after the webview control is initialized.
+	g_signal_connect(G_OBJECT(_webview), "context-menu",
+		G_CALLBACK(on_webview_context_menu),
+		this);
+
+	g_signal_connect(G_OBJECT(_webview), "permission-request",
+		G_CALLBACK(on_permission_request),
+		this);
+
+	Photino::AddCustomSchemeHandlers();
+	
+	if (_zoom != 100.0)
+		SetZoom(_zoom);
 }
 
 Photino::~Photino()
@@ -88,132 +205,139 @@ Photino::~Photino()
 	gtk_widget_destroy(_window);
 }
 
-void HandleWebMessage(WebKitUserContentManager* contentManager, WebKitJavascriptResult* jsResult, gpointer arg)
+
+
+
+void Photino::Center()
 {
-	JSCValue* jsValue = webkit_javascript_result_get_js_value(jsResult);
-	if (jsc_value_is_string(jsValue)) {
-		AutoString str_value = jsc_value_to_string(jsValue);
+	gint windowWidth, windowHeight;
+    gtk_window_get_size(GTK_WINDOW(_window), &windowWidth, &windowHeight);
+	
+	GdkRectangle screen = { 0 };
+	gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &screen);
 
-		WebMessageReceivedCallback callback = (WebMessageReceivedCallback)arg;
-		callback(str_value);
-		g_free(str_value);
-	}
-
-	webkit_javascript_result_unref(jsResult);
-}
-
-void Photino::Show()
-{
-	if (!_webview)
-	{
-		WebKitUserContentManager* contentManager = webkit_user_content_manager_new();
-		_webview = webkit_web_view_new_with_user_content_manager(contentManager);
-
-		/* Enable the developer extras */
-		WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
-		webkit_settings_set_enable_developer_extras(settings, TRUE);
-
-		gtk_container_add(GTK_CONTAINER(_window), _webview);
-
-		WebKitUserScript* script = webkit_user_script_new(
-			"window.__receiveMessageCallbacks = [];"
-			"window.__dispatchMessageCallback = function(message) {"
-			"	window.__receiveMessageCallbacks.forEach(function(callback) { callback(message); });"
-			"};"
-			"window.external = {"
-			"	sendMessage: function(message) {"
-			"		window.webkit.messageHandlers.Photinointerop.postMessage(message);"
-			"	},"
-			"	receiveMessage: function(callback) {"
-			"		window.__receiveMessageCallbacks.push(callback);"
-			"	}"
-			"};", WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES, WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, NULL, NULL);
-		webkit_user_content_manager_add_script(contentManager, script);
-		webkit_user_script_unref(script);
-
-		g_signal_connect(contentManager, "script-message-received::Photinointerop",
-			G_CALLBACK(HandleWebMessage), (void*)_webMessageReceivedCallback);
-		webkit_user_content_manager_register_script_message_handler(contentManager, "Photinointerop");
-	}
-
-	gtk_widget_show_all(_window);
-}
-
-void Photino::Minimize()
-{
-	//???
-}
-
-void Photino::GetMinimized(bool* isMinimized)
-{
-	//???
-}
-
-void Photino::Maximize()
-{
-	//???
-}
-
-void Photino::GetMaximized(bool* isMaximized)
-{
-	//???
-}
-
-void Photino::Restore()
-{
-	//???
+    gtk_window_move (GTK_WINDOW(_window), 
+		(screen.width - windowWidth) / 2, 
+		(screen.height - windowHeight) / 2);
 }
 
 void Photino::Close()
 {
-	//???
+	gtk_window_close(GTK_WINDOW(_window));
 }
 
-void Photino::SetTitle(AutoString title)
+
+
+void Photino::GetContextMenuEnabled(bool* enabled)
 {
-	gtk_window_set_title(GTK_WINDOW(_window), title);
+    if (_contextMenuEnabled) *enabled = true;
 }
 
-void Photino::WaitForExit()
+void Photino::GetDevToolsEnabled(bool* enabled)
 {
-	gtk_main();
+	WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+	_devToolsEnabled = webkit_settings_get_enable_developer_extras(settings);
+    if (_devToolsEnabled) *enabled = true;
 }
 
-static gboolean invokeCallback(gpointer data)
+void Photino::GetFullScreen(bool* fullScreen)
 {
-	InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)data;
-	waitInfo->callback();
-	{
-		std::lock_guard<std::mutex> guard(invokeLockMutex);
-		waitInfo->isCompleted = true;
-	}
-	waitInfo->completionNotifier.notify_one();
-	return false;
+	*fullScreen = _isFullScreen;
 }
 
-void Photino::Invoke(ACTION callback)
+void Photino::GetGrantBrowserPermissions(bool* grant)
 {
-	InvokeWaitInfo waitInfo = { };
-	waitInfo.callback = callback;
-	gdk_threads_add_idle(invokeCallback, &waitInfo);
-
-	// Block until the callback is actually executed and completed
-	// TODO: Add return values, exception handling, etc.
-	std::unique_lock<std::mutex> uLock(invokeLockMutex);
-	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
+    if (_grantBrowserPermissions) *grant = true;
 }
 
-void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
+void Photino::GetMaximized(bool* isMaximized)
 {
-	GtkWidget* dialog = gtk_message_dialog_new(GTK_WINDOW(_window),
-		GTK_DIALOG_DESTROY_WITH_PARENT,
-		GTK_MESSAGE_OTHER,
-		GTK_BUTTONS_OK,
-		"%s",
-		body);
-	gtk_window_set_title((GtkWindow*)dialog, title);
-	gtk_dialog_run(GTK_DIALOG(dialog));
-	gtk_widget_destroy(dialog);
+	*isMaximized = gtk_window_is_maximized(GTK_WINDOW(_window));
+}
+
+void Photino::GetMinimized(bool* isMinimized)
+{
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	GdkWindowState flags = gdk_window_get_state(gdk_window);
+	*isMinimized = flags & GDK_WINDOW_STATE_ICONIFIED;
+}
+
+void Photino::GetPosition(int* x, int* y)
+{
+	gtk_window_get_position(GTK_WINDOW(_window), x, y);
+}
+
+void Photino::GetResizable(bool* resizable)
+{
+	*resizable = gtk_window_get_resizable(GTK_WINDOW(_window));
+}
+
+unsigned int Photino::GetScreenDpi()
+{
+	GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
+	gdouble dpi = gdk_screen_get_resolution(screen);
+	if (dpi < 0) return 96;
+	else return (unsigned int)dpi;
+}
+
+void Photino::GetSize(int* width, int* height)
+{
+	gtk_window_get_size(GTK_WINDOW(_window), width, height);
+
+	//TODO: Uncomment this and it works properly. Commented, it only changes width.
+	//GtkWidget* dialog = gtk_message_dialog_new(
+	//	nullptr
+	//	, GTK_DIALOG_DESTROY_WITH_PARENT
+	//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+	//	, "width: %i bytes, height %i"
+	//	, *width
+	//	, *height);
+	//gtk_dialog_run(GTK_DIALOG(dialog));
+	//gtk_widget_destroy(dialog);
+}
+
+AutoString Photino::GetTitle()
+{
+	return (AutoString)gtk_window_get_title(GTK_WINDOW(_window));
+}
+
+void Photino::GetTopmost(bool* topmost)
+{
+	//TODO: This flag is not set in GDK3. WebKit does not support GTK5 yet.
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	GdkWindowState flags = gdk_window_get_state(gdk_window);
+	*topmost = flags & GDK_WINDOW_STATE_ABOVE;
+
+	//char tmp1[FMT_BUF_SIZE];
+	//char tmp2[FMT_BUF_SIZE];
+	//char tmp3[FMT_BUF_SIZE];
+	//GtkWidget* dialog = gtk_message_dialog_new(
+	//	nullptr
+	//	, GTK_DIALOG_DESTROY_WITH_PARENT
+	//	, GTK_MESSAGE_ERROR
+	//	, GTK_BUTTONS_CLOSE
+	//	, "flags: %s \n above: %s \n and: %s \n topmost: %s"
+	//	, binary_fmt(flags, tmp1)
+	//	, binary_fmt(GDK_WINDOW_STATE_ABOVE, tmp2)
+	//	, binary_fmt(flags & GDK_WINDOW_STATE_ABOVE, tmp3)
+	//	, *topmost ? "T" : "F");
+	//gtk_dialog_run(GTK_DIALOG(dialog));
+	//gtk_widget_destroy(dialog);
+}
+
+void Photino::GetZoom(int* zoom)
+{
+	double rawValue = 0;
+	rawValue = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(_webview));
+	rawValue = (rawValue * 100.0) + 0.5;
+	*zoom = (int)rawValue;
+}
+
+
+
+void Photino::NavigateToString(AutoString content)
+{
+	webkit_web_view_load_html(WEBKIT_WEB_VIEW(_webview), content, NULL);
 }
 
 void Photino::NavigateToUrl(AutoString url)
@@ -221,9 +345,9 @@ void Photino::NavigateToUrl(AutoString url)
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(_webview), url);
 }
 
-void Photino::NavigateToString(AutoString content)
+void Photino::Restore()
 {
-	webkit_web_view_load_html(WEBKIT_WEB_VIEW(_webview), content, NULL);
+	gtk_window_present(GTK_WINDOW(_window));
 }
 
 // From https://stackoverflow.com/a/33799784
@@ -271,6 +395,297 @@ void Photino::SendWebMessage(AutoString message)
 	}
 }
 
+
+
+void Photino::SetContextMenuEnabled(bool enabled)
+{
+    _contextMenuEnabled = enabled;
+}
+
+void Photino::SetDevToolsEnabled(bool enabled)
+{
+	_devToolsEnabled = enabled;
+	WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+	webkit_settings_set_enable_developer_extras(settings, _devToolsEnabled);
+}
+
+void Photino::SetFullScreen(bool fullScreen)
+{
+	if (fullScreen)
+		gtk_window_fullscreen(GTK_WINDOW(_window));
+	else
+		gtk_window_unfullscreen(GTK_WINDOW(_window));
+	
+	_isFullScreen = fullScreen;
+}
+
+void Photino::SetGrantBrowserPermissions(bool grant)
+{
+	_grantBrowserPermissions = grant;
+}
+
+void Photino::SetIconFile(AutoString filename)
+{
+	gtk_window_set_icon_from_file(GTK_WINDOW(_window), filename, NULL);
+}
+
+void Photino::SetMinimized(bool minimized)
+{
+	if (minimized)
+		gtk_window_iconify(GTK_WINDOW(_window));
+	else
+		gtk_window_deiconify(GTK_WINDOW(_window));
+}
+
+void Photino::SetMaximized(bool maximized)
+{
+	_isFullScreen = maximized;
+	if (maximized)
+		gtk_window_maximize(GTK_WINDOW(_window));
+	else
+		gtk_window_unmaximize(GTK_WINDOW(_window));
+}
+
+void Photino::SetPosition(int x, int y)
+{
+	gtk_window_move(GTK_WINDOW(_window), x, y);
+}
+
+void Photino::SetResizable(bool resizable)
+{
+	gtk_window_set_resizable(GTK_WINDOW(_window), resizable);
+}
+
+void Photino::SetSize(int width, int height)
+{
+	gtk_window_resize(GTK_WINDOW(_window), width, height);
+
+	//TODO: Uncomment this and it works properly. Commented, it only changes width.
+	//GtkWidget* dialog = gtk_message_dialog_new(
+	//	nullptr
+	//	, GTK_DIALOG_DESTROY_WITH_PARENT
+	//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+	//	, "width: %i bytes, height %i"
+	//	, width
+	//	, height);
+	//gtk_dialog_run(GTK_DIALOG(dialog));
+	//gtk_widget_destroy(dialog);
+}
+
+void Photino::SetTitle(AutoString title)
+{
+	gtk_window_set_title(GTK_WINDOW(_window), title);
+}
+
+void Photino::SetTopmost(bool topmost)
+{
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	gdk_window_set_keep_above(gdk_window, topmost);
+}
+
+void Photino::SetZoom(int zoom)
+{
+	double newZoom = zoom / 100.0;
+	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(_webview), newZoom);
+}
+
+void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
+{
+	GtkWidget* dialog = gtk_message_dialog_new(GTK_WINDOW(_window),
+		GTK_DIALOG_DESTROY_WITH_PARENT,
+		GTK_MESSAGE_OTHER,
+		GTK_BUTTONS_OK,
+		"%s",
+		body);
+	gtk_window_set_title((GtkWindow*)dialog, title);
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+}
+
+void Photino::WaitForExit()
+{
+	gtk_main();
+}
+
+
+
+
+
+//Callbacks
+void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
+{
+	if (callback)
+	{
+		GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
+		GdkDisplay* display = gdk_screen_get_display(screen);
+		int n = gdk_display_get_n_monitors(display);
+		for (int i = 0; i < n; i++)
+		{
+			GdkMonitor* monitor = gdk_display_get_monitor(display, i);
+			Monitor props = {};
+			gdk_monitor_get_geometry(monitor, (GdkRectangle*)&props.monitor);
+			gdk_monitor_get_workarea(monitor, (GdkRectangle*)&props.work);
+			if (!callback(&props)) break;
+		}
+	}
+}
+
+static gboolean invokeCallback(gpointer data)
+{
+	InvokeWaitInfo* waitInfo = (InvokeWaitInfo*)data;
+	waitInfo->callback();
+	{
+		std::lock_guard<std::mutex> guard(invokeLockMutex);
+		waitInfo->isCompleted = true;
+	}
+	waitInfo->completionNotifier.notify_one();
+	return false;
+}
+
+void Photino::Invoke(ACTION callback)
+{
+	InvokeWaitInfo waitInfo = { };
+	waitInfo.callback = callback;
+	gdk_threads_add_idle(invokeCallback, &waitInfo);
+
+	// Block until the callback is actually executed and completed
+	// TODO: Add return values, exception handling, etc.
+	std::unique_lock<std::mutex> uLock(invokeLockMutex);
+	waitInfo.completionNotifier.wait(uLock, [&] { return waitInfo.isCompleted; });
+}
+
+
+
+
+
+
+//Private methods
+void HandleWebMessage(WebKitUserContentManager* contentManager, WebKitJavascriptResult* jsResult, gpointer arg)
+{
+	JSCValue* jsValue = webkit_javascript_result_get_js_value(jsResult);
+	if (jsc_value_is_string(jsValue)) {
+		AutoString str_value = jsc_value_to_string(jsValue);
+
+		WebMessageReceivedCallback callback = (WebMessageReceivedCallback)arg;
+		callback(str_value);
+		g_free(str_value);
+	}
+
+	webkit_javascript_result_unref(jsResult);
+}
+
+void Photino::Show()
+{
+	if (!_webview)
+	{
+		WebKitUserContentManager* contentManager = webkit_user_content_manager_new();
+		_webview = webkit_web_view_new_with_user_content_manager(contentManager);
+
+		//https://webkit.org/reference/webkit2gtk/unstable/WebKitSettings.html#WebKitSettings--allow-file-access-from-file-urls
+		WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
+
+		webkit_settings_set_allow_file_access_from_file_urls(settings, TRUE);
+		webkit_settings_set_allow_modal_dialogs(settings, TRUE);
+		webkit_settings_set_allow_top_navigation_to_data_urls(settings, TRUE);
+		webkit_settings_set_allow_universal_access_from_file_urls(settings, TRUE);
+
+		webkit_settings_set_enable_back_forward_navigation_gestures(settings, TRUE);
+		webkit_settings_set_enable_caret_browsing(settings, TRUE);
+		webkit_settings_set_enable_developer_extras(settings, _devToolsEnabled);
+		webkit_settings_set_enable_media_capabilities(settings, TRUE);
+		webkit_settings_set_enable_media_stream(settings, TRUE);
+
+		webkit_settings_set_javascript_can_access_clipboard(settings, TRUE);
+		webkit_settings_set_javascript_can_open_windows_automatically(settings, TRUE);
+
+		gtk_container_add(GTK_CONTAINER(_window), _webview);
+
+		WebKitUserScript* script = webkit_user_script_new(
+			"window.__receiveMessageCallbacks = [];"
+			"window.__dispatchMessageCallback = function(message) {"
+			"	window.__receiveMessageCallbacks.forEach(function(callback) { callback(message); });"
+			"};"
+			"window.external = {"
+			"	sendMessage: function(message) {"
+			"		window.webkit.messageHandlers.Photinointerop.postMessage(message);"
+			"	},"
+			"	receiveMessage: function(callback) {"
+			"		window.__receiveMessageCallbacks.push(callback);"
+			"	}"
+			"};", WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES, WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, NULL, NULL);
+		webkit_user_content_manager_add_script(contentManager, script);
+		webkit_user_script_unref(script);
+
+		g_signal_connect(contentManager, "script-message-received::Photinointerop",
+			G_CALLBACK(HandleWebMessage), (void*)_webMessageReceivedCallback);
+		webkit_user_content_manager_register_script_message_handler(contentManager, "Photinointerop");
+
+		if (_startUrl != NULL)
+			Photino::NavigateToUrl(_startUrl);
+		else if (_startString != NULL)
+			Photino::NavigateToString(_startString);
+		else
+		{
+			GtkWidget* dialog = gtk_message_dialog_new(
+				nullptr
+				, GTK_DIALOG_DESTROY_WITH_PARENT
+				, GTK_MESSAGE_ERROR
+				, GTK_BUTTONS_CLOSE
+				, "Neither StartUrl not StartString was specified");
+			gtk_dialog_run(GTK_DIALOG(dialog));
+			gtk_widget_destroy(dialog);
+			exit(0);
+		}
+	}
+
+	gtk_widget_show_all(_window);
+}
+
+gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self)
+{
+	if (event->type == GDK_CONFIGURE)
+	{
+		Photino* instance = ((Photino*)self);
+
+		if (instance->_lastLeft != event->configure.x || instance->_lastTop != event->configure.y)
+		{
+			instance->InvokeMove(event->configure.x, event->configure.y);
+			instance->_lastLeft = event->configure.x;
+			instance->_lastTop = event->configure.y;
+		}
+
+		if (instance->_lastHeight != event->configure.height || instance->_lastWidth != event->configure.width)
+		{
+			instance->InvokeResize(event->configure.width, event->configure.height);
+			instance->_lastWidth = event->configure.width;
+			instance->_lastHeight = event->configure.height;
+		}
+	}
+	return FALSE;
+}
+
+gboolean on_webview_context_menu (WebKitWebView* web_view, GtkWidget* default_menu,
+    WebKitHitTestResult* hit_test_result, gboolean triggered_with_keyboard, gpointer self)
+{
+	Photino* instance = ((Photino*)self);
+	return !instance->_contextMenuEnabled;
+}
+
+gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest* request, gpointer user_data)
+{
+	GtkWidget* dialog = gtk_message_dialog_new(
+		nullptr
+		, GTK_DIALOG_DESTROY_WITH_PARENT
+		, GTK_MESSAGE_ERROR
+		, GTK_BUTTONS_CLOSE
+		, "Permission Requested - Allowing!");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+
+	webkit_permission_request_allow(request);
+	return FALSE;
+}
+
 void HandleCustomSchemeRequest(WebKitURISchemeRequest* request, gpointer user_data)
 {
 	WebResourceRequestedCallback webResourceRequestedCallback = (WebResourceRequestedCallback)user_data;
@@ -285,89 +700,18 @@ void HandleCustomSchemeRequest(WebKitURISchemeRequest* request, gpointer user_da
 	delete[] contentType;
 }
 
-void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)
+void Photino::AddCustomSchemeHandlers()
 {
 	WebKitWebContext* context = webkit_web_context_get_default();
-	webkit_web_context_register_uri_scheme(context, scheme,
-		(WebKitURISchemeRequestCallback)HandleCustomSchemeRequest,
-		(void*)requestHandler, NULL);
-}
-
-void Photino::SetResizable(bool resizable)
-{
-	gtk_window_set_resizable(GTK_WINDOW(_window), resizable ? TRUE : FALSE);
-}
-
-void Photino::GetSize(int* width, int* height)
-{
-	gtk_window_get_size(GTK_WINDOW(_window), width, height);
-}
-
-void Photino::SetSize(int width, int height)
-{
-	gtk_window_resize(GTK_WINDOW(_window), width, height);
-}
-
-void on_size_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer self)
-{
-	int width, height;
-	gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
-	((Photino*)self)->InvokeResized(width, height);
-}
-
-void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
-{
-    if (callback)
-    {
-        GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
-        GdkDisplay* display = gdk_screen_get_display(screen);
-        int n = gdk_display_get_n_monitors(display);
-        for (int i = 0; i < n; i++)
-        {
-            GdkMonitor* monitor = gdk_display_get_monitor(display, i);
-            Monitor props = {};
-            gdk_monitor_get_geometry(monitor, (GdkRectangle*)&props.monitor);
-            gdk_monitor_get_workarea(monitor, (GdkRectangle*)&props.work);
-            if (!callback(&props)) break;
-        }
-    }
-}
-
-unsigned int Photino::GetScreenDpi()
-{
-	GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
-	gdouble dpi = gdk_screen_get_resolution(screen);
-	if (dpi < 0) return 96;
-	else return (unsigned int)dpi;
-}
-
-void Photino::GetPosition(int* x, int* y)
-{
-	gtk_window_get_position(GTK_WINDOW(_window), x, y);
-}
-
-void Photino::SetPosition(int x, int y)
-{
-	gtk_window_move(GTK_WINDOW(_window), x, y);
-}
-
-gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self)
-{
-	if (event->type == GDK_CONFIGURE)
+	for (const auto& value: _customSchemeNames)
 	{
-		((Photino*)self)->InvokeMoved(event->configure.x, event->configure.y);
+		webkit_web_context_register_uri_scheme(
+			context
+			, value
+			, (WebKitURISchemeRequestCallback)HandleCustomSchemeRequest
+			, (void*)_customSchemeCallback
+			, NULL);
 	}
-	return FALSE;
 }
-
-void Photino::SetTopmost(bool topmost)
-{
-	gtk_window_set_keep_above(GTK_WINDOW(_window), topmost ? TRUE : FALSE);
-}
-
-void Photino::SetIconFile(AutoString filename)
-{
-	gtk_window_set_icon_from_file(GTK_WINDOW(_window), filename, NULL);
-}
-
 #endif
+

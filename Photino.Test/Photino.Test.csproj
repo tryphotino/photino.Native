@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <ApplicationIcon>wwwroot\photino-logo.ico</ApplicationIcon>
+    <StartupObject />
+    <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
+    <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
+    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsWindows)'=='true'">
+    <DefineConstants>Windows</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsOSX)'=='true'">
+    <DefineConstants>OSX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsLinux)'=='true'">
+    <DefineConstants>Linux</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoDllImports.cs" Link="PhotinoDllImports.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoMonitorStruct.cs" Link="PhotinoMonitorStruct.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeDelegates.cs" Link="PhotinoNativeDelegates.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeParameters.cs" Link="PhotinoNativeParameters.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNetDelegates.cs" Link="PhotinoNetDelegates.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoWindow.NET.cs" Link="PhotinoWindow.NET.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="wwwroot\main.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="wwwroot\photino-logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="wwwroot\photino-logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+
+  </Target>
+
+</Project>

@@ -1,3 +1,4 @@
+#ifdef __APPLE__
 #import "Photino.Mac.UiDelegate.h"
 
 @implementation UiDelegate : NSObject
@@ -62,13 +63,14 @@
 - (void)windowDidResize:(NSNotification *)notification {
     int width, height;
     photino->GetSize(&width, &height);
-    photino->InvokeResized(width, height);
+    photino->InvokeResize(width, height);
 }
 
 - (void)windowDidMove:(NSNotification *)notification {
     int x, y;
     photino->GetPosition(&x, &y);
-    photino->InvokeMoved(x, y);
+    photino->InvokeMove(x, y);
 }
 
 @end
+#endif
