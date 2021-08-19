@@ -70,8 +70,10 @@ jobs:
       displayName: 'Create output folder for MacOS'
       condition: eq(variables.rid, 'osx-x64')
       inputs:
-        workingDirectory: './Photino.Native'
-        script: 'mkdir x64; cd x64; mkdir $(buildConfiguration)'
+        workingDirectory: '.'
+        script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./x64/$(buildConfiguration)/Photino.Native.dylib'
+        #workingDirectory: './Photino.Native'
+        #script: 'mkdir x64; cd x64; mkdir $(buildConfiguration)'
 
     - task: CmdLine@2
       displayName: 'Build macOS native assets'
