@@ -70,17 +70,17 @@ jobs:
       displayName: 'Create output folder for MacOS'
       condition: eq(variables.rid, 'osx-x64')
       inputs:
-        workingDirectory: '.'
-        script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./x64/$(buildConfiguration)/Photino.Native.dylib'
-        #workingDirectory: './Photino.Native'
-        #script: 'mkdir x64; cd x64; mkdir $(buildConfiguration)'
+        workingDirectory: './Photino.Native'
+        script: 'mkdir x64; cd x64; mkdir $(buildConfiguration)'
 
     - task: CmdLine@2
       displayName: 'Build macOS native assets'
       condition: eq(variables.rid, 'osx-x64')
       inputs:
-        workingDirectory: './Photino.Native'
-        script: 'gcc -shared -lstdc++ -DOS_MAC -framework Cocoa -framework WebKit Photino.Mac.mm Exports.cpp Photino.Mac.AppDelegate.mm Photino.Mac.UiDelegate.mm Photino.Mac.UrlSchemeHandler.mm -o x64/$(buildConfiguration)/Photino.Native.dylib'
+        workingDirectory: '.'
+        script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./x64/$(buildConfiguration)/Photino.Native.dylib'
+        #workingDirectory: './Photino.Native'
+        #script: 'gcc -shared -lstdc++ -DOS_MAC -framework Cocoa -framework WebKit Photino.Mac.mm Exports.cpp Photino.Mac.AppDelegate.mm Photino.Mac.UiDelegate.mm Photino.Mac.UrlSchemeHandler.mm -o x64/$(buildConfiguration)/Photino.Native.dylib'
 
     #Publish native output to Artifacts
     - task: PublishPipelineArtifact@1
