@@ -117,7 +117,7 @@ jobs:
       displayName: 'Publish Photino.Native.dylib (mac) to artifacts'
       condition: eq(variables.rid, 'osx-x64')
       inputs:
-        targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib'
+        targetPath: './x64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: 'Photino.Native.dylib'
 
 
