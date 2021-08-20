@@ -24,7 +24,7 @@
     <ClCompile Include="Photino.Linux.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Lib\WinToast.cpp">
+    <ClCompile Include="Dependencies\wintoastlib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,10 +60,7 @@
     <ClInclude Include="Photino.Windows.ToastHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WinToast.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Lib\WinToast.h">
+    <ClInclude Include="Dependencies\wintoastlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
