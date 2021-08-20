@@ -24,6 +24,9 @@
     <ClCompile Include="Photino.Linux.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Lib\WinToast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -53,6 +56,15 @@
     </ClInclude>
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Windows.ToastHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinToast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lib\WinToast.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

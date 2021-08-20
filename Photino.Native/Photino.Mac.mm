@@ -469,6 +469,11 @@ void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
     });
 }
 
+void Photino::ShowNotification(AutoString title, AutoString body)
+{
+    //
+}
+
 void Photino::WaitForExit()
 {
     [NSApp run];

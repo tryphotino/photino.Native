@@ -155,14 +155,18 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net5.0\</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Exports.cpp" />
+    <ClCompile Include="Lib\WinToast.cpp" />
     <ClCompile Include="Photino.Linux.cpp" />
     <ClCompile Include="Photino.Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Lib\WinToast.h" />
     <ClInclude Include="Photino.h" />
     <ClInclude Include="Photino.Mac.AppDelegate.h" />
     <ClInclude Include="Photino.Mac.UiDelegate.h" />
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h" />
+    <ClInclude Include="Photino.Windows.ToastHandler.h" />
+    <ClInclude Include="WinToast.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

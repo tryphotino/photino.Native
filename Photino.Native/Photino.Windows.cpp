@@ -1,4 +1,5 @@
 #include "Photino.h"
+#include "Photino.Windows.ToastHandler.h"
 #include <mutex>
 #include <condition_variable>
 #include <comdef.h>
@@ -14,7 +15,7 @@
 #define WM_USER_SHOWMESSAGE (WM_USER + 0x0001)
 #define WM_USER_INVOKE (WM_USER + 0x0002)
 
-using namespace Microsoft::WRL;
+using namespace WinToastLib;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LPCWSTR CLASS_NAME = L"Photino";
@@ -35,6 +36,7 @@ struct ShowMessageParams
 	std::wstring body;
 	UINT type = 0;
 };
+
 
 void Photino::Register(HINSTANCE hInstance)
 {
@@ -67,7 +69,11 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	_windowTitle = new wchar_t[256];
 	if (initParams->Title != NULL)
+	{
+		WinToast::instance()->setAppName(initParams->Title);
+		WinToast::instance()->setAppUserModelId(initParams->Title);
 		wcscpy(_windowTitle, initParams->Title);
+	}
 	else
 		_windowTitle[0] = 0;
 
@@ -187,15 +193,18 @@ Photino::Photino(PhotinoInitParams* initParams)
 	if (initParams->Topmost)
 		SetTopmost(true);
 
+	this->_toastHandler = new WinToastHandler(this);
+	WinToast::instance()->initialize();
 	Photino::Show();
 }
 
-Photino::~Photino() 
+Photino::~Photino()
 {
 	if (_startUrl != NULL) delete[]_startUrl;
 	if (_startString != NULL) delete[]_startString;
 	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
 	if (_windowTitle != NULL) delete[]_windowTitle;
+	if (_toastHandler != NULL) delete _toastHandler;
 }
 
 HWND Photino::getHwnd()
@@ -336,6 +345,11 @@ void Photino::GetGrantBrowserPermissions(bool* grant)
 	*grant = _grantBrowserPermissions;
 }
 
+AutoString Photino::GetIconFileName()
+{
+	return this->_iconFileName;
+}
+
 void Photino::GetMaximized(bool* isMaximized)
 {
 	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
@@ -421,7 +435,6 @@ void Photino::SendWebMessage(AutoString message)
 }
 
 
-
 void Photino::SetContextMenuEnabled(bool enabled)
 {
 	ICoreWebView2Settings* settings;
@@ -471,6 +484,8 @@ void Photino::SetIconFile(AutoString filename)
 		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
 		SendMessage(_hWnd, WM_SETICON, ICON_BIG, (LPARAM)iconBig);
 	}
+
+	this->_iconFileName = filename;
 }
 
 void Photino::SetMinimized(bool minimized)
@@ -518,6 +533,8 @@ void Photino::SetTitle(AutoString title)
 	else
 		wcscpy(_windowTitle, title);
 	SetWindowText(_hWnd, title);
+	WinToast::instance()->setAppName(title);
+	WinToast::instance()->setAppUserModelId(title);
 }
 
 void Photino::SetTopmost(bool topmost)
@@ -547,6 +564,18 @@ void Photino::ShowMessage(AutoString title, AutoString body, UINT type)
 	params->body = body;
 	params->type = type;
 	PostMessage(_hWnd, WM_USER_SHOWMESSAGE, (WPARAM)params, 0);
+}
+
+void Photino::ShowNotification(AutoString title, AutoString body)
+{
+	if (WinToast::isCompatible())
+	{
+		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);
+		toast.setTextField(title, WinToastTemplate::FirstLine);
+		toast.setTextField(body, WinToastTemplate::SecondLine);
+		toast.setImagePath(this->_iconFileName);
+		WinToast::instance()->showToast(toast, _toastHandler);
+	}
 }
 
 void Photino::WaitForExit()
@@ -590,7 +619,7 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 {
 	if (callback)
 	{
-		EnumDisplayMonitors(NULL, NULL, MonitorEnum, (LPARAM)callback);
+		EnumDisplayMonitors(NULL, NULL, (MONITORENUMPROC) MonitorEnum, (LPARAM)callback);
 	}
 }
 

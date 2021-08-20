@@ -502,6 +502,11 @@ void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 	gtk_widget_destroy(dialog);
 }
 
+void Photino::ShowNotification(AutoString title, AutoString message)
+{
+	//
+}
+
 void Photino::WaitForExit()
 {
 	gtk_main();

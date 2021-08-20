@@ -200,6 +200,11 @@ extern "C"
 		instance->ShowMessage(title, body, type);
 	}
 
+	EXPORTED void Photino_ShowNotification(Photino* instance, AutoString title, AutoString body)
+	{
+		instance->ShowNotification(title, body);
+	}
+
 	EXPORTED void Photino_WaitForExit(Photino* instance)
 	{
 		instance->WaitForExit();

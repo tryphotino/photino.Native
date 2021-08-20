@@ -306,6 +306,10 @@ namespace PhotinoNET
                 var properties = GetPropertiesDisplay(currentWindow);
                 currentWindow.OpenAlertWindow("Settings", properties);
             }
+            else if (string.Compare(message, "sendNotification", true) == 0)
+            {
+                currentWindow.SendNotification("Hello!", "I'm a native notification");
+            }
             else
                 throw new Exception($"Unknown message '{message}'");
         }
