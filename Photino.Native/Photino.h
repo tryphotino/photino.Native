@@ -14,6 +14,8 @@ typedef char* AutoString;
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #include <WebKit/WebKit.h>
+#include <Foundation/Foundation.h>
+#include <UserNotifications/UserNotifications.h>
 //#include <WebKit/WKPreferences.h>
 #endif
 

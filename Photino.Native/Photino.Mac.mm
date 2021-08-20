@@ -5,6 +5,7 @@
 #include "Photino.Mac.UrlSchemeHandler.h"
 #include <vector>
 
+
 using namespace std;
 
 //Creates an instance of the 'application' under which, all windows will run
@@ -471,7 +472,14 @@ void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 
 void Photino::ShowNotification(AutoString title, AutoString body)
 {
-    //
+    UNMutableNotificationContent *objNotificationContent = [[UNMutableNotificationContent alloc] init];
+    objNotificationContent.title = [[NSString stringWithUTF8String:title] autorelease];
+    objNotificationContent.body = [[NSString stringWithUTF8String:body] autorelease];
+    objNotificationContent.sound = [UNNotificationSound defaultSound];
+    UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:0.3 repeats:NO];
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:@"three" content:objNotificationContent trigger:trigger];
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {}];
 }
 
 void Photino::WaitForExit()
