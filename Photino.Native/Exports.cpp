@@ -223,6 +223,16 @@ extern "C"
 		instance->SetClosingCallback(callback);
 	}
 
+	EXPORTED void Photino_SetFocusInCallback(Photino* instance, FocusInCallback callback)
+	{
+		instance->SetFocusInCallback(callback);
+	}
+
+	EXPORTED void Photino_SetFocusOutCallback(Photino* instance, FocusOutCallback callback)
+	{
+		instance->SetFocusOutCallback(callback);
+	}
+
 	EXPORTED void Photino_SetMovedCallback(Photino* instance, MovedCallback callback)
 	{
 		instance->SetMovedCallback(callback);

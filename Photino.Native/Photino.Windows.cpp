@@ -107,6 +107,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_resizedCallback = (ResizedCallback)initParams->ResizedHandler;
 	_movedCallback = (MovedCallback)initParams->MovedHandler;
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
+	_focusInCallback = (FocusInCallback)initParams->FocusInHandler;
+	_focusOutCallback = (FocusOutCallback)initParams->FocusOutHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
@@ -207,6 +209,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
+	case WM_ACTIVATE:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (LOWORD(wParam) == WA_INACTIVE) {
+			Photino->InvokeFocusOut();
+		}
+		else {
+			Photino->InvokeFocusIn();
+		}
+		break;
+	}
 	case WM_CLOSE:
 	{
 		Photino* Photino = hwndToPhotino[hwnd];
