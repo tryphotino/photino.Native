@@ -38,6 +38,9 @@ typedef void (*WebMessageReceivedCallback)(AutoString message);
 typedef void* (*WebResourceRequestedCallback)(AutoString url, int* outNumBytes, AutoString* outContentType);
 typedef int (*GetAllMonitorsCallback)(const Monitor* monitor);
 typedef void (*ResizedCallback)(int width, int height);
+typedef void (*MaximizedCallback)();
+typedef void (*RestoredCallback)();
+typedef void (*MinimizedCallback)();
 typedef void (*MovedCallback)(int x, int y);
 typedef bool (*ClosingCallback)();
 
@@ -54,6 +57,9 @@ struct PhotinoInitParams
 
 	ClosingCallback* ClosingHandler;
 	ResizedCallback* ResizedHandler;
+	MaximizedCallback* MaximizedHandler;
+	RestoredCallback* RestoredHandler;
+	MinimizedCallback* MinimizedHandler;
 	MovedCallback* MovedHandler;
 	WebMessageReceivedCallback* WebMessageReceivedHandler;
 	AutoString CustomSchemeNames[16];
@@ -87,6 +93,9 @@ private:
 	WebMessageReceivedCallback _webMessageReceivedCallback;
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
+	MaximizedCallback _maximizedCallback;
+	RestoredCallback _restoredCallback;
+	MinimizedCallback _minimizedCallback;
 	ClosingCallback _closingCallback;
 	std::vector<AutoString> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
@@ -191,9 +200,15 @@ public:
 	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
 	void SetMovedCallback(MovedCallback callback) { _movedCallback = callback; }
 	void SetResizedCallback(ResizedCallback callback) { _resizedCallback = callback; }
+	void SetMaximizedCallback(MaximizedCallback callback) { _maximizedCallback = callback; }
+	void SetRestoredCallback(RestoredCallback callback) { _restoredCallback = callback; }
+	void SetMinimizedCallback(MinimizedCallback callback) { _minimizedCallback = callback; }
 
 	void Invoke(ACTION callback);
 	bool InvokeClose() { if (_closingCallback) return _closingCallback(); else return false; }
 	void InvokeMove(int x, int y) { if (_movedCallback) _movedCallback(x, y); }
 	void InvokeResize(int width, int height) { if (_resizedCallback) _resizedCallback(width, height); }
+	void InvokeMaximized() { if (_maximizedCallback) return _maximizedCallback(); }
+	void InvokeRestored() { if (_restoredCallback) return _restoredCallback(); }
+	void InvokeMinimized() { if (_minimizedCallback) return _minimizedCallback(); }
 };

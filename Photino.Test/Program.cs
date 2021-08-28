@@ -129,6 +129,9 @@ namespace PhotinoNET
                 WindowCreatedHandler = WindowCreated,
                 WindowLocationChangedHandler = WindowLocationChanged,
                 WindowSizeChangedHandler = WindowSizeChanged,
+                WindowMaximizedHandler = WindowMaximized,
+                WindowRestoredHandler = WindowRestored,
+                WindowMinimizedHandler = WindowMinimized,
                 WebMessageReceivedHandler = MessageReceivedFromWindow,
                 WindowClosingHandler = WindowIsClosing,
 
@@ -328,6 +331,21 @@ namespace PhotinoNET
         private static void WindowSizeChanged(object sender, Size size)
         {
             Log(sender, $"WindowSizeChanged Callback Fired.  Height: {size.Height}  Width: {size.Width}");
+        }
+
+        private static void WindowMaximized(object sender, EventArgs e)
+        {
+            Log(sender, $"{nameof(WindowMaximized)} Callback Fired.");
+        }
+
+        private static void WindowRestored(object sender, EventArgs e)
+        {
+            Log(sender, $"{nameof(WindowRestored)} Callback Fired.");
+        }
+
+        private static void WindowMinimized(object sender, EventArgs e)
+        {
+            Log(sender, $"{nameof(WindowMinimized)} Callback Fired.");
         }
 
         private static bool WindowIsClosing(object sender, EventArgs e)
