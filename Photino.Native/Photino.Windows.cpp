@@ -68,37 +68,38 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 	_windowTitle = new wchar_t[256];
-	if (initParams->Title != NULL)
+
+	if (initParams->TitleWide != NULL)
 	{
-		WinToast::instance()->setAppName(initParams->Title);
-		WinToast::instance()->setAppUserModelId(initParams->Title);
-		wcscpy(_windowTitle, initParams->Title);
+		WinToast::instance()->setAppName(initParams->TitleWide);
+		WinToast::instance()->setAppUserModelId(initParams->TitleWide);
+		wcscpy(_windowTitle, initParams->TitleWide);
 	}
 	else
 		_windowTitle[0] = 0;
 
 	_startUrl = NULL;
-	if (initParams->StartUrl != NULL)
+	if (initParams->StartUrlWide != NULL)
 	{
 		_startUrl = new wchar_t[2048];
 		if (_startUrl == NULL) exit(0);
-		wcscpy(_startUrl, initParams->StartUrl);
+		wcscpy(_startUrl, initParams->StartUrlWide);
 	}
 
 	_startString = NULL;
-	if (initParams->StartString != NULL)
+	if (initParams->StartStringWide != NULL)
 	{
-		_startString = new wchar_t[wcslen(initParams->StartString) + 1];
+		_startString = new wchar_t[wcslen(initParams->StartStringWide) + 1];
 		if (_startString == NULL) exit(0);
-		wcscpy(_startString, initParams->StartString);
+		wcscpy(_startString, initParams->StartStringWide);
 	}
 
 	_temporaryFilesPath = NULL;
-	if (initParams->TemporaryFilesPath != NULL)
+	if (initParams->TemporaryFilesPathWide != NULL)
 	{
 		_temporaryFilesPath = new wchar_t[256];
 		if (_temporaryFilesPath == NULL) exit(0);
-		wcscpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
+		wcscpy(_temporaryFilesPath, initParams->TemporaryFilesPathWide);
 
 	}
 
@@ -118,10 +119,10 @@ Photino::Photino(PhotinoInitParams* initParams)
 	//copy strings from the fixed size array passed, but only if they have a value.
 	for (int i = 0; i < 16; ++i)
 	{
-		if (initParams->CustomSchemeNames[i] != NULL)
+		if (initParams->CustomSchemeNamesWide[i] != NULL)
 		{
 			wchar_t* name = new wchar_t[50];
-			wcscpy(name, initParams->CustomSchemeNames[i]);
+			wcscpy(name, initParams->CustomSchemeNamesWide[i]);
 			_customSchemeNames.push_back(name);
 		}
 	}
@@ -162,7 +163,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_hWnd = CreateWindowEx(
 		0,                      //Optional window styles.
 		CLASS_NAME,             //Window class
-		initParams->Title,		//Window text
+		initParams->TitleWide,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
 
 		// Size and position
@@ -175,8 +176,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 	);
 	hwndToPhotino[_hWnd] = this;
 
-	if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != L"")
-		Photino::SetIconFile(initParams->WindowIconFile);
+	if (initParams->WindowIconFileWide != NULL && initParams->WindowIconFileWide != L"")
+		Photino::SetIconFile(initParams->WindowIconFileWide);
 
 	if (initParams->CenterOnInitialize)
 		Photino::Center();

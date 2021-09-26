@@ -53,7 +53,7 @@ namespace PhotinoNET
                 .SetUseOsDefaultSize(false)
                 //.SetZoom(150)
 
-                //.SetContextMenuEnabled(false)
+                .SetContextMenuEnabled(false)
                 //.SetDevToolsEnabled(false)
                 //.SetGrantBrowserPermissions(false)
 

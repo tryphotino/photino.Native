@@ -48,11 +48,16 @@ class Photino;
 
 struct PhotinoInitParams
 {
-	AutoString StartString;
-	AutoString StartUrl;
-	AutoString Title;
-	AutoString WindowIconFile;
-	AutoString TemporaryFilesPath;
+	wchar_t* StartStringWide;
+	char* StartString;
+	wchar_t* StartUrlWide;
+	char* StartUrl;
+	wchar_t* TitleWide;
+	char* Title;
+	wchar_t* WindowIconFileWide;
+	char* WindowIconFile;
+	wchar_t* TemporaryFilesPathWide;
+	char* TemporaryFilesPath;
 
 	Photino* ParentInstance;
 
@@ -60,7 +65,8 @@ struct PhotinoInitParams
 	ResizedCallback* ResizedHandler;
 	MovedCallback* MovedHandler;
 	WebMessageReceivedCallback* WebMessageReceivedHandler;
-	AutoString CustomSchemeNames[16];
+	wchar_t* CustomSchemeNamesWide[16];
+	char* CustomSchemeNames[16];
 	WebResourceRequestedCallback* CustomSchemeHandler;
 
 	int Left;
