@@ -157,12 +157,14 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net5.0\</Command>
     <ClCompile Include="Exports.cpp" />
     <ClCompile Include="Photino.Linux.cpp" />
     <ClCompile Include="Photino.Windows.cpp" />
+    <ClCompile Include="Photino.Windows.DarkMode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Photino.h" />
     <ClInclude Include="Photino.Mac.AppDelegate.h" />
     <ClInclude Include="Photino.Mac.UiDelegate.h" />
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h" />
+    <ClInclude Include="Photino.Windows.DarkMode.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
