@@ -27,6 +27,9 @@
     <ClCompile Include="Dependencies\wintoastlib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Photino.Windows.DarkMode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -62,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="Dependencies\wintoastlib.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Windows.DarkMode.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
