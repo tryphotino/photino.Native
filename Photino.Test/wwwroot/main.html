@@ -85,6 +85,10 @@
             window.external.sendMessage('showproperties');
         }
 
+        function SendNotification() {
+            window.external.sendMessage('sendNotification');
+        }
+
 
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
@@ -188,6 +192,7 @@
     <button onclick="SetFullScreen()">Kiosk</button>
     <br>
     <button onclick="ShowState()">Show State</button>
+    <button onclick="SendNotification()">Send Notification</button>
 
     <p>
         <div id="Lineage"></div>

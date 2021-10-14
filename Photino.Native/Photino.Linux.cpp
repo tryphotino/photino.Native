@@ -9,7 +9,7 @@
 #include <JavaScriptCore/JavaScript.h>
 #include <sstream>
 #include <iomanip>
-
+#include <libnotify/notify.h>
 
 /* --- PRINTF_BINARY_FORMAT macro's --- */
 //#define FMT_BUF_SIZE (CHAR_BIT*sizeof(uintmax_t)+1)
@@ -54,6 +54,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	// Needed for get_position.
 	XInitThreads();
 	gtk_init(0, NULL);
+	notify_init(initParams->Title);
 
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
@@ -202,6 +203,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 
 Photino::~Photino()
 {
+	notify_uninit();
 	gtk_widget_destroy(_window);
 }
 
@@ -500,6 +502,14 @@ void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 	gtk_window_set_title((GtkWindow*)dialog, title);
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
+}
+
+void Photino::ShowNotification(AutoString title, AutoString message)
+{
+	NotifyNotification* notification = notify_notification_new (title, message, nullptr);
+	notify_notification_set_icon_from_pixbuf(notification, gtk_window_get_icon(GTK_WINDOW(_window)));
+	notify_notification_show (notification, NULL);
+	g_object_unref(G_OBJECT(notification));	
 }
 
 void Photino::WaitForExit()

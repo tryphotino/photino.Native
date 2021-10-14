@@ -5,6 +5,7 @@
 #include <wil/com.h>
 #include <WebView2.h>
 typedef wchar_t* AutoString;
+class WinToastHandler;
 #else
 // AutoString for macOS/Linux
 typedef char* AutoString;
@@ -13,6 +14,8 @@ typedef char* AutoString;
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #include <WebKit/WebKit.h>
+#include <Foundation/Foundation.h>
+#include <UserNotifications/UserNotifications.h>
 //#include <WebKit/WKPreferences.h>
 #endif
 
@@ -42,6 +45,7 @@ typedef void (*MovedCallback)(int x, int y);
 typedef bool (*ClosingCallback)();
 
 class Photino;
+
 struct PhotinoInitParams
 {
 	wchar_t* StartStringWide;
@@ -101,6 +105,7 @@ private:
 	AutoString _startString;
 	AutoString _temporaryFilesPath;
 	AutoString _windowTitle;
+	AutoString _iconFileName;
 
 	int _zoom;
 
@@ -109,6 +114,7 @@ private:
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
+	WinToastHandler* _toastHandler;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
@@ -159,6 +165,7 @@ public:
 	void GetDevToolsEnabled(bool* enabled);
 	void GetFullScreen(bool* fullScreen);
 	void GetGrantBrowserPermissions(bool* grant);
+	AutoString GetIconFileName();
 	void GetMaximized(bool* isMaximized);
 	void GetMinimized(bool* isMinimized);
 	void GetPosition(int* x, int* y);
@@ -189,6 +196,7 @@ public:
 	void SetZoom(int zoom);
 	
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
+	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();
 
 	//Callbacks

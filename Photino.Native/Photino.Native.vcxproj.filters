@@ -24,6 +24,9 @@
     <ClCompile Include="Photino.Linux.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Dependencies\wintoastlib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Photino.Windows.DarkMode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -56,6 +59,12 @@
     </ClInclude>
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Windows.ToastHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\wintoastlib.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Photino.Windows.DarkMode.h">
       <Filter>Source Files</Filter>
