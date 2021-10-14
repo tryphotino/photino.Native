@@ -2,19 +2,17 @@
 #include <mutex>
 #include <condition_variable>
 #include <comdef.h>
+#include <atomic>
 #include <Shlwapi.h>
 #include <wrl.h>
 #include <windows.h>
+#include <cstdio>
 #include <algorithm>
-
-#include "Photino.Windows.DarkMode.h"
-
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
 
 #define WM_USER_SHOWMESSAGE (WM_USER + 0x0001)
 #define WM_USER_INVOKE (WM_USER + 0x0002)
-
 
 using namespace Microsoft::WRL;
 
@@ -40,26 +38,14 @@ struct ShowMessageParams
 
 void Photino::Register(HINSTANCE hInstance)
 {
-	InitDarkModeSupport();
-
 	_hInstance = hInstance;
 
-	// Register the window class
-	WNDCLASSEX wcx;
-	wcx.cbSize = sizeof WNDCLASSEX;
-	wcx.style = CS_HREDRAW | CS_VREDRAW;
-	wcx.lpfnWndProc = WindowProc;
-	wcx.cbClsExtra = 0;
-	wcx.cbWndExtra = 0;
-	wcx.hInstance = hInstance;
-	wcx.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
-	wcx.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcx.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcx.lpszMenuName = nullptr;
-	wcx.lpszClassName = CLASS_NAME;
-	wcx.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
-
-	RegisterClassEx(&wcx);
+	// Register the window class	
+	WNDCLASSW wc = { };
+	wc.lpfnWndProc = WindowProc;
+	wc.hInstance = hInstance;
+	wc.lpszClassName = CLASS_NAME;
+	RegisterClass(&wc);
 
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
@@ -178,7 +164,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	//Create the window
 	_hWnd = CreateWindowEx(
-		WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
+		0,                      //Optional window styles.
 		CLASS_NAME,             //Window class
 		initParams->TitleWide,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
@@ -186,7 +172,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 		// Size and position
 		initParams->Left, initParams->Top, initParams->Width, initParams->Height,
 
-		initParams.ParentHandle == nullptr ? initParams.ParentHandle : NULL,   //Parent window handle
+		nullptr,	//initParams.ParentHandle == nullptr ? initParams.ParentHandle : NULL,   //Parent window handle
 		nullptr,    //Menu
 		_hInstance, //Instance handle
 		this        //Additional application data
@@ -231,27 +217,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_CREATE: 
-	{
-		EnableDarkMode(hwnd, true);
-		if (IsDarkModeEnabled()) 
-		{
-			RefreshNonClientArea(hwnd);
-		}
-		break;
-	}
-	case WM_SETTINGCHANGE: 
-	{
-		if (IsColorSchemeChange(lParam))
-			SendMessageW(hwnd, WM_THEMECHANGED, 0, 0);
-		break;
-	}
-	case WM_THEMECHANGED:
-	{
-		EnableDarkMode(hwnd, IsDarkModeEnabled());
-		RefreshNonClientArea(hwnd);
-		break;
-	}
 	case WM_CLOSE:
 	{
 		Photino* Photino = hwndToPhotino[hwnd];
@@ -835,7 +800,6 @@ void Photino::RefitContent()
 void Photino::Show()
 {
 	ShowWindow(_hWnd, SW_SHOWDEFAULT);
-	UpdateWindow(_hWnd);
 
 	// Strangely, it only works to create the webview2 *after* the window has been shown,
 	// so defer it until here. This unfortunately means you can't call the Navigate methods
