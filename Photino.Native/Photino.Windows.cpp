@@ -152,6 +152,16 @@ Photino::Photino(PhotinoInitParams* initParams)
 		initParams->Height = GetSystemMetrics(SM_CYSCREEN);
 	}
 
+	if (initParams->Chromeless)
+	{
+		//CW_USEDEFAULT CAN NOT BE USED ON POPUP WINDOWS
+		if (initParams->Left == CW_USEDEFAULT && initParams->Top == CW_USEDEFAULT) initParams->CenterOnInitialize = true;
+		if (initParams->Left == CW_USEDEFAULT) initParams->Left = 0;
+		if (initParams->Top == CW_USEDEFAULT) initParams->Top = 0;
+		if (initParams->Height == CW_USEDEFAULT) initParams->Height = 600;
+		if (initParams->Width == CW_USEDEFAULT) initParams->Width = 800;
+	}
+
 	//Create the window
 	_hWnd = CreateWindowEx(
 		0,                      //Optional window styles.
