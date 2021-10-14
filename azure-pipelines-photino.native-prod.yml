@@ -33,7 +33,7 @@ jobs:
       displayName: 'Install linux dependencies'
       condition: eq(variables.rid, 'linux-x64')
       inputs:
-        script: 'sudo apt-get update && sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify'
+        script: 'sudo apt-get update && sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify4'
 
     - task: NuGetCommand@2
       displayName: 'NuGet package restore for Windows native packages'
