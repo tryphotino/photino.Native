@@ -53,7 +53,7 @@ namespace PhotinoNET
                 .SetUseOsDefaultSize(false)
                 //.SetZoom(150)
 
-                //.SetContextMenuEnabled(false)
+                .SetContextMenuEnabled(false)
                 //.SetDevToolsEnabled(false)
                 //.SetGrantBrowserPermissions(false)
 
@@ -295,7 +295,7 @@ namespace PhotinoNET
             } 
             else if (string.Compare(message, "settopmost", true) == 0)
             {
-                currentWindow.SetTopMost(!currentWindow.Topmost);
+                currentWindow.SetTopMost(!currentWindow.TopMost);
             } 
             else if (string.Compare(message, "setfullscreen", true) == 0)
             {
@@ -356,7 +356,7 @@ namespace PhotinoNET
             sb.AppendLine();
             sb.AppendLine($"Resizable: {currentWindow.Resizable}");
             sb.AppendLine($"Screen DPI: {currentWindow.ScreenDpi}");
-            sb.AppendLine($"Topmost: {currentWindow.Topmost}");
+            sb.AppendLine($"Topmost: {currentWindow.TopMost}");
             sb.AppendLine($"Maximized: {currentWindow.Maximized}");
             sb.AppendLine($"Minimized: {currentWindow.Minimized}");
             
