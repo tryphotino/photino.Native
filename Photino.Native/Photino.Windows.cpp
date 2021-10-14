@@ -176,7 +176,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 		// Size and position
 		initParams->Left, initParams->Top, initParams->Width, initParams->Height,
 
-		nullptr,    //Parent window handle
+		initParams.ParentHandle == nullptr ? initParams.ParentHandle : NULL,   //Parent window handle
 		nullptr,    //Menu
 		_hInstance, //Instance handle
 		this        //Additional application data
