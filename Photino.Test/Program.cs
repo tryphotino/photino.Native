@@ -77,6 +77,8 @@ namespace PhotinoNET
                 .RegisterSizeChangedHandler(WindowSizeChanged)
                 .RegisterWebMessageReceivedHandler(MessageReceivedFromWindow)
                 .RegisterWindowClosingHandler(WindowIsClosing)
+                .RegisterFocusInHandler(WindowFocusIn)
+                .RegisterFocusOutHandler(WindowFocusOut)
 
                 //.SetTemporaryFilesPath(@"C:\Temp")
 
@@ -131,6 +133,8 @@ namespace PhotinoNET
                 WindowSizeChangedHandler = WindowSizeChanged,
                 WebMessageReceivedHandler = MessageReceivedFromWindow,
                 WindowClosingHandler = WindowIsClosing,
+                WindowFocusInHandler = WindowFocusIn,
+                WindowFocusOutHandler = WindowFocusOut,
 
                 //TemporaryFilesPath = @"C:\Temp",
 
@@ -338,6 +342,16 @@ namespace PhotinoNET
         {
             Log(sender, "WindowIsClosing Callback Fired.");
             return false;   //return true to block closing of the window
+        }
+
+        private static void WindowFocusIn(object sender, EventArgs e)
+        {
+            Log(sender, "WindowFocusIn Callback Fired.");
+        }
+
+        private static void WindowFocusOut(object sender, EventArgs e)
+        {
+            Log(sender, "WindowFocusOut Callback Fired.");
         }
 
 
