@@ -109,7 +109,7 @@ private:
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
-	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
+  wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
 	bool EnsureWebViewIsInstalled();
@@ -137,7 +137,8 @@ public:
 
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
-	HWND getHwnd();
+  static void SetWebView2RuntimePath(AutoString pathToWebView2);
+  HWND getHwnd();
 	void RefitContent();
 #elif __linux__
 	GtkWidget* _window;
