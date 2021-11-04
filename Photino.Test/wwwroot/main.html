@@ -85,8 +85,8 @@
             window.external.sendMessage('showproperties');
         }
 
-        function SendNotification() {
-            window.external.sendMessage('sendNotification');
+        function SendWebMessage() {
+            window.external.sendMessage('sendWebMessage');
         }
 
         function ToastNotification() {
@@ -195,7 +195,7 @@
     <button onclick="SetFullScreen()">Kiosk</button>
     <br>
     <button onclick="ShowState()">Show State</button>
-    <button onclick="SendNotification()">Send Notification</button>
+    <button onclick="SendWebMessage()">Send Web Message</button>
     <button onclick="ToastNotification()">Toast Notification</button>
 
     <p>
