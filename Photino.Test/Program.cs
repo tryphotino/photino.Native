@@ -28,7 +28,6 @@ namespace PhotinoNET
             }
         }
 
-
         private static void FluentStyle()
         {
             var iconFile = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
