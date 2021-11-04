@@ -103,14 +103,14 @@ namespace PhotinoNET
                 //StartString = "<h1>Hello Photino!</h1>",
 
                 //Centered = true,
-                //Chromeless = true,
+                Chromeless = true,
                 //FullScreen = true,
                 //Maximized = true,
                 //Minimized = true,
                 //Resizable = false,
                 //TopMost = true,
                 //UseOsDefaultLocation = false,
-                UseOsDefaultSize = false,
+                //UseOsDefaultSize = false,
                 //Zoom = 300,
 
                 //ContextMenuEnabled = false,
@@ -119,8 +119,8 @@ namespace PhotinoNET
 
                 //CenterOnInitialize = true,
                 //Size = new Size(800, 600),
-                Height = 600,
-                Width = 800,
+                //Height = 600,
+                //Width = 800,
                 //Location = new Point(50, 50),
                 //Top = 50,
                 //Left = 50,
@@ -306,9 +306,9 @@ namespace PhotinoNET
                 var properties = GetPropertiesDisplay(currentWindow);
                 currentWindow.OpenAlertWindow("Settings", properties);
             }
-            else if (string.Compare(message, "sendNotification", true) == 0)
+            else if (string.Compare(message, "toastNotification", true) == 0)
             {
-                currentWindow.SendNotification("Hello!", "I'm a native notification");
+                currentWindow.SendNotification("Toast Title", " Taoast message!");
             }
             else
                 throw new Exception($"Unknown message '{message}'");

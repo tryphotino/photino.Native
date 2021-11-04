@@ -89,6 +89,9 @@
             window.external.sendMessage('sendNotification');
         }
 
+        function ToastNotification() {
+            window.external.sendMessage('toastNotification');
+        }
 
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
@@ -193,6 +196,7 @@
     <br>
     <button onclick="ShowState()">Show State</button>
     <button onclick="SendNotification()">Send Notification</button>
+    <button onclick="ToastNotification()">Toast Notification</button>
 
     <p>
         <div id="Lineage"></div>
