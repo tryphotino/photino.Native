@@ -109,7 +109,7 @@ private:
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
-  wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
+	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
 	bool EnsureWebViewIsInstalled();
@@ -122,10 +122,10 @@ private:
 	bool _isFullScreen;
 
 #elif __APPLE__
-    NSWindow *_window;
-    WKWebView *_webview;
+	NSWindow *_window;
+	WKWebView *_webview;
 	WKWebViewConfiguration *_webviewConfiguration;
-    std::vector<Monitor *> GetMonitors();
+	std::vector<Monitor *> GetMonitors();
 	void AttachWebView();
 	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
 #endif
@@ -137,8 +137,8 @@ public:
 
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
-  static void SetWebView2RuntimePath(AutoString pathToWebView2);
-  HWND getHwnd();
+	static void SetWebView2RuntimePath(AutoString pathToWebView2);
+	HWND getHwnd();
 	void RefitContent();
 #elif __linux__
 	GtkWidget* _window;
@@ -188,7 +188,7 @@ public:
 	void SetTitle(AutoString title);
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
-	
+
 	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void WaitForExit();
 

@@ -625,11 +625,11 @@ void Photino::Invoke(ACTION callback)
 
 void Photino::AttachWebView()
 {
-  size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
-  PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
+	size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
+	PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
 
-  HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, nullptr,
-    Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, nullptr,
+		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }
 				HRESULT envResult = env->QueryInterface(&_webviewEnvironment);
@@ -786,13 +786,13 @@ bool Photino::InstallWebView2()
 			&si,        // Pointer to STARTUPINFO structure
 			&pi);		// Pointer to PROCESS_INFORMATION structure
 
-    if (success)
-    {
-      // wait for the installation to complete
-      WaitForSingleObject(pi.hProcess, INFINITE);
-      CloseHandle(pi.hProcess);
-      CloseHandle(pi.hThread);
-    }
+		if(success)
+		{
+			// wait for the installation to complete
+			WaitForSingleObject(pi.hProcess, INFINITE);
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
 
 		return success;
 	}
@@ -812,10 +812,10 @@ void Photino::RefitContent()
 
 void Photino::SetWebView2RuntimePath(AutoString pathToWebView2)
 {
-  if (pathToWebView2 != NULL)
-  {
-    wcsncpy(_webview2RuntimePath, pathToWebView2, _countof(_webview2RuntimePath));
-  }
+	if (pathToWebView2 != NULL)
+	{
+		wcsncpy(_webview2RuntimePath, pathToWebView2, _countof(_webview2RuntimePath));
+	}
 }
 
 void Photino::Show()
