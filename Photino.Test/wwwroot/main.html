@@ -85,10 +85,13 @@
             window.external.sendMessage('showproperties');
         }
 
-        function SendNotification() {
-            window.external.sendMessage('sendNotification');
+        function SendWebMessage() {
+            window.external.sendMessage('sendWebMessage');
         }
 
+        function ToastNotification() {
+            window.external.sendMessage('toastNotification');
+        }
 
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
@@ -192,7 +195,8 @@
     <button onclick="SetFullScreen()">Kiosk</button>
     <br>
     <button onclick="ShowState()">Show State</button>
-    <button onclick="SendNotification()">Send Notification</button>
+    <button onclick="SendWebMessage()">Send Web Message</button>
+    <button onclick="ToastNotification()">Toast Notification</button>
 
     <p>
         <div id="Lineage"></div>

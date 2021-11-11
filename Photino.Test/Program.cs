@@ -28,7 +28,6 @@ namespace PhotinoNET
             }
         }
 
-
         private static void FluentStyle()
         {
             var iconFile = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -306,9 +305,13 @@ namespace PhotinoNET
                 var properties = GetPropertiesDisplay(currentWindow);
                 currentWindow.OpenAlertWindow("Settings", properties);
             }
-            else if (string.Compare(message, "sendNotification", true) == 0)
+            else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
-                currentWindow.SendNotification("Hello!", "I'm a native notification");
+                currentWindow.SendWebMessage("alert('web message');");
+            }
+            else if (string.Compare(message, "toastNotification", true) == 0)
+            {
+                currentWindow.SendNotification("Toast Title", " Taoast message!");
             }
             else
                 throw new Exception($"Unknown message '{message}'");

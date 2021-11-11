@@ -119,6 +119,7 @@ Photino::Photino(PhotinoInitParams* initParams)
     // Create Window
     NSRect frame = NSMakeRect(0, 0, 0, 0);
 
+    _chromeless = initParams->Chromeless;
     if (initParams->Chromeless)
     {
         // For MouseMoved events, Photino.Mac.NSWindowBorderless.mm
@@ -126,7 +127,9 @@ Photino::Photino(PhotinoInitParams* initParams)
         _window = [[NSWindowBorderless alloc]
             initWithContentRect: frame
             styleMask: NSWindowStyleMaskBorderless
+                | NSWindowStyleMaskClosable
                 | NSWindowStyleMaskResizable
+                | NSWindowStyleMaskMiniaturizable
             backing: NSBackingStoreBuffered
             defer: true];
     }
@@ -214,7 +217,16 @@ void Photino::Center()
 
 void Photino::Close()
 {
-	[_window performClose: _window];
+    if (_chromeless)
+    {
+        // Can't use performClose because frame has no title area and close button
+        [_window close];
+    }
+    else
+    {
+        // Simulates user clicking the close button
+    	[_window performClose: _window];
+    }
 }
 
 void Photino::GetContextMenuEnabled(bool* enabled)
