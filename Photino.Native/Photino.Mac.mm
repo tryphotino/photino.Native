@@ -3,8 +3,8 @@
 #include "Photino.Mac.AppDelegate.h"
 #include "Photino.Mac.UiDelegate.h"
 #include "Photino.Mac.UrlSchemeHandler.h"
+#include "Photino.Mac.NSWindowBorderless.h"
 #include <vector>
-
 
 using namespace std;
 
@@ -124,14 +124,31 @@ Photino::Photino(PhotinoInitParams* initParams)
     // Create Window
     NSRect frame = NSMakeRect(0, 0, 0, 0);
 
-    _window = [[NSWindow alloc]
-        initWithContentRect: frame
-        styleMask: NSWindowStyleMaskTitled
-                 | NSWindowStyleMaskClosable
-                 | NSWindowStyleMaskResizable
-                 | NSWindowStyleMaskMiniaturizable
-        backing: NSBackingStoreBuffered
-        defer: true];
+    _chromeless = initParams->Chromeless;
+    if (initParams->Chromeless)
+    {
+        // For MouseMoved events, Photino.Mac.NSWindowBorderless.mm
+        // https://stackoverflow.com/questions/2520127/getting-a-borderless-window-to-receive-mousemoved-events-cocoa-osx
+        _window = [[NSWindowBorderless alloc]
+            initWithContentRect: frame
+            styleMask: NSWindowStyleMaskBorderless
+                | NSWindowStyleMaskClosable
+                | NSWindowStyleMaskResizable
+                | NSWindowStyleMaskMiniaturizable
+            backing: NSBackingStoreBuffered
+            defer: true];
+    }
+    else
+    {
+        _window = [[NSWindow alloc]
+            initWithContentRect: frame
+            styleMask: NSWindowStyleMaskTitled
+                | NSWindowStyleMaskClosable
+                | NSWindowStyleMaskResizable
+                | NSWindowStyleMaskMiniaturizable
+            backing: NSBackingStoreBuffered
+            defer: true];
+    }
     
     SetTitle(_windowTitle);
     SetPosition(initParams->Left, initParams->Top);
@@ -191,10 +208,6 @@ Photino::~Photino()
     //[NSApp release];
 }
 
-
-
-
-
 void Photino::Center()
 {
     [_window center];
@@ -209,7 +222,16 @@ void Photino::Center()
 
 void Photino::Close()
 {
-	[_window performClose: _window];
+    if (_chromeless)
+    {
+        // Can't use performClose because frame has no title area and close button
+        [_window close];
+    }
+    else
+    {
+        // Simulates user clicking the close button
+    	[_window performClose: _window];
+    }
 }
 
 void Photino::GetContextMenuEnabled(bool* enabled)
@@ -492,10 +514,6 @@ void Photino::WaitForExit()
     [NSApp run];
 }
 
-
-
-
-
 //Callbacks
 void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 {
@@ -558,11 +576,6 @@ void Photino::Invoke(ACTION callback)
         callback();
     });
 }
-
-
-
-
-
 
 //private methods
 void Photino::AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler)

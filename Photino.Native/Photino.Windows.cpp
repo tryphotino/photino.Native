@@ -25,6 +25,8 @@ std::mutex invokeLockMutex;
 HINSTANCE Photino::_hInstance;
 HWND messageLoopRootWindowHandle;
 std::map<HWND, Photino*> hwndToPhotino;
+wchar_t _webview2RuntimePath[MAX_PATH];
+
 
 struct InvokeWaitInfo
 {
@@ -716,7 +718,10 @@ void Photino::Invoke(ACTION callback)
 
 void Photino::AttachWebView()
 {
-	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, _temporaryFilesPath, nullptr,
+	size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
+	PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
+
+	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }
@@ -862,7 +867,7 @@ bool Photino::InstallWebView2()
 		si.cb = sizeof(si);
 		ZeroMemory(&pi, sizeof(pi));
 
-		bool installed = CreateProcess(
+		bool success = CreateProcess(
 			NULL,		// No module name (use command line)
 			command,	// Command line
 			NULL,       // Process handle not inheritable
@@ -870,11 +875,19 @@ bool Photino::InstallWebView2()
 			FALSE,      // Set handle inheritance to FALSE
 			0,          // No creation flags
 			NULL,       // Use parent's environment block
-			NULL,       // Use parent's starting directory 
+			NULL,       // Use parent's starting directory
 			&si,        // Pointer to STARTUPINFO structure
 			&pi);		// Pointer to PROCESS_INFORMATION structure
 
-		return installed;
+		if(success)
+		{
+			// wait for the installation to complete
+			WaitForSingleObject(pi.hProcess, INFINITE);
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
+
+		return success;
 	}
 
 	return false;
@@ -890,6 +903,14 @@ void Photino::RefitContent()
 	}
 }
 
+void Photino::SetWebView2RuntimePath(AutoString pathToWebView2)
+{
+	if (pathToWebView2 != NULL)
+	{
+		wcsncpy(_webview2RuntimePath, pathToWebView2, _countof(_webview2RuntimePath));
+	}
+}
+
 void Photino::Show()
 {
 	ShowWindow(_hWnd, SW_SHOWDEFAULT);
@@ -900,10 +921,9 @@ void Photino::Show()
 	// until the window is shown.
 	if (!_webviewController)
 	{
-		if (Photino::EnsureWebViewIsInstalled())
+		if (wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath)) > 0 || Photino::EnsureWebViewIsInstalled())
 			Photino::AttachWebView();
 		else
 			exit(0);
 	}
 }
-
