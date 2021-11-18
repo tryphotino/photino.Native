@@ -40,9 +40,11 @@ build-photino-mac-dev:
 		  $(CFLAGS)\
 		  -framework Cocoa\
 		  -framework WebKit\
+		  -framework UserNotifications\
 		  $(SRC)/Photino.Mac.AppDelegate.mm\
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
 		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
+		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
 		  $(SRC)/Photino.Mac.mm\
 		  $(SRC)/Exports.mm &&\
 	rm $(SRC)/Exports.mm

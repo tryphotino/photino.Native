@@ -9,7 +9,7 @@
 #include <JavaScriptCore/JavaScript.h>
 #include <sstream>
 #include <iomanip>
-
+#include <libnotify/notify.h>
 
 /* --- PRINTF_BINARY_FORMAT macro's --- */
 //#define FMT_BUF_SIZE (CHAR_BIT*sizeof(uintmax_t)+1)
@@ -41,6 +41,10 @@ struct InvokeJSWaitInfo
 
 //window size or position changed
 gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self);
+gboolean on_window_state_event(GtkWidget* widget, GdkEventWindowState* event, gpointer self);
+gboolean on_widget_deleted(GtkWidget* widget, GdkEvent* event, gpointer self);
+gboolean on_focus_in_event(GtkWidget* widget, GdkEvent* event, gpointer self);
+gboolean on_focus_out_event(GtkWidget* widget, GdkEvent* event, gpointer self);
 gboolean on_webview_context_menu (WebKitWebView* web_view,
                GtkWidget* default_menu,
                WebKitHitTestResult* hit_test_result,
@@ -54,6 +58,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	// Needed for get_position.
 	XInitThreads();
 	gtk_init(0, NULL);
+	notify_init(initParams->Title);
 
 	if (initParams->Size != sizeof(PhotinoInitParams))
 	{
@@ -111,6 +116,11 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	_resizedCallback = (ResizedCallback)initParams->ResizedHandler;
 	_movedCallback = (MovedCallback)initParams->MovedHandler;
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
+	_focusInCallback = (FocusInCallback)initParams->FocusInHandler;
+	_focusOutCallback = (FocusOutCallback)initParams->FocusOutHandler;
+	_maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
+	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
+	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
@@ -183,7 +193,23 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 		G_CALLBACK(on_configure_event),
 		this);
 
+	g_signal_connect(G_OBJECT(_window), "window-state-event",
+		G_CALLBACK(on_window_state_event),
+		this);
+
+	g_signal_connect(G_OBJECT(_window), "delete-event",
+		G_CALLBACK(on_widget_deleted),
+		this);
+
 	Photino::Show();
+
+	g_signal_connect(G_OBJECT(_window), "focus-in-event",
+		G_CALLBACK(on_focus_in_event),
+		this);
+
+	g_signal_connect(G_OBJECT(_window), "focus-out-event",
+		G_CALLBACK(on_focus_out_event),
+		this);
 
 	//These must be called after the webview control is initialized.
 	g_signal_connect(G_OBJECT(_webview), "context-menu",
@@ -202,6 +228,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 
 Photino::~Photino()
 {
+	notify_uninit();
 	gtk_widget_destroy(_window);
 }
 
@@ -502,6 +529,14 @@ void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
 	gtk_widget_destroy(dialog);
 }
 
+void Photino::ShowNotification(AutoString title, AutoString message)
+{
+	NotifyNotification* notification = notify_notification_new (title, message, nullptr);
+	notify_notification_set_icon_from_pixbuf(notification, gtk_window_get_icon(GTK_WINDOW(_window)));
+	notify_notification_show (notification, NULL);
+	g_object_unref(G_OBJECT(notification));	
+}
+
 void Photino::WaitForExit()
 {
 	gtk_main();
@@ -663,6 +698,45 @@ gboolean on_configure_event(GtkWidget* widget, GdkEvent* event, gpointer self)
 	}
 	return FALSE;
 }
+
+gboolean on_window_state_event(GtkWidget* widget, GdkEventWindowState* event, gpointer self)
+{
+	Photino* instance = ((Photino*)self);
+	if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED)
+	{
+		instance->InvokeMaximized();
+	}
+	else if ((event->new_window_state & GDK_WINDOW_STATE_ICONIFIED) || !gtk_widget_get_mapped(instance->_window))
+	{
+		instance->InvokeMinimized();
+	}
+	else if (!(event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) && !(event->new_window_state & GDK_WINDOW_STATE_ICONIFIED))
+	{
+		instance->InvokeRestored();
+	}
+	return TRUE;
+}
+
+gboolean on_widget_deleted(GtkWidget* widget, GdkEvent* event, gpointer self)
+{
+	Photino* instance = ((Photino*)self);
+	return instance->InvokeClose();
+}
+
+gboolean on_focus_in_event(GtkWidget* widget, GdkEvent* event, gpointer self)
+{
+	Photino* instance = ((Photino*)self);
+	instance->InvokeFocusIn();
+	return FALSE;
+}
+
+gboolean on_focus_out_event(GtkWidget* widget, GdkEvent* event, gpointer self)
+{
+	Photino* instance = ((Photino*)self);
+	instance->InvokeFocusOut();
+	return FALSE;
+}
+
 
 gboolean on_webview_context_menu (WebKitWebView* web_view, GtkWidget* default_menu,
     WebKitHitTestResult* hit_test_result, gboolean triggered_with_keyboard, gpointer self)

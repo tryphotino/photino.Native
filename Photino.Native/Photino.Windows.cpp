@@ -1,19 +1,22 @@
 #include "Photino.h"
+#include "Photino.Windows.ToastHandler.h"
 #include <mutex>
 #include <condition_variable>
 #include <comdef.h>
-#include <atomic>
 #include <Shlwapi.h>
 #include <wrl.h>
 #include <windows.h>
-#include <cstdio>
 #include <algorithm>
+
+#include "Photino.Windows.DarkMode.h"
+
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
 
 #define WM_USER_SHOWMESSAGE (WM_USER + 0x0001)
 #define WM_USER_INVOKE (WM_USER + 0x0002)
 
+using namespace WinToastLib;
 using namespace Microsoft::WRL;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -22,6 +25,8 @@ std::mutex invokeLockMutex;
 HINSTANCE Photino::_hInstance;
 HWND messageLoopRootWindowHandle;
 std::map<HWND, Photino*> hwndToPhotino;
+wchar_t _webview2RuntimePath[MAX_PATH];
+
 
 struct InvokeWaitInfo
 {
@@ -36,16 +41,29 @@ struct ShowMessageParams
 	UINT type = 0;
 };
 
+
 void Photino::Register(HINSTANCE hInstance)
 {
+	InitDarkModeSupport();
+
 	_hInstance = hInstance;
 
-	// Register the window class	
-	WNDCLASSW wc = { };
-	wc.lpfnWndProc = WindowProc;
-	wc.hInstance = hInstance;
-	wc.lpszClassName = CLASS_NAME;
-	RegisterClass(&wc);
+	// Register the window class
+	WNDCLASSEX wcx;
+	wcx.cbSize = sizeof WNDCLASSEX;
+	wcx.style = CS_HREDRAW | CS_VREDRAW;
+	wcx.lpfnWndProc = WindowProc;
+	wcx.cbClsExtra = 0;
+	wcx.cbWndExtra = 0;
+	wcx.hInstance = hInstance;
+	wcx.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
+	wcx.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wcx.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcx.lpszMenuName = nullptr;
+	wcx.lpszClassName = CLASS_NAME;
+	wcx.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
+
+	RegisterClassEx(&wcx);
 
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
@@ -66,8 +84,13 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 	_windowTitle = new wchar_t[256];
+
 	if (initParams->TitleWide != NULL)
+	{
+		WinToast::instance()->setAppName(initParams->TitleWide);
+		WinToast::instance()->setAppUserModelId(initParams->TitleWide);
 		wcscpy(_windowTitle, initParams->TitleWide);
+	}
 	else
 		_windowTitle[0] = 0;
 
@@ -105,8 +128,13 @@ Photino::Photino(PhotinoInitParams* initParams)
 	//these handlers are ALWAYS hooked up
 	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
 	_resizedCallback = (ResizedCallback)initParams->ResizedHandler;
+	_maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
+	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
+	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_movedCallback = (MovedCallback)initParams->MovedHandler;
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
+	_focusInCallback = (FocusInCallback)initParams->FocusInHandler;
+	_focusOutCallback = (FocusOutCallback)initParams->FocusOutHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
@@ -164,7 +192,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	//Create the window
 	_hWnd = CreateWindowEx(
-		0,                      //Optional window styles.
+		WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
 		CLASS_NAME,             //Window class
 		initParams->TitleWide,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
@@ -172,8 +200,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 		// Size and position
 		initParams->Left, initParams->Top, initParams->Width, initParams->Height,
 
-		NULL,		//initParams.ParentHandle == nullptr ? initParams.ParentHandle : NULL,   //Parent window handle
-		NULL,       //Menu
+		nullptr,    //Parent window handle
+		nullptr,    //Menu
 		_hInstance, //Instance handle
 		this        //Additional application data
 	);
@@ -197,15 +225,18 @@ Photino::Photino(PhotinoInitParams* initParams)
 	if (initParams->Topmost)
 		SetTopmost(true);
 
+	this->_toastHandler = new WinToastHandler(this);
+	WinToast::instance()->initialize();
 	Photino::Show();
 }
 
-Photino::~Photino() 
+Photino::~Photino()
 {
 	if (_startUrl != NULL) delete[]_startUrl;
 	if (_startString != NULL) delete[]_startString;
 	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
 	if (_windowTitle != NULL) delete[]_windowTitle;
+	if (_toastHandler != NULL) delete _toastHandler;
 }
 
 HWND Photino::getHwnd()
@@ -217,6 +248,40 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
+	case WM_CREATE: 
+	{
+		EnableDarkMode(hwnd, true);
+		if (IsDarkModeEnabled()) 
+		{
+			RefreshNonClientArea(hwnd);
+		}
+		break;
+	}
+	case WM_SETTINGCHANGE: 
+	{
+		if (IsColorSchemeChange(lParam))
+			SendMessageW(hwnd, WM_THEMECHANGED, 0, 0);
+		break;
+	}
+	case WM_THEMECHANGED:
+	{
+		EnableDarkMode(hwnd, IsDarkModeEnabled());
+		RefreshNonClientArea(hwnd);
+		break;
+	}
+	case WM_ACTIVATE:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (LOWORD(wParam) == WA_INACTIVE) 
+		{
+			Photino->InvokeFocusOut();
+		}
+		else 
+		{
+			Photino->InvokeFocusIn();
+		}
+		break;
+	}
 	case WM_CLOSE:
 	{
 		Photino* Photino = hwndToPhotino[hwnd];
@@ -269,6 +334,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int width, height;
 			Photino->GetSize(&width, &height);
 			Photino->InvokeResize(width, height);
+
+			if (LOWORD(wParam) == SIZE_MAXIMIZED) {
+				Photino->InvokeMaximized();
+			}
+			else if (LOWORD(wParam) == SIZE_RESTORED) {
+				Photino->InvokeRestored();
+			}
+			else if (LOWORD(wParam) == SIZE_MINIMIZED) {
+				Photino->InvokeMinimized();
+			}
 		}
 		return 0;
 	}
@@ -344,6 +419,11 @@ void Photino::GetFullScreen(bool* fullScreen)
 void Photino::GetGrantBrowserPermissions(bool* grant)
 {
 	*grant = _grantBrowserPermissions;
+}
+
+AutoString Photino::GetIconFileName()
+{
+	return this->_iconFileName;
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -431,7 +511,6 @@ void Photino::SendWebMessage(AutoString message)
 }
 
 
-
 void Photino::SetContextMenuEnabled(bool enabled)
 {
 	ICoreWebView2Settings* settings;
@@ -481,6 +560,8 @@ void Photino::SetIconFile(AutoString filename)
 		SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
 		SendMessage(_hWnd, WM_SETICON, ICON_BIG, (LPARAM)iconBig);
 	}
+
+	this->_iconFileName = filename;
 }
 
 void Photino::SetMinimized(bool minimized)
@@ -528,6 +609,8 @@ void Photino::SetTitle(AutoString title)
 	else
 		wcscpy(_windowTitle, title);
 	SetWindowText(_hWnd, title);
+	WinToast::instance()->setAppName(title);
+	WinToast::instance()->setAppUserModelId(title);
 }
 
 void Photino::SetTopmost(bool topmost)
@@ -557,6 +640,18 @@ void Photino::ShowMessage(AutoString title, AutoString body, UINT type)
 	params->body = body;
 	params->type = type;
 	PostMessage(_hWnd, WM_USER_SHOWMESSAGE, (WPARAM)params, 0);
+}
+
+void Photino::ShowNotification(AutoString title, AutoString body)
+{
+	if (WinToast::isCompatible())
+	{
+		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);
+		toast.setTextField(title, WinToastTemplate::FirstLine);
+		toast.setTextField(body, WinToastTemplate::SecondLine);
+		toast.setImagePath(this->_iconFileName);
+		WinToast::instance()->showToast(toast, _toastHandler);
+	}
 }
 
 void Photino::WaitForExit()
@@ -600,7 +695,7 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 {
 	if (callback)
 	{
-		EnumDisplayMonitors(NULL, NULL, MonitorEnum, (LPARAM)callback);
+		EnumDisplayMonitors(NULL, NULL, (MONITORENUMPROC) MonitorEnum, (LPARAM)callback);
 	}
 }
 
@@ -623,7 +718,10 @@ void Photino::Invoke(ACTION callback)
 
 void Photino::AttachWebView()
 {
-	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(nullptr, _temporaryFilesPath, nullptr,
+	size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
+	PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
+
+	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }
@@ -769,7 +867,7 @@ bool Photino::InstallWebView2()
 		si.cb = sizeof(si);
 		ZeroMemory(&pi, sizeof(pi));
 
-		bool installed = CreateProcess(
+		bool success = CreateProcess(
 			NULL,		// No module name (use command line)
 			command,	// Command line
 			NULL,       // Process handle not inheritable
@@ -777,11 +875,19 @@ bool Photino::InstallWebView2()
 			FALSE,      // Set handle inheritance to FALSE
 			0,          // No creation flags
 			NULL,       // Use parent's environment block
-			NULL,       // Use parent's starting directory 
+			NULL,       // Use parent's starting directory
 			&si,        // Pointer to STARTUPINFO structure
 			&pi);		// Pointer to PROCESS_INFORMATION structure
 
-		return installed;
+		if(success)
+		{
+			// wait for the installation to complete
+			WaitForSingleObject(pi.hProcess, INFINITE);
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
+
+		return success;
 	}
 
 	return false;
@@ -797,19 +903,27 @@ void Photino::RefitContent()
 	}
 }
 
+void Photino::SetWebView2RuntimePath(AutoString pathToWebView2)
+{
+	if (pathToWebView2 != NULL)
+	{
+		wcsncpy(_webview2RuntimePath, pathToWebView2, _countof(_webview2RuntimePath));
+	}
+}
+
 void Photino::Show()
 {
 	ShowWindow(_hWnd, SW_SHOWDEFAULT);
+	UpdateWindow(_hWnd);
 
 	// Strangely, it only works to create the webview2 *after* the window has been shown,
 	// so defer it until here. This unfortunately means you can't call the Navigate methods
 	// until the window is shown.
 	if (!_webviewController)
 	{
-		if (Photino::EnsureWebViewIsInstalled())
+		if (wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath)) > 0 || Photino::EnsureWebViewIsInstalled())
 			Photino::AttachWebView();
 		else
 			exit(0);
 	}
 }
-

@@ -18,6 +18,11 @@ extern "C"
 	{
 		return instance->getHwnd();
 	}
+
+	EXPORTED void Photino_setWebView2RuntimePath_win32(Photino* instance, AutoString webView2RuntimePath)
+	{
+		Photino::SetWebView2RuntimePath(webView2RuntimePath);
+	}
 #elif __APPLE__
 	EXPORTED void Photino_register_mac()
 	{
@@ -200,6 +205,11 @@ extern "C"
 		instance->ShowMessage(title, body, type);
 	}
 
+	EXPORTED void Photino_ShowNotification(Photino* instance, AutoString title, AutoString body)
+	{
+		instance->ShowNotification(title, body);
+	}
+
 	EXPORTED void Photino_WaitForExit(Photino* instance)
 	{
 		instance->WaitForExit();
@@ -221,6 +231,16 @@ extern "C"
 	EXPORTED void Photino_SetClosingCallback(Photino* instance, ClosingCallback callback)
 	{
 		instance->SetClosingCallback(callback);
+	}
+
+	EXPORTED void Photino_SetFocusInCallback(Photino* instance, FocusInCallback callback)
+	{
+		instance->SetFocusInCallback(callback);
+	}
+
+	EXPORTED void Photino_SetFocusOutCallback(Photino* instance, FocusOutCallback callback)
+	{
+		instance->SetFocusOutCallback(callback);
 	}
 
 	EXPORTED void Photino_SetMovedCallback(Photino* instance, MovedCallback callback)

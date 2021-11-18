@@ -1,5 +1,6 @@
 #ifdef __APPLE__
 #import "Photino.Mac.AppDelegate.h"
+#import <objc/runtime.h>
 
 @implementation AppDelegate : NSObject
 - (id)init {
@@ -13,6 +14,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [window makeKeyAndOrderFront:nil];
     [NSApp activateIgnoringOtherApps:YES];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     //NSLog(@"applicationDidFinishLaunching fired!");
     //NSAlert *alert = [[[NSAlert alloc] init] autorelease];
     //[alert setMessageText:@"Hi there."];

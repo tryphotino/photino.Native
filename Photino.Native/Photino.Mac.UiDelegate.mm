@@ -72,5 +72,21 @@
     photino->InvokeMove(x, y);
 }
 
+- (void)windowDidBecomeKey:(NSNotification *)notification {
+    photino->InvokeFocusIn();
+}
+
+- (void)windowDidResignKey:(NSNotification *)notification {
+    photino->InvokeFocusOut();
+}
+
+- (void)windowDidMiniaturize:(NSNotification *)notification {
+    photino->InvokeMinimized();
+}
+
+- (void)windowDidDeminiaturize:(NSNotification *)notification {
+    photino->InvokeRestored();
+}
+
 @end
 #endif
