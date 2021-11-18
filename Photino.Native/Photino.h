@@ -144,6 +144,7 @@ public:
 
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
+	static void SetWebView2RuntimePath(AutoString pathToWebView2);
 	HWND getHwnd();
 	void RefitContent();
 #elif __linux__

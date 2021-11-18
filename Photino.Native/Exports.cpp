@@ -18,6 +18,11 @@ extern "C"
 	{
 		return instance->getHwnd();
 	}
+
+	EXPORTED void Photino_setWebView2RuntimePath_win32(Photino* instance, AutoString webView2RuntimePath)
+	{
+		Photino::SetWebView2RuntimePath(webView2RuntimePath);
+	}
 #elif __APPLE__
 	EXPORTED void Photino_register_mac()
 	{
