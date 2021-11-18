@@ -41,33 +41,43 @@ typedef void (*WebMessageReceivedCallback)(AutoString message);
 typedef void *(*WebResourceRequestedCallback)(AutoString url, int *outNumBytes, AutoString *outContentType);
 typedef int (*GetAllMonitorsCallback)(const Monitor *monitor);
 typedef void (*ResizedCallback)(int width, int height);
+typedef void (*MaximizedCallback)();
+typedef void (*RestoredCallback)();
+typedef void (*MinimizedCallback)();
 typedef void (*MovedCallback)(int x, int y);
 typedef bool (*ClosingCallback)();
+typedef void (*FocusInCallback)();
+typedef void (*FocusOutCallback)();
 
 class Photino;
 
 struct PhotinoInitParams
 {
-	wchar_t *StartStringWide;
-	char *StartString;
-	wchar_t *StartUrlWide;
-	char *StartUrl;
-	wchar_t *TitleWide;
-	char *Title;
-	wchar_t *WindowIconFileWide;
-	char *WindowIconFile;
-	wchar_t *TemporaryFilesPathWide;
-	char *TemporaryFilesPath;
+	wchar_t* StartStringWide;
+	char* StartString;
+	wchar_t* StartUrlWide;
+	char* StartUrl;
+	wchar_t* TitleWide;
+	char* Title;
+	wchar_t* WindowIconFileWide;
+	char* WindowIconFile;
+	wchar_t* TemporaryFilesPathWide;
+	char* TemporaryFilesPath;
 
-	Photino *ParentInstance;
+	Photino* ParentInstance;
 
-	ClosingCallback *ClosingHandler;
-	ResizedCallback *ResizedHandler;
-	MovedCallback *MovedHandler;
-	WebMessageReceivedCallback *WebMessageReceivedHandler;
-	wchar_t *CustomSchemeNamesWide[16];
-	char *CustomSchemeNames[16];
-	WebResourceRequestedCallback *CustomSchemeHandler;
+	ClosingCallback* ClosingHandler;
+	FocusInCallback* FocusInHandler;
+	FocusOutCallback* FocusOutHandler;
+	ResizedCallback* ResizedHandler;
+	MaximizedCallback* MaximizedHandler;
+	RestoredCallback* RestoredHandler;
+	MinimizedCallback* MinimizedHandler;
+	MovedCallback* MovedHandler;
+	WebMessageReceivedCallback* WebMessageReceivedHandler;
+	wchar_t* CustomSchemeNamesWide[16];
+	char* CustomSchemeNames[16];
+	WebResourceRequestedCallback* CustomSchemeHandler;
 
 	int Left;
 	int Top;
@@ -97,7 +107,12 @@ private:
 	WebMessageReceivedCallback _webMessageReceivedCallback;
 	MovedCallback _movedCallback;
 	ResizedCallback _resizedCallback;
+	MaximizedCallback _maximizedCallback;
+	RestoredCallback _restoredCallback;
+	MinimizedCallback _minimizedCallback;
 	ClosingCallback _closingCallback;
+	FocusInCallback _focusInCallback;
+	FocusOutCallback _focusOutCallback;
 	std::vector<AutoString> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
 
@@ -205,25 +220,21 @@ public:
 	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back((AutoString)scheme); };
 	void GetAllMonitors(GetAllMonitorsCallback callback);
 	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
+	void SetFocusInCallback(FocusInCallback callback) { _focusInCallback = callback; }
+	void SetFocusOutCallback(FocusOutCallback callback) { _focusOutCallback = callback; }
 	void SetMovedCallback(MovedCallback callback) { _movedCallback = callback; }
 	void SetResizedCallback(ResizedCallback callback) { _resizedCallback = callback; }
+	void SetMaximizedCallback(MaximizedCallback callback) { _maximizedCallback = callback; }
+	void SetRestoredCallback(RestoredCallback callback) { _restoredCallback = callback; }
+	void SetMinimizedCallback(MinimizedCallback callback) { _minimizedCallback = callback; }
 
 	void Invoke(ACTION callback);
-	bool InvokeClose()
-	{
-		if (_closingCallback)
-			return _closingCallback();
-		else
-			return false;
-	}
-	void InvokeMove(int x, int y)
-	{
-		if (_movedCallback)
-			_movedCallback(x, y);
-	}
-	void InvokeResize(int width, int height)
-	{
-		if (_resizedCallback)
-			_resizedCallback(width, height);
-	}
+	bool InvokeClose() { if (_closingCallback) return _closingCallback(); else return false; }
+	void InvokeFocusIn() { if (_focusInCallback) return _focusInCallback(); }
+	void InvokeFocusOut() { if (_focusOutCallback) return _focusOutCallback(); }
+	void InvokeMove(int x, int y) { if (_movedCallback) _movedCallback(x, y); }
+	void InvokeResize(int width, int height) { if (_resizedCallback) _resizedCallback(width, height); }
+	void InvokeMaximized() { if (_maximizedCallback) return _maximizedCallback(); }
+	void InvokeRestored() { if (_restoredCallback) return _restoredCallback(); }
+	void InvokeMinimized() { if (_minimizedCallback) return _minimizedCallback(); }
 };

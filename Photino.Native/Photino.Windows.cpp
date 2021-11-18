@@ -128,8 +128,13 @@ Photino::Photino(PhotinoInitParams* initParams)
 	//these handlers are ALWAYS hooked up
 	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
 	_resizedCallback = (ResizedCallback)initParams->ResizedHandler;
+	_maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
+	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
+	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_movedCallback = (MovedCallback)initParams->MovedHandler;
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
+	_focusInCallback = (FocusInCallback)initParams->FocusInHandler;
+	_focusOutCallback = (FocusOutCallback)initParams->FocusOutHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
@@ -264,6 +269,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		RefreshNonClientArea(hwnd);
 		break;
 	}
+	case WM_ACTIVATE:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (LOWORD(wParam) == WA_INACTIVE) 
+		{
+			Photino->InvokeFocusOut();
+		}
+		else 
+		{
+			Photino->InvokeFocusIn();
+		}
+		break;
+	}
 	case WM_CLOSE:
 	{
 		Photino* Photino = hwndToPhotino[hwnd];
@@ -316,6 +334,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int width, height;
 			Photino->GetSize(&width, &height);
 			Photino->InvokeResize(width, height);
+
+			if (LOWORD(wParam) == SIZE_MAXIMIZED) {
+				Photino->InvokeMaximized();
+			}
+			else if (LOWORD(wParam) == SIZE_RESTORED) {
+				Photino->InvokeRestored();
+			}
+			else if (LOWORD(wParam) == SIZE_MINIMIZED) {
+				Photino->InvokeMinimized();
+			}
 		}
 		return 0;
 	}

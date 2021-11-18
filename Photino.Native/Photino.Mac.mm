@@ -84,6 +84,11 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_resizedCallback = (ResizedCallback)initParams->ResizedHandler;
 	_movedCallback = (MovedCallback)initParams->MovedHandler;
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
+    _focusInCallback = (FocusInCallback)initParams->FocusInHandler;
+	_focusOutCallback = (FocusOutCallback)initParams->FocusOutHandler;
+    _maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
+	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
+	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
