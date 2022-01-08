@@ -613,6 +613,8 @@ void Photino::Show()
 {
 	if (!_webview)
 	{
+		struct sigaction old_action;
+		sigaction (SIGCHLD, NULL, &old_action);
 		WebKitUserContentManager* contentManager = webkit_user_content_manager_new();
 		_webview = webkit_web_view_new_with_user_content_manager(contentManager);
 
@@ -671,6 +673,7 @@ void Photino::Show()
 			gtk_widget_destroy(dialog);
 			exit(0);
 		}
+		sigaction (SIGCHLD, &old_action, NULL);
 	}
 
 	gtk_widget_show_all(_window);
