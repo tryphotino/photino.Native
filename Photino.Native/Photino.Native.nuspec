@@ -11,8 +11,10 @@
     <description>Open native OS windows hosting web UI on Windows, Mac, and Linux</description>
     <projectUrl>https://github.com/tryphotino/photino.Native</projectUrl>
     <tags>native</tags>
+    <icon>photino.png</icon>
   </metadata>
   <files>
+	<file src="photino.png" target="photino.png" />
     <file src="Photino.Native.dll" target="runtimes\win-x64\native\Photino.Native.dll" />
     <file src="WebView2Loader.dll" target="runtimes\win-x64\native\WebView2Loader.dll" />
     <file src="Photino.Native.so" target="runtimes\linux-x64\native\Photino.Native.so" />
