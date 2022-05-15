@@ -10,6 +10,10 @@
 
 #include "Photino.Windows.DarkMode.h"
 
+#ifdef COMPAT_DPI
+#include "Photino.Windows.DpiHelp.h"
+#endif
+
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
 
@@ -65,7 +69,11 @@ void Photino::Register(HINSTANCE hInstance)
 
 	RegisterClassEx(&wcx);
 
+#ifdef COMPAT_DPI
+	InitDpiHelper();
+#else
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+#endif
 }
 
 
@@ -232,6 +240,10 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 Photino::~Photino()
 {
+#ifdef COMPAT_DPI
+	CloseDpiHelper();
+#endif
+
 	if (_startUrl != NULL) delete[]_startUrl;
 	if (_startString != NULL) delete[]_startString;
 	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
@@ -370,9 +382,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void Photino::Center()
 {
+#ifdef COMPAT_DPI
+	int screenDpi = GetWindowDpi(_hWnd);
+	int screenHeight = GetScreenHeight(screenDpi);
+	int screenWidth = GetScreenWidth(screenDpi);
+#else
 	int screenDpi = GetDpiForWindow(_hWnd);
 	int screenHeight = GetSystemMetricsForDpi(SM_CYSCREEN, screenDpi);
 	int screenWidth = GetSystemMetricsForDpi(SM_CXSCREEN, screenDpi);
+#endif
 
 	RECT windowRect = {};
 	GetWindowRect(_hWnd, &windowRect);
@@ -454,7 +472,11 @@ void Photino::GetResizable(bool* resizable)
 
 unsigned int Photino::GetScreenDpi()
 {
+#ifdef COMPAT_DPI
+	return GetWindowDpi(_hWnd);
+#else
 	return GetDpiForWindow(_hWnd);
+#endif
 }
 
 void Photino::GetSize(int* width, int* height)
