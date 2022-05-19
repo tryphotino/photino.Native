@@ -165,6 +165,8 @@ bool IsColorSchemeChange(LPARAM l_param) noexcept {
         return_value = true;
     }
 
-    GetIsImmersiveColorUsingHighContrast(IHCM_REFRESH);
+    if (GetIsImmersiveColorUsingHighContrast != nullptr) {
+        GetIsImmersiveColorUsingHighContrast(IHCM_REFRESH);
+    }
     return return_value;
 }
