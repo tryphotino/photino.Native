@@ -750,15 +750,6 @@ gboolean on_webview_context_menu (WebKitWebView* web_view, GtkWidget* default_me
 
 gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest* request, gpointer user_data)
 {
-	GtkWidget* dialog = gtk_message_dialog_new(
-		nullptr
-		, GTK_DIALOG_DESTROY_WITH_PARENT
-		, GTK_MESSAGE_ERROR
-		, GTK_BUTTONS_CLOSE
-		, "Permission Requested - Allowing!");
-	gtk_dialog_run(GTK_DIALOG(dialog));
-	gtk_widget_destroy(dialog);
-
 	webkit_permission_request_allow(request);
 	return FALSE;
 }
