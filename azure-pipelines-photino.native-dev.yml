@@ -15,8 +15,8 @@ jobs:
           imageName: 'ubuntu-latest'
           rid: 'linux-x64'
         mac-intel:
-          imageName: 'macos-latest'
-          rid: 'osx-x64'
+          imageName: 'macos-12'
+          rid: 'osx.12-x64'
         mac-arm64:
           imagename: 'macos-12'
           rid: 'osx.12-arm64'
@@ -78,14 +78,14 @@ jobs:
 
     - task: CmdLine@2
       displayName: 'Create output folder for macOS-intel'
-      condition: eq(variables.rid, 'osx-x64')
+      condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         workingDirectory: '.'
         script: 'mkdir -p ./x64/$(buildConfiguration)'
 
     - task: CmdLine@2
       displayName: 'Build macOS-intel native assets'
-      condition: eq(variables.rid, 'osx-x64')
+      condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         workingDirectory: '.'
         script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./x64/$(buildConfiguration)/Photino.Native.dylib'
@@ -135,7 +135,7 @@ jobs:
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.dylib (macOS) to artifacts'
-      condition: eq(variables.rid, 'osx-x64')
+      condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         targetPath: './x64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: 'Photino.Native.dylib'
