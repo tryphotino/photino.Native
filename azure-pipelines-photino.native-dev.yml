@@ -161,26 +161,32 @@ jobs:
     steps:
     #Download native files from Artifacts
     - task: DownloadPipelineArtifact@2
+      displayName: 'Download Photino.Native.dll'
       inputs:
         artifact: 'Photino.Native.dll'
 
     - task: DownloadPipelineArtifact@2
+      displayName: 'Download WebView2Loader.dll'
       inputs:
         artifact: 'WebView2Loader.dll'
 
     - task: DownloadPipelineArtifact@2
+      displayName: 'Download Photino.Native.nuspec'
       inputs:
         artifact: 'Photino.Native.nuspec'
 
     - task: DownloadPipelineArtifact@2
+      displayName: 'Download Photino.Native.so'
       inputs:
         artifact: 'Photino.Native.so'
 
     - task: DownloadPipelineArtifact@2
+      displayName: 'Download Photino.Native.dll'
       inputs:
         artifact: 'Photino.Native.dylib'
 
     - task: DownloadPipelineArtifact@2
+      displayName: 'Download Photino.Native.Arm64.dll'
       inputs:
         artifact: 'Photino.Native.Arm64.dylib'
 
