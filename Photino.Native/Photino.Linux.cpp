@@ -750,7 +750,12 @@ gboolean on_webview_context_menu (WebKitWebView* web_view, GtkWidget* default_me
 
 gboolean on_permission_request(WebKitWebView* web_view, WebKitPermissionRequest* request, gpointer user_data)
 {
-	webkit_permission_request_allow(request);
+	if (_grantBrowserPermissions) {
+		webkit_permission_request_allow(request);
+	}
+	else {
+		webkit_permission_request_deny(request);
+	}
 	return FALSE;
 }
 
