@@ -15,6 +15,7 @@
     [window makeKeyAndOrderFront:nil];
     [NSApp activateIgnoringOtherApps:YES];
     // NSLog(@"applicationDidFinishLaunching fired!");
+}
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
     //NSLog(@"applicationShouldTerminateAfterLastWindowClosed fired!");
