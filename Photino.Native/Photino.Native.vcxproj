@@ -269,7 +269,7 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net5.0\</Command>
     <None Include="Photino.Mac.UiDelegate.mm" />
     <None Include="Photino.Mac.UrlSchemeHandler.mm" />
     <None Include="Photino.Native.nuspec">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64' || '$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64' or '$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
     </None>
   </ItemGroup>
 
