@@ -14,12 +14,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [window makeKeyAndOrderFront:nil];
     [NSApp activateIgnoringOtherApps:YES];
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    //NSLog(@"applicationDidFinishLaunching fired!");
-    //NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-    //[alert setMessageText:@"Hi there."];
-    //[alert runModal];
-}
+    // NSLog(@"applicationDidFinishLaunching fired!");
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
     //NSLog(@"applicationShouldTerminateAfterLastWindowClosed fired!");
