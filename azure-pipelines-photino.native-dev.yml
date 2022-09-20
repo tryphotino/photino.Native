@@ -6,6 +6,7 @@ trigger:
 
 variables:
   versionprefix: 0.9.0
+  buildConfiguration: 'Release'
 
 jobs:
   - job: 'BuildNative'
@@ -26,9 +27,6 @@ jobs:
 
     pool:
       vmImage: $(imageName)
-
-    variables:
-      buildConfiguration: 'Release'
 
     steps:
     #Install dependencies
