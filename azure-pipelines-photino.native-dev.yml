@@ -12,141 +12,218 @@ jobs:
   - job: 'BuildNative'
     strategy:
       matrix:
-        linux:
-          imageName: 'ubuntu-latest'
-          rid: 'linux-x64'
-        mac-intel:
-          imageName: 'macos-12'
-          rid: 'osx.12-x64'
-        mac-arm64:
-          imagename: 'macos-12'
-          rid: 'osx.12-arm64'
-        windows:
-          rid: 'windows-x64'
+        windows-intel:
+          rid: 'win-x64'
           imageName: 'windows-latest'
+        windows-arm64:
+          rid: 'win-arm64'
+          imageName: 'windows-latest'
+        linux-intel:
+          rid: 'linux-x64'
+          imageName: 'ubuntu-latest'
+        linux-arm64:
+          rid: 'linux-arm64'
+          imageName: 'ubuntu-latest'
+        mac-intel:
+          rid: 'osx.12-x64'
+          imageName: 'macos-12'
+        #mac-arm64:
+        #  rid: 'osx.12-arm64'
+        #  imagename: 'macos-12'
 
     pool:
       vmImage: $(imageName)
 
     steps:
-    #Install dependencies
-    - task: CmdLine@2
-      displayName: 'Install linux dependencies'
-      condition: eq(variables.rid, 'linux-x64')
-      inputs:
-        script: 'sudo apt-get update && sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify4 libnotify-dev'
-
+    # Install dependencies
+    # Windows
     - task: NuGetCommand@2
-      displayName: 'NuGet package restore for Windows native packages'
+      displayName: 'NuGet package restore for Windows (intel) native packages'
       condition: eq(variables.rid, 'windows-x64')
       inputs:
         command: 'restore'
         restoreSolution: 'Photino.Native.sln'
         feedsToUse: 'select'
 
-    #NOTE: Release build configuration should not build Test project - it has linked files and will not build
-    #- task: DotNetCoreCLI@2
-    #  displayName: dotnet restore
-    #  inputs:
-    #    command: restore
-    #    projects: '**/*.csproj'
+    - task: NuGetCommand@2
+      displayName: 'NuGet package restore for Windows (arm64) native packages'
+      condition: eq(variables.rid, 'windows-arm64')
+      inputs:
+        command: 'restore'
+        restoreSolution: 'Photino.Native.sln'
+        feedsToUse: 'select'
+    
+    # Linux
+    - task: CmdLine@2
+      displayName: 'Install linux (intel) dependencies'
+      condition: eq(variables.rid, 'linux-x64')
+      inputs:
+        script: 'sudo apt-get update && sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify4 libnotify-dev'
+
+    - task: CmdLine@2
+      displayName: 'Install linux (arm64) dependencies'
+      condition: eq(variables.rid, 'linux-arm64')
+      inputs:
+        script: 'sudo apt-get update && sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify4 libnotify-dev'
         
-    #Build
+    # Build
+    # Windows x64
     - task: VSBuild@1
-      displayName: 'Build Windows native assets'
+      displayName: 'Build Windows (intel) native assets'
       condition: eq(variables.rid, 'windows-x64')
       inputs:
         solution: 'Photino.Native.sln'
         platform: 'x64'
         configuration: '$(buildConfiguration)'
 
+    # Windows ARM64
+    - task: VSBuild@1
+      displayName: 'Build Windows (arm64) native assets'
+      condition: eq(variables.rid, 'windows-arm64')
+      inputs:
+        solution: 'Photino.Native.sln'
+        platform: 'arm64'
+        configuration: '$(buildConfiguration)'
+
+    # Linux x64
     - task: CmdLine@2
-      displayName: 'Create output folder for Linux'
+      displayName: 'Create output folder for Linux (intel)'
       condition: eq(variables.rid, 'linux-x64')
       inputs:
         workingDirectory: './Photino.Native'
         script: 'mkdir x64; cd x64; mkdir $(buildConfiguration)'
 
     - task: CmdLine@2
-      displayName: 'Build Linux native assets'
+      displayName: 'Build Linux (intel) native assets'
       condition: eq(variables.rid, 'linux-x64')
       inputs:
         workingDirectory: './Photino.Native'
         script: 'gcc -std=c++11 -shared -DOS_LINUX Exports.cpp Photino.Linux.cpp -o x64/$(buildConfiguration)/Photino.Native.so `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify` -fPIC'
 
+    # Linux ARM64
     - task: CmdLine@2
-      displayName: 'Create output folder for macOS-intel'
+      displayName: 'Create output folder for Linux (arm64)'
+      condition: eq(variables.rid, 'linux-arm64')
+      inputs:
+        workingDirectory: './Photino.Native'
+        script: 'mkdir arm64; cd arm64; mkdir $(buildConfiguration)'
+
+    - task: CmdLine@2
+      displayName: 'Build Linux (arm64) native assets'
+      condition: eq(variables.rid, 'linux-arm64')
+      inputs:
+        workingDirectory: './Photino.Native'
+        script: 'gcc -std=c++11 -shared -DOS_LINUX Exports.cpp Photino.Linux.cpp -o arm64/$(buildConfiguration)/Photino.Native.so `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify` -fPIC'
+
+    # macOS x64
+    - task: CmdLine@2
+      displayName: 'Create output folder for macOS (intel)'
       condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         workingDirectory: '.'
         script: 'mkdir -p ./x64/$(buildConfiguration)'
 
     - task: CmdLine@2
-      displayName: 'Build macOS-intel native assets'
+      displayName: 'Build macOS (intel) native assets'
       condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         workingDirectory: '.'
         script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./x64/$(buildConfiguration)/Photino.Native.dylib'
 
-    - task: CmdLine@2
-      displayName: 'Create output folder for macOS-arm64'
-      condition: eq(variables.rid, 'osx.12-arm64')
-      inputs:
-        workingDirectory: '.'
-        script: 'mkdir -p ./arm64/$(buildConfiguration)'
+    # macOS ARM64 (no build machine for maxOS M1 available as of Sep 2022)
+    #- task: CmdLine@2
+    #  displayName: 'Create output folder for macOS (ARM64)'
+    #  condition: eq(variables.rid, 'osx.12-arm64')
+    #  inputs:
+    #    workingDirectory: '.'
+    #    script: 'mkdir -p ./arm64/$(buildConfiguration)'
 
-    - task: CmdLine@2
-      displayName: 'Build macOS-arm64 native assets'
-      condition: eq(variables.rid, 'osx.12-arm64')
-      inputs:
-        workingDirectory: '.'
-        script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./arm64/$(buildConfiguration)/Photino.Native.Arm64.dylib'
+    #- task: CmdLine@2
+    #  displayName: 'Build macOS (ARM64) native assets'
+    #  condition: eq(variables.rid, 'osx.12-arm64')
+    #  inputs:
+    #    workingDirectory: '.'
+    #    script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./arm64/$(buildConfiguration)/Photino.Native.ARM64.dylib'
       
-    #Publish native output to Artifacts
+    # Publish native output to Artifacts
+    # Windows x64
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Photino.Native.dll (windows) to artifacts'
+      displayName: 'Publish Photino.Native.dll (Windows x64) to artifacts'
       condition: eq(variables.rid, 'windows-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dll'
         artifactName: 'Photino.Native.dll'
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish WebView2Loader.dll (windows) to artifacts'
+      displayName: 'Publish WebView2Loader.dll (Windows x64) to artifacts'
       condition: eq(variables.rid, 'windows-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/WebView2Loader.dll'
         artifactName: 'WebView2Loader.dll'
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Photino.Native.nuspec (windows) to artifacts'
+      displayName: 'Publish Photino.Native.nuspec (Windows x64) to artifacts'
       condition: eq(variables.rid, 'windows-x64')
       inputs:
         targetPath: './Photino.Native/Photino.Native.nuspec'
         artifactName: 'Photino.Native.nuspec'
 
+    # Windows ARM64
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Photino.Native.so (linux) to artifacts'
+      displayName: 'Publish Photino.Native.ARM64.dll (Windows ARM64) to artifacts'
+      condition: eq(variables.rid, 'windows-arm64')
+      inputs:
+        targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll'
+        artifactName: 'Photino.Native.ARM64.dll'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish WebView2Loader.ARM64.dll (Windows ARM64) to artifacts'
+      condition: eq(variables.rid, 'windows-arm64')
+      inputs:
+        targetPath: './Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll'
+        artifactName: 'WebView2Loader.ARM64.dll'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.nuspec (Windows ARM64) to artifacts'
+      condition: eq(variables.rid, 'windows-arm64')
+      inputs:
+        targetPath: './Photino.Native/Photino.Native.nuspec'
+        artifactName: 'Photino.Native.nuspec'
+
+    # Linux x64
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.so (Linux x64) to artifacts'
       condition: eq(variables.rid, 'linux-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.so'
         artifactName: 'Photino.Native.so'
 
+    # Linux ARM64
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Photino.Native.dylib (macOS) to artifacts'
+      displayName: 'Publish Photino.Native.ARM64.so (Linux ARM64) to artifacts'
+      condition: eq(variables.rid, 'linux-arm64')
+      inputs:
+        targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so'
+        artifactName: 'Photino.Native.ARM64.so'
+    
+    # macOS x64
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.dylib (macOS x64) to artifacts'
       condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         targetPath: './x64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: 'Photino.Native.dylib'
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Photino.Native.Arm64.dylib (macOS-ARM) to artifacts'
-      condition: eq(variables.rid, 'osx.12-arm64')
-      inputs:
-        targetPath: './arm64/$(buildConfiguration)/Photino.Native.Arm64.dylib'
-        artifactName: 'Photino.Native.Arm64.dylib'
+    # macOS ARM64 (no build machine for maxOS M1 available as of Sep 2022)
+    #- task: PublishPipelineArtifact@1
+    #  displayName: 'Publish Photino.Native.ARM64.dylib (macOS ARM64) to artifacts'
+    #  condition: eq(variables.rid, 'osx.12-arm64')
+    #  inputs:
+    #    targetPath: './arm64/$(buildConfiguration)/Photino.Native.ARM64.dylib'
+    #    artifactName: 'Photino.Native.ARM64.dylib'
 
 
-  #1 instance to download all native files, create NuGet package and publish to Artifacts
+  # 1 instance to download all native files, create NuGet package and publish to Artifacts
   - job: 'PublishPackage'
     dependsOn: 'BuildNative'
     
@@ -157,7 +234,7 @@ jobs:
       buildConfiguration: 'Release'
     
     steps:
-    #Download native files from Artifacts
+    # Download native files from Artifacts
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Photino.Native.dll'
       inputs:
@@ -167,6 +244,16 @@ jobs:
       displayName: 'Download WebView2Loader.dll'
       inputs:
         artifact: 'WebView2Loader.dll'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download Photino.Native.ARM64.dll'
+      inputs:
+        artifact: 'Photino.Native.ARM64.dll'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download WebView2Loader.ARM64.dll'
+      inputs:
+        artifact: 'WebView2Loader.ARM64.dll'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Photino.Native.nuspec'
@@ -179,29 +266,34 @@ jobs:
         artifact: 'Photino.Native.so'
 
     - task: DownloadPipelineArtifact@2
+      displayName: 'Download Photino.Native.ARM64.so'
+      inputs:
+        artifact: 'Photino.Native.ARM64.so'
+
+    - task: DownloadPipelineArtifact@2
       displayName: 'Download Photino.Native.dll'
       inputs:
         artifact: 'Photino.Native.dylib'
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native.Arm64.dll'
-      inputs:
-        artifact: 'Photino.Native.Arm64.dylib'
-
+    #- task: DownloadPipelineArtifact@2
+    #  displayName: 'Download Photino.Native.ARM64.dylib'
+    #  inputs:
+    #    artifact: 'Photino.Native.ARM64.dylib'
+    
     #- task: CmdLine@2
     #  displayName: 'List downloaded files'
-    ##  inputs:
+    #  inputs:
     #    workingDirectory: '$(Pipeline.Workspace)'
     #    script: 'dir'
 
-    #Create NuGet package
+    # Create NuGet package
     - task: CmdLine@2
       displayName: 'Create NuGet package'
       inputs:
         workingDirectory: '$(Pipeline.Workspace)'
         script: 'nuget.exe pack Photino.Native.nuspec -Version $(versionprefix)-$(Build.BuildNumber) -NonInteractive -Properties version=$(versionprefix)-$(Build.BuildNumber)'
 
-    #Publish NuGet package to Artifacts
+    # Publish NuGet package to Artifacts
     - task: NuGetAuthenticate@0
       displayName: 'NuGet Authenticate'
 
