@@ -41,7 +41,7 @@ jobs:
     # Windows
     - task: NuGetCommand@2
       displayName: 'NuGet package restore for Windows (intel) native packages'
-      condition: eq(variables.rid, 'windows-x64')
+      condition: eq(variables.rid, 'win-x64')
       inputs:
         command: 'restore'
         restoreSolution: 'Photino.Native.sln'
@@ -49,7 +49,7 @@ jobs:
 
     - task: NuGetCommand@2
       displayName: 'NuGet package restore for Windows (arm64) native packages'
-      condition: eq(variables.rid, 'windows-arm64')
+      condition: eq(variables.rid, 'win-arm64')
       inputs:
         command: 'restore'
         restoreSolution: 'Photino.Native.sln'
@@ -72,7 +72,7 @@ jobs:
     # Windows x64
     - task: VSBuild@1
       displayName: 'Build Windows (intel) native assets'
-      condition: eq(variables.rid, 'windows-x64')
+      condition: eq(variables.rid, 'win-x64')
       inputs:
         solution: 'Photino.Native.sln'
         platform: 'x64'
@@ -81,7 +81,7 @@ jobs:
     # Windows ARM64
     - task: VSBuild@1
       displayName: 'Build Windows (arm64) native assets'
-      condition: eq(variables.rid, 'windows-arm64')
+      condition: eq(variables.rid, 'win-arm64')
       inputs:
         solution: 'Photino.Native.sln'
         platform: 'arm64'
@@ -151,21 +151,21 @@ jobs:
     # Windows x64
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.dll (Windows x64) to artifacts'
-      condition: eq(variables.rid, 'windows-x64')
+      condition: eq(variables.rid, 'win-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dll'
         artifactName: 'Photino.Native.dll'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish WebView2Loader.dll (Windows x64) to artifacts'
-      condition: eq(variables.rid, 'windows-x64')
+      condition: eq(variables.rid, 'win-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/WebView2Loader.dll'
         artifactName: 'WebView2Loader.dll'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.nuspec (Windows x64) to artifacts'
-      condition: eq(variables.rid, 'windows-x64')
+      condition: eq(variables.rid, 'win-x64')
       inputs:
         targetPath: './Photino.Native/Photino.Native.nuspec'
         artifactName: 'Photino.Native.nuspec'
@@ -173,21 +173,21 @@ jobs:
     # Windows ARM64
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.ARM64.dll (Windows ARM64) to artifacts'
-      condition: eq(variables.rid, 'windows-arm64')
+      condition: eq(variables.rid, 'win-arm64')
       inputs:
         targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll'
         artifactName: 'Photino.Native.ARM64.dll'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish WebView2Loader.ARM64.dll (Windows ARM64) to artifacts'
-      condition: eq(variables.rid, 'windows-arm64')
+      condition: eq(variables.rid, 'win-arm64')
       inputs:
         targetPath: './Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll'
         artifactName: 'WebView2Loader.ARM64.dll'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.nuspec (Windows ARM64) to artifacts'
-      condition: eq(variables.rid, 'windows-arm64')
+      condition: eq(variables.rid, 'win-arm64')
       inputs:
         targetPath: './Photino.Native/Photino.Native.nuspec'
         artifactName: 'Photino.Native.nuspec'
