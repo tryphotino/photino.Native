@@ -15,21 +15,21 @@ jobs:
         windows-intel:
           rid: 'win-x64'
           imageName: 'windows-latest'
-        windows-arm64:
-          rid: 'win-arm64'
-          imageName: 'windows-latest'
-        linux-intel:
-          rid: 'linux-x64'
-          imageName: 'ubuntu-latest'
-        linux-arm64:
-          rid: 'linux-arm64'
-          imageName: 'ubuntu-latest'
-        mac-intel:
-          rid: 'osx.12-x64'
-          imageName: 'macos-12'
-        #mac-arm64:
-        #  rid: 'osx.12-arm64'
-        #  imagename: 'macos-12'
+        # windows-arm64:
+        #   rid: 'win-arm64'
+        #   imageName: 'windows-latest'
+        # linux-intel:
+        #   rid: 'linux-x64'
+        #   imageName: 'ubuntu-latest'
+        # linux-arm64:
+        #   rid: 'linux-arm64'
+        #   imageName: 'ubuntu-latest'
+        # mac-intel:
+        #   rid: 'osx.12-x64'
+        #   imageName: 'macos-12'
+        # #mac-arm64:
+        # #  rid: 'osx.12-arm64'
+        # #  imagename: 'macos-12'
 
     pool:
       vmImage: $(imageName)
@@ -233,19 +233,12 @@ jobs:
         artifact: 'Photino.Native.nuspec'
 
     - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native Windows Libraries'
+      displayName: 'Download Photino.Native Libraries'
       inputs:
-        artifact: '*.dll'
-
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native Linux Libraries'
-      inputs:
-        artifact: '*.so'
-
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native macOS Libraries'
-      inputs:
-        artifact: '*.dylib'
+        patterns: |
+          ./*.dll
+          ./*.dylib
+          ./*.so
     
     - task: CmdLine@2
       displayName: 'List downloaded files'
