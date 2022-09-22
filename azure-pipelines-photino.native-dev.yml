@@ -148,6 +148,7 @@ jobs:
     # Publish native output to Artifacts
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.nuspec to artifacts'
+      condition: eq(variables.rid, 'win-x64')
       inputs:
         targetPath: './Photino.Native/Photino.Native.nuspec'
         artifactName: 'Photino.Native.nuspec'
