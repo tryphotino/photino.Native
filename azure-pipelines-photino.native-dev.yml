@@ -146,6 +146,12 @@ jobs:
     #    script: 'make mac-dev && mv ./lib/dev/Photino.Native.dylib ./arm64/$(buildConfiguration)/Photino.Native.ARM64.dylib'
       
     # Publish native output to Artifacts
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Photino.Native.nuspec to artifacts'
+      inputs:
+        targetPath: './Photino.Native/Photino.Native.nuspec'
+        artifactName: 'Photino.Native.nuspec'
+
     # Windows x64
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.dll (Windows x64) to artifacts'
@@ -161,13 +167,6 @@ jobs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/WebView2Loader.dll'
         artifactName: 'WebView2Loader.dll'
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Photino.Native.nuspec (Windows x64) to artifacts'
-      condition: eq(variables.rid, 'win-x64')
-      inputs:
-        targetPath: './Photino.Native/Photino.Native.nuspec'
-        artifactName: 'Photino.Native.nuspec'
-
     # Windows ARM64
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Photino.Native.ARM64.dll (Windows ARM64) to artifacts'
@@ -182,13 +181,6 @@ jobs:
       inputs:
         targetPath: './Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll'
         artifactName: 'WebView2Loader.ARM64.dll'
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Photino.Native.nuspec (Windows ARM64) to artifacts'
-      condition: eq(variables.rid, 'win-arm64')
-      inputs:
-        targetPath: './Photino.Native/Photino.Native.nuspec'
-        artifactName: 'Photino.Native.nuspec'
 
     # Linux x64
     - task: PublishPipelineArtifact@1
@@ -222,7 +214,6 @@ jobs:
     #    targetPath: './arm64/$(buildConfiguration)/Photino.Native.ARM64.dylib'
     #    artifactName: 'Photino.Native.ARM64.dylib'
 
-
   # 1 instance to download all native files, create NuGet package and publish to Artifacts
   - job: 'PublishPackage'
     dependsOn: 'BuildNative'
@@ -236,55 +227,30 @@ jobs:
     steps:
     # Download native files from Artifacts
     - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native.dll'
-      inputs:
-        artifact: 'Photino.Native.dll'
-
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download WebView2Loader.dll'
-      inputs:
-        artifact: 'WebView2Loader.dll'
-
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native.ARM64.dll'
-      inputs:
-        artifact: 'Photino.Native.ARM64.dll'
-
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download WebView2Loader.ARM64.dll'
-      inputs:
-        artifact: 'WebView2Loader.ARM64.dll'
-
-    - task: DownloadPipelineArtifact@2
       displayName: 'Download Photino.Native.nuspec'
       inputs:
         artifact: 'Photino.Native.nuspec'
 
     - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native.so'
+      displayName: 'Download Photino.Native Windows Libraries'
       inputs:
-        artifact: 'Photino.Native.so'
+        artifact: '*.dll'
 
     - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native.ARM64.so'
+      displayName: 'Download Photino.Native Linux Libraries'
       inputs:
-        artifact: 'Photino.Native.ARM64.so'
+        artifact: '*.so'
 
     - task: DownloadPipelineArtifact@2
-      displayName: 'Download Photino.Native.dll'
+      displayName: 'Download Photino.Native macOS Libraries'
       inputs:
-        artifact: 'Photino.Native.dylib'
-
-    #- task: DownloadPipelineArtifact@2
-    #  displayName: 'Download Photino.Native.ARM64.dylib'
-    #  inputs:
-    #    artifact: 'Photino.Native.ARM64.dylib'
+        artifact: '*.dylib'
     
-    #- task: CmdLine@2
-    #  displayName: 'List downloaded files'
-    #  inputs:
-    #    workingDirectory: '$(Pipeline.Workspace)'
-    #    script: 'dir'
+    - task: CmdLine@2
+      displayName: 'List downloaded files'
+      inputs:
+        workingDirectory: '$(Pipeline.Workspace)'
+        script: 'dir'
 
     # Create NuGet package
     - task: CmdLine@2
