@@ -827,6 +827,8 @@ void Photino::AttachWebView()
 
 						RefitContent();
 
+						_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);		//Set focus in the webview control.
+
 						return S_OK;
 					}).Get());
 				return S_OK;
