@@ -51,7 +51,7 @@ build-photino-mac-dev:
 
 install-linux-dependencies:
 	sudo apt-get update\
-	&& sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify-dev
+	&& sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify4 libnotify-dev
 
 build-photino-linux:
 	# "build-photino-linux is not defined"
@@ -61,7 +61,7 @@ build-photino-linux-dev:
 		  $(CFLAGS)\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
-		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0`
+		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
 
 clean:
 	rm -rf $(DEST_PATH_PROD)/* & mkdir -p $(DEST_PATH_PROD)
