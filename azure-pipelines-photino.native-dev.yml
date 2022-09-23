@@ -51,7 +51,7 @@ jobs:
 
     # Windows x64
     - task: NuGetCommand@2
-      displayName: 'NuGet package restore for Windows (intel) native packages'
+      displayName: 'NuGet package restore for Windows (x64)'
       condition: eq(variables.rid, 'win-x64')
       inputs:
         command: 'restore'
@@ -59,7 +59,7 @@ jobs:
         feedsToUse: 'select'
 
     - task: VSBuild@1
-      displayName: 'Build Windows (intel) native assets'
+      displayName: 'Build Windows (x64) native assets'
       condition: eq(variables.rid, 'win-x64')
       inputs:
         solution: 'Photino.Native.sln'
@@ -76,7 +76,7 @@ jobs:
 
     # Windows ARM64
     - task: NuGetCommand@2
-      displayName: 'NuGet package restore for Windows (ARM64) native packages'
+      displayName: 'NuGet package restore for Windows (ARM64)'
       condition: eq(variables.rid, 'win-arm64')
       inputs:
         command: 'restore'
@@ -137,7 +137,7 @@ jobs:
 
     # macOS x64
     - task: CmdLine@2
-      displayName: 'Build macOS (intel) native assets'
+      displayName: 'Build macOS (x64) native assets'
       condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         workingDirectory: '.'
@@ -147,7 +147,7 @@ jobs:
           mv ./lib/dev/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish macOS (intel) libraries to artifacts'
+      displayName: 'Publish macOS (x64) libraries to artifacts'
       condition: eq(variables.rid, 'osx.12-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib'
