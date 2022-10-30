@@ -278,7 +278,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else 
 		{
+			Photino->FocusWebView2();
 			Photino->InvokeFocusIn();
+
+			return MA_NOACTIVATE;
 		}
 		break;
 	}
@@ -827,7 +830,7 @@ void Photino::AttachWebView()
 
 						RefitContent();
 
-						_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);		//Set focus in the webview control.
+						FocusWebView2();
 
 						return S_OK;
 					}).Get());
@@ -902,6 +905,14 @@ void Photino::RefitContent()
 		RECT bounds;
 		GetClientRect(_hWnd, &bounds);
 		_webviewController->put_Bounds(bounds);
+	}
+}
+
+void Photino::FocusWebView2()
+{
+	if (_webviewController)
+	{
+		_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
 	}
 }
 
