@@ -40,7 +40,7 @@
         function SetContextMenuEnabled() {
             window.external.sendMessage('setcontextmenuenabled');
         }
-
+        
         function SetDevToolsEnabled() {
             window.external.sendMessage('setdevtoolsenabled');
         }
@@ -139,24 +139,6 @@
                     ev.preventDefault();
                 }, false);
 
-                window.addEventListener('focus', function (ev) {
-                    showEvent('Window Focus');
-                }, false);
-
-                window.addEventListener('blur', function (ev) {
-                    showEvent('Window Blur');
-                }, false);
-
-                window.addEventListener('keydown', function (ev) {
-                    showEvent('Window Keydown');
-                }, false);
-
-                window.external.receiveMessage(function (message) {
-                    if (message === 'focusin') {
-                        showEvent('Photino Focus In');
-                    }
-                });
-
                 clearphoto();
             }
 
@@ -183,41 +165,13 @@
                 }
             }
 
-            window.shouldShowFocusEvents = false;
-
-            function showEvent(event) {
-
-                console.log(event);
-
-                if (!shouldShowFocusEvents) return;
-
-                var eventContainerEl = document.getElementById('EventContainer');
-
-                var newEventEl = document.createElement('div');
-                newEventEl.innerText = event;
-                newEventEl.style.transition = 'all 1s ease-in';
-                newEventEl.style.maxHeight = '20px';
-                newEventEl.style.overflow = 'hidden';
-
-                if (eventContainerEl.children === 0) eventContainerEl.appendChild(newEventEl)
-                else eventContainerEl.insertBefore(newEventEl, eventContainerEl.firstChild);
-
-                setTimeout(function () {
-                    newEventEl.style.opacity = 0;
-                    newEventEl.style.maxHeight = 0;
-                }, 5000);
-                setTimeout(function () {
-                    newEventEl.remove();
-                }, 6000);
-            }
-
             window.addEventListener('load', startup, false);
         })();
     </script>
 </head>
 <body>
     <h1 id="Title"></h1>
-    <div id="EventContainer" style="position: absolute; bottom: 0; right: 0; pointer-events: none; background: white; padding: 10px;"></div>
+
     <button onclick="OpenChildWindow()">Open Child Window</button>
     <button onclick="ZoomIn()">Zoom In</button>
     <button onclick="ZoomOut()">Zoom Out</button>
@@ -243,8 +197,7 @@
     <button onclick="ShowState()">Show State</button>
     <button onclick="SendWebMessage()">Send Web Message</button>
     <button onclick="ToastNotification()">Toast Notification</button>
-    <br />
-    <label><input type="checkbox" onchange="shouldShowFocusEvents = event.target.checked" /> Show Focus Events</label>
+
     <p>
         <div id="Lineage"></div>
     </p>

@@ -171,7 +171,7 @@ namespace PhotinoNET
 
             + $"'{currentWindow.Title}';" + "\n"
 
-            + $"        lineage.innerHTML = `PhotinoWindow Id: {currentWindow.Id} <br>`;" + "\n";
+            + $"        lineage.innerHTML = `PhotinoWindow Id: {currentWindow.Id} <br>`;" + "\n"; 
 
             //show lineage of this window
             var p = currentWindow.Parent;
@@ -294,19 +294,19 @@ namespace PhotinoNET
             {
                 currentWindow.SetHeight(currentWindow.Height - 5);
                 currentWindow.SetWidth(currentWindow.Width - 5);
-            }
+            }              
             else if (string.Compare(message, "settitle", true) == 0)
             {
                 currentWindow.SetTitle(currentWindow.Title + "*");
-            }
+            } 
             else if (string.Compare(message, "settopmost", true) == 0)
             {
                 currentWindow.SetTopMost(!currentWindow.Topmost);
-            }
+            } 
             else if (string.Compare(message, "setfullscreen", true) == 0)
             {
                 currentWindow.SetFullScreen(!currentWindow.FullScreen);
-            }
+            } 
             else if (string.Compare(message, "showproperties", true) == 0)
             {
                 var properties = GetPropertiesDisplay(currentWindow);
@@ -367,14 +367,6 @@ namespace PhotinoNET
 
         private static void WindowFocusIn(object sender, EventArgs e)
         {
-            try
-            {
-                // This is can be called before the Photino window has been initialized
-                var photino = (PhotinoWindow)sender;
-                photino.SendWebMessage("focusin");
-            }
-            catch { }
-
             Log(sender, "WindowFocusIn Callback Fired.");
         }
 
@@ -406,7 +398,7 @@ namespace PhotinoNET
             sb.AppendLine($"Topmost: {currentWindow.Topmost}");
             sb.AppendLine($"Maximized: {currentWindow.Maximized}");
             sb.AppendLine($"Minimized: {currentWindow.Minimized}");
-
+            
             return sb.ToString();
         }
 
