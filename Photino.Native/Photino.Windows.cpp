@@ -281,7 +281,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			Photino->FocusWebView2();
 			Photino->InvokeFocusIn();
 
-			return MA_NOACTIVATE;
+			return 0;
 		}
 		break;
 	}
