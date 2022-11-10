@@ -162,6 +162,7 @@ public:
 	static void SetWebView2RuntimePath(AutoString pathToWebView2);
 	HWND getHwnd();
 	void RefitContent();
+	void FocusWebView2();
 #elif __linux__
 	GtkWidget *_window;
 	int _lastHeight;
