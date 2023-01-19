@@ -177,6 +177,7 @@ public:
 	~Photino();
 
 	void Center();
+	void ClearBrowserAutoFill();
 	void Close();
 
 	void GetContextMenuEnabled(bool *enabled);

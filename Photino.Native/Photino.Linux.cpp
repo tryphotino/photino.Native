@@ -248,6 +248,11 @@ void Photino::Center()
 		(screen.height - windowHeight) / 2);
 }
 
+void Photino::ClearBrowserAutoFill()
+{
+	//TODO
+}
+
 void Photino::Close()
 {
 	gtk_window_close(GTK_WINDOW(_window));

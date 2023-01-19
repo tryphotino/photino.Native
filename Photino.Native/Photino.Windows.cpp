@@ -845,6 +845,7 @@ void Photino::AttachWebView()
 	}
 }
 
+
 bool Photino::EnsureWebViewIsInstalled()
 {
 	LPWSTR* versionInfo = new wchar_t* [100];
@@ -913,6 +914,37 @@ void Photino::FocusWebView2()
 	if (_webviewController)
 	{
 		_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+	}
+}
+
+void Photino::ClearBrowserAutoFill()
+{
+	if (!_webviewWindow)
+		return;
+
+	auto webview15 = _webviewWindow.try_query<ICoreWebView2_15>();
+	if (webview15)
+	{
+		wil::com_ptr<ICoreWebView2Profile> profile;
+		webview15->get_Profile(&profile);
+		auto profile2 = profile.try_query<ICoreWebView2Profile2>();
+
+		if (profile2)
+		{
+			COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds =
+				(COREWEBVIEW2_BROWSING_DATA_KINDS)
+				(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL |
+					COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE);
+
+			profile2->ClearBrowsingData(
+				dataKinds,
+				Callback<ICoreWebView2ClearBrowsingDataCompletedHandler>(
+					[this](HRESULT error)
+					-> HRESULT {
+						return S_OK;
+					})
+				.Get());
+		}
 	}
 }
 
