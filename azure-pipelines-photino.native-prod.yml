@@ -6,7 +6,7 @@ trigger:
 
 variables:
   major: 2
-  minor: 2 
+  minor: 3 
   patch: $[counter(variables['minor'], 0)] #this will reset when we bump minor
   buildConfiguration: 'Release'
 
@@ -19,9 +19,9 @@ jobs:
           rid: 'win-x64'
           imageName: 'windows-latest'
         # No build machine for Windows ARM64 available as of Sep 2022
-        # windows-arm64:
-        #   rid: 'win-arm64'
-        #   imageName: 'windows-latest'
+        windows-arm64:
+          rid: 'win-arm64'
+          imageName: 'windows-latest'
         
         # Linux
         linux-intel:
@@ -36,9 +36,9 @@ jobs:
           rid: 'osx.12-x64'
           imageName: 'macos-12'
         # No build machine for macOS ARM64 available as of Sep 2022
-        # mac-arm64:
-        #  rid: 'osx.12-arm64'
-        #  imagename: 'macos-12'
+        mac-arm64:
+          rid: 'osx.12-arm64'
+          imagename: 'macos-12'
 
     pool:
       vmImage: $(imageName)
