@@ -248,6 +248,11 @@ void Photino::Center()
 		(screen.height - windowHeight) / 2);
 }
 
+void Photino::ClearBrowserAutoFill()
+{
+	//TODO
+}
+
 void Photino::Close()
 {
 	gtk_window_close(GTK_WINDOW(_window));
@@ -634,6 +639,9 @@ void Photino::Show()
 
 		webkit_settings_set_javascript_can_access_clipboard(settings, TRUE);
 		webkit_settings_set_javascript_can_open_windows_automatically(settings, TRUE);
+
+		//this may or may not work
+		//g_object_set(G_OBJECT(settings), "enable-auto-fill-form", TRUE, NULL);
 
 		gtk_container_add(GTK_CONTAINER(_window), _webview);
 

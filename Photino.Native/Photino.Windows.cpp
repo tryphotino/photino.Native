@@ -192,7 +192,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	//Create the window
 	_hWnd = CreateWindowEx(
-		WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
+		0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
 		CLASS_NAME,             //Window class
 		initParams->TitleWide,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
@@ -278,7 +278,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else 
 		{
+			Photino->FocusWebView2();
 			Photino->InvokeFocusIn();
+
+			return 0;
 		}
 		break;
 	}
@@ -827,7 +830,7 @@ void Photino::AttachWebView()
 
 						RefitContent();
 
-						_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);		//Set focus in the webview control.
+						FocusWebView2();
 
 						return S_OK;
 					}).Get());
@@ -841,6 +844,7 @@ void Photino::AttachWebView()
 		MessageBox(_hWnd, errMsg, L"Error instantiating webview", MB_OK);
 	}
 }
+
 
 bool Photino::EnsureWebViewIsInstalled()
 {
@@ -902,6 +906,45 @@ void Photino::RefitContent()
 		RECT bounds;
 		GetClientRect(_hWnd, &bounds);
 		_webviewController->put_Bounds(bounds);
+	}
+}
+
+void Photino::FocusWebView2()
+{
+	if (_webviewController)
+	{
+		_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+	}
+}
+
+void Photino::ClearBrowserAutoFill()
+{
+	if (!_webviewWindow)
+		return;
+
+	auto webview15 = _webviewWindow.try_query<ICoreWebView2_15>();
+	if (webview15)
+	{
+		wil::com_ptr<ICoreWebView2Profile> profile;
+		webview15->get_Profile(&profile);
+		auto profile2 = profile.try_query<ICoreWebView2Profile2>();
+
+		if (profile2)
+		{
+			COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds =
+				(COREWEBVIEW2_BROWSING_DATA_KINDS)
+				(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL |
+					COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE);
+
+			profile2->ClearBrowsingData(
+				dataKinds,
+				Callback<ICoreWebView2ClearBrowsingDataCompletedHandler>(
+					[this](HRESULT error)
+					-> HRESULT {
+						return S_OK;
+					})
+				.Get());
+		}
 	}
 }
 

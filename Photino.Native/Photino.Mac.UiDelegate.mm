@@ -60,6 +60,19 @@
     }];
 }
 
+- (void)webView:(WKWebView *)webView runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler {
+
+    NSOpenPanel* openDlg = [NSOpenPanel openPanel];
+    [openDlg setCanChooseFiles:![parameters allowsDirectories]];
+    [openDlg setCanChooseDirectories:[parameters allowsDirectories]];
+    openDlg.allowsMultipleSelection = [parameters allowsMultipleSelection];
+    [openDlg setPrompt:NSLocalizedString(@"OK", nil)];
+
+    [openDlg beginSheetModalForWindow:window completionHandler:^void (NSModalResponse response) {
+        completionHandler(response == NSModalResponseOK ? [openDlg URLs] : nil);
+    }];
+}
+
 - (void)windowDidResize:(NSNotification *)notification {
     int width, height;
     photino->GetSize(&width, &height);

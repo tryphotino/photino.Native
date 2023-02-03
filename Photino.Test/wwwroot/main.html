@@ -29,6 +29,10 @@
             window.external.sendMessage('close');
         }
 
+        function ClearBrowserAutoFill() {
+            window.external.sendMessage('clearbrowserautofill');
+        }
+
         function Minimize() {
             window.external.sendMessage('minimize');
         }
@@ -197,6 +201,12 @@
     <button onclick="ShowState()">Show State</button>
     <button onclick="SendWebMessage()">Send Web Message</button>
     <button onclick="ToastNotification()">Toast Notification</button>
+    <br>
+    <button onclick="ClearBrowserAutoFill()">ClearBrowserAutoFill</button>
+    <form>
+        <input id="myInput" type="text" name="myCountry" placeholder="Country" autocomplete="on">
+        <button type="submit">Submit</button>
+    </form>
 
     <p>
         <div id="Lineage"></div>

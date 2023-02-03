@@ -45,6 +45,11 @@ extern "C"
 		instance->Center();
 	}
 
+	EXPORTED void Photino_ClearBrowserAutoFill(Photino* instance)
+	{
+		instance->ClearBrowserAutoFill();
+	}
+
 	EXPORTED void Photino_Close(Photino* instance)
 	{
 		instance->Close();

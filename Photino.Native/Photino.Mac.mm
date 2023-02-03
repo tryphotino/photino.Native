@@ -220,6 +220,11 @@ void Photino::Center()
     //[_window setFrame: NSMakeRect(xPos, yPos, NSWidth(window), NSHeight(window)) display:YES];
 }
 
+void Photino::ClearBrowserAutoFill()
+{
+    //TODO
+}
+
 void Photino::Close()
 {
     if (_chromeless)
