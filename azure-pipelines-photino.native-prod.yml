@@ -195,12 +195,12 @@ jobs:
         patterns: '**/*.dll'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    # - task: DownloadPipelineArtifact@2
-    #   displayName: 'Download WindowsArm64Artifact'
-    #   inputs:
-    #     artifact: WindowsArm64Artifact
-    #     patterns: '**/*.dll'
-    #     targetPath: '$(Pipeline.Workspace)/arm64/'
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download WindowsArm64Artifact'
+      inputs:
+        artifact: WindowsArm64Artifact
+        patterns: '**/*.dll'
+        targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download LinuxIntelArtifact'
@@ -223,12 +223,12 @@ jobs:
         patterns: '**/*.dylib'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    # - task: DownloadPipelineArtifact@2
-    #   displayName: 'Download MacOsArm64Artifact'
-    #   inputs:
-    #     artifact: MacOsArm64Artifact
-    #     patterns: '**/*.dylib'
-    #     targetPath: '$(Pipeline.Workspace)/arm64/'
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download MacOsArm64Artifact'
+      inputs:
+        artifact: MacOsArm64Artifact
+        patterns: '**/*.dylib'
+        targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: CmdLine@2
       displayName: 'List downloaded files'
