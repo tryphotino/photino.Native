@@ -42,6 +42,12 @@ struct ShowMessageParams
 };
 
 
+static bool AlwaysValidateServerCertificate(ICoreWebView2Certificate* certificate)
+{
+	return true;
+}
+
+
 void Photino::Register(HINSTANCE hInstance)
 {
 	InitDarkModeSupport();
@@ -670,7 +676,34 @@ void Photino::WaitForExit()
 	}
 }
 
-
+void Photino::DisableTLSCheck()
+{
+	// Only from webview 14 upwards - see:
+	// https://github.com/MicrosoftEdge/WebView2Samples/blob/1710d535e895ed9c24196c5482e990e10d7285c7/SampleApps/WebView2APISample/SettingsComponent.cpp#L1445
+	EventRegistrationToken m_ServerCertificateErrorToken = {};
+	auto webview14 = _webviewWindow.try_query<ICoreWebView2_14>();
+	if (webview14) {
+		webview14->add_ServerCertificateErrorDetected(
+			Callback<ICoreWebView2ServerCertificateErrorDetectedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2ServerCertificateErrorDetectedEventArgs* args) {
+				COREWEBVIEW2_WEB_ERROR_STATUS errorStatus;
+				if (SUCCEEDED(args->get_ErrorStatus(&errorStatus))) {
+					wil::com_ptr<ICoreWebView2Certificate> certificate = nullptr;
+					if (SUCCEEDED(args->get_ServerCertificate(&certificate))) {
+						if (errorStatus == COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID && AlwaysValidateServerCertificate(certificate.get()))
+						{
+							args->put_Action(COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION_ALWAYS_ALLOW);
+						}
+						else
+						{
+							args->put_Action(COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION_CANCEL);
+						}
+					}
+				}
+				return S_OK;
+			}
+		).Get(), &m_ServerCertificateErrorToken);
+	}
+}
 
 
 

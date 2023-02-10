@@ -519,6 +519,12 @@ void Photino::WaitForExit()
     [NSApp run];
 }
 
+void Photino::DisableTLSCheck()
+{
+    // TODO
+    // See https://stackoverflow.com/questions/27100540/allow-unverified-ssl-certificates-in-wkwebview
+}
+
 //Callbacks
 void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 {

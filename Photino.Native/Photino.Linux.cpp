@@ -547,6 +547,12 @@ void Photino::WaitForExit()
 	gtk_main();
 }
 
+void Photino::DisableTLSCheck()
+{
+  auto web_context = webkit_web_context_get_default();
+  auto data_manager = webkit_web_context_get_website_data_manager(web_context);
+  webkit_website_data_manager_set_tls_errors_policy(data_manager, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
+}
 
 
 

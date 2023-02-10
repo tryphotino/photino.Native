@@ -220,6 +220,11 @@ extern "C"
 		instance->WaitForExit();
 	}
 
+	EXPORTED void Photino_DisableTLSCheck(Photino* instance)
+	{
+		instance->DisableTLSCheck();
+	}
+
 
 
 	//Callbacks

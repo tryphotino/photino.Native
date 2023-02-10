@@ -218,6 +218,8 @@ public:
 	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();
 
+	void DisableTLSCheck();
+
 	//Callbacks
 	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back((AutoString)scheme); };
 	void GetAllMonitors(GetAllMonitorsCallback callback);
