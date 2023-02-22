@@ -23,7 +23,7 @@ linux: clean build-photino-linux
 
 windows-dev: clean-dev build-photino-windows
 mac-dev: clean-dev build-photino-mac-dev
-linux-dev: clean-dev install-linux-dependencies build-photino-linux-dev
+linux-dev: clean-dev build-photino-linux-dev
 
 build-photino-windows:
 	# "build-photino-windows is not defined"
@@ -45,6 +45,7 @@ build-photino-mac-dev:
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
 		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
 		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
+		  $(SRC)/Photino.Mac.Dialog.mm\
 		  $(SRC)/Photino.Mac.mm\
 		  $(SRC)/Exports.mm &&\
 	rm $(SRC)/Exports.mm
@@ -59,6 +60,7 @@ build-photino-linux:
 build-photino-linux-dev:
 	$(CC) -o $(DEST_PATH_DEV)/$(DEST_FILE).so\
 		  $(CFLAGS)\
+		  $(SRC)/Photino.Linux.Dialog.cpp\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
 		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
