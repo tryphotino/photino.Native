@@ -1,5 +1,8 @@
 #include "Photino.h"
+#include "Photino.Dialog.h"
+#include "Photino.Windows.DarkMode.h"
 #include "Photino.Windows.ToastHandler.h"
+
 #include <mutex>
 #include <condition_variable>
 #include <comdef.h>
@@ -8,12 +11,9 @@
 #include <windows.h>
 #include <algorithm>
 
-#include "Photino.Windows.DarkMode.h"
-
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
 
-#define WM_USER_SHOWMESSAGE (WM_USER + 0x0001)
 #define WM_USER_INVOKE (WM_USER + 0x0002)
 
 using namespace WinToastLib;
@@ -227,6 +227,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	this->_toastHandler = new WinToastHandler(this);
 	WinToast::instance()->initialize();
+	_dialog = new PhotinoDialog(this);
 	Photino::Show();
 }
 
@@ -306,13 +307,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (hwnd == messageLoopRootWindowHandle)
 			PostQuitMessage(0);
 
-		return 0;
-	}
-	case WM_USER_SHOWMESSAGE:
-	{
-		ShowMessageParams* params = (ShowMessageParams*)wParam;
-		MessageBox(hwnd, params->body.c_str(), params->title.c_str(), params->type);
-		delete params;
 		return 0;
 	}
 	case WM_USER_INVOKE:
@@ -635,15 +629,6 @@ void Photino::SetZoom(int zoom)
 }
 
 
-
-void Photino::ShowMessage(AutoString title, AutoString body, UINT type)
-{
-	ShowMessageParams* params = new ShowMessageParams;
-	params->title = title;
-	params->body = body;
-	params->type = type;
-	PostMessage(_hWnd, WM_USER_SHOWMESSAGE, (WPARAM)params, 0);
-}
 
 void Photino::ShowNotification(AutoString title, AutoString body)
 {

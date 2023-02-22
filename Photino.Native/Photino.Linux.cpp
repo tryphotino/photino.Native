@@ -137,6 +137,7 @@ Photino::Photino(PhotinoInitParams* initParams) : _webview(nullptr)
 	_parent = initParams->ParentInstance;
 
 	_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	_dialog = new PhotinoDialog();
 	
 	if (initParams->FullScreen)
 		SetFullScreen(true);
@@ -519,19 +520,6 @@ void Photino::SetZoom(int zoom)
 {
 	double newZoom = zoom / 100.0;
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(_webview), newZoom);
-}
-
-void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
-{
-	GtkWidget* dialog = gtk_message_dialog_new(GTK_WINDOW(_window),
-		GTK_DIALOG_DESTROY_WITH_PARENT,
-		GTK_MESSAGE_OTHER,
-		GTK_BUTTONS_OK,
-		"%s",
-		body);
-	gtk_window_set_title((GtkWindow*)dialog, title);
-	gtk_dialog_run(GTK_DIALOG(dialog));
-	gtk_widget_destroy(dialog);
 }
 
 void Photino::ShowNotification(AutoString title, AutoString message)
