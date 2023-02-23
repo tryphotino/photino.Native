@@ -11,6 +11,7 @@ variables:
 jobs:
   - job: 'Build'
     strategy:
+      maxParallel: 6
       matrix:
         # Windows
         windows-intel:
