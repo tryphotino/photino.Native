@@ -138,7 +138,7 @@ jobs:
     # macOS x64
     - task: CmdLine@2
       displayName: 'Build macOS (x64) native assets'
-      condition: eq(variables.rid, 'osx.12-x64')
+      condition: eq(variables.rid, 'osx-x64')
       inputs:
         workingDirectory: '.'
         script: |
@@ -148,7 +148,7 @@ jobs:
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish macOS (x64) libraries to artifacts'
-      condition: eq(variables.rid, 'osx.12-x64')
+      condition: eq(variables.rid, 'osx-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: MacOsIntelArtifact
@@ -156,7 +156,7 @@ jobs:
     # macOS ARM64
     - task: CmdLine@2
       displayName: 'Build macOS (ARM64) native assets'
-      condition: eq(variables.rid, 'osx.12-arm64')
+      condition: eq(variables.rid, 'osx-arm64')
       inputs:
         workingDirectory: '.'
         script: |
@@ -166,7 +166,7 @@ jobs:
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish macOS (ARM64) libraries to artifacts'
-      condition: eq(variables.rid, 'osx.12-arm64')
+      condition: eq(variables.rid, 'osx-arm64')
       inputs:
         targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: MacOsArm64Artifact
