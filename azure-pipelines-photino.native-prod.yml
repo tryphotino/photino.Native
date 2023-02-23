@@ -1,4 +1,4 @@
-# Build Photino.Native project from production branch in GitHub
+# Build Photino.Native project from master branch in GitHub
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
@@ -18,10 +18,9 @@ jobs:
         windows-intel:
           rid: 'win-x64'
           imageName: 'windows-latest'
-        # No build machine for Windows ARM64 available as of Sep 2022
-        # windows-arm64:
-        #   rid: 'win-arm64'
-        #   imageName: 'windows-latest'
+        windows-arm64:
+          rid: 'win-arm64'
+          imageName: 'windows-latest'
         
         # Linux
         linux-intel:
@@ -35,10 +34,9 @@ jobs:
         mac-intel:
           rid: 'osx.12-x64'
           imageName: 'macos-12'
-        # No build machine for macOS ARM64 available as of Sep 2022
-        # mac-arm64:
-        #  rid: 'osx.12-arm64'
-        #  imagename: 'macos-12'
+        mac-arm64:
+         rid: 'osx.12-arm64'
+         imagename: 'macos-12'
 
     pool:
       vmImage: $(imageName)
@@ -109,8 +107,8 @@ jobs:
         workingDirectory: '.'
         script: |
           mkdir -p ./Photino.Native/x64/$(buildConfiguration)
-          make linux-dev
-          mv ./lib/dev/Photino.Native.so ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.so
+          make linux-x64
+          mv ./lib/x64/Photino.Native.so ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.so
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Linux (x64) libraries to artifacts'
@@ -127,8 +125,8 @@ jobs:
         workingDirectory: '.'
         script: |
           mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-          make linux-dev
-          mv ./lib/dev/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
+          make linux-arm64
+          mv ./lib/arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Linux (ARM64) libraries to artifacts'
@@ -145,8 +143,8 @@ jobs:
         workingDirectory: '.'
         script: |
           mkdir -p ./Photino.Native/x64/$(buildConfiguration)
-          make mac-dev
-          mv ./lib/dev/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
+          make mac-x64
+          mv ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish macOS (x64) libraries to artifacts'
@@ -163,8 +161,8 @@ jobs:
         workingDirectory: '.'
         script: |
           mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-          make mac-dev
-          mv ./lib/dev/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
+          make mac-arm64
+          mv ./lib/arm64/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish macOS (ARM64) libraries to artifacts'
@@ -195,12 +193,12 @@ jobs:
         patterns: '**/*.dll'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    # - task: DownloadPipelineArtifact@2
-    #   displayName: 'Download WindowsArm64Artifact'
-    #   inputs:
-    #     artifact: WindowsArm64Artifact
-    #     patterns: '**/*.dll'
-    #     targetPath: '$(Pipeline.Workspace)/arm64/'
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download WindowsArm64Artifact'
+      inputs:
+        artifact: WindowsArm64Artifact
+        patterns: '**/*.dll'
+        targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download LinuxIntelArtifact'
@@ -223,12 +221,12 @@ jobs:
         patterns: '**/*.dylib'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    # - task: DownloadPipelineArtifact@2
-    #   displayName: 'Download MacOsArm64Artifact'
-    #   inputs:
-    #     artifact: MacOsArm64Artifact
-    #     patterns: '**/*.dylib'
-    #     targetPath: '$(Pipeline.Workspace)/arm64/'
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download MacOsArm64Artifact'
+      inputs:
+        artifact: MacOsArm64Artifact
+        patterns: '**/*.dylib'
+        targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: CmdLine@2
       displayName: 'List downloaded files'
