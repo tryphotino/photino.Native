@@ -30,11 +30,11 @@ jobs:
 
         # macOS
         mac-intel:
-          rid: 'osx.12-x64'
-          imageName: 'macos-12'
+          rid: 'osx.13-x64'
+          imageName: 'macos-13'
         mac-arm64:
-         rid: 'osx.12-arm64'
-         imagename: 'macos-12'
+         rid: 'osx.13-arm64'
+         imagename: 'macos-13'
 
     pool:
       vmImage: $(imageName)
