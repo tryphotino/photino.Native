@@ -33,7 +33,7 @@ build-photino-mac-universal:
 	cp $(SRC)/Exports.cpp $(SRC)/Exports.mm &&\
 	$(CC) -o $(DEST_PATH_X64)/$(DEST_FILE).dylib\
 		  $(CFLAGS)\
-		  -arch x64\
+		  -arch x86_64\
 		  -arch arm64\
 		  -framework Cocoa\
 		  -framework WebKit\
