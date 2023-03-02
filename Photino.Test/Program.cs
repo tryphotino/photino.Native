@@ -314,7 +314,7 @@ namespace PhotinoNET
             else if (string.Compare(message, "showproperties", true) == 0)
             {
                 var properties = GetPropertiesDisplay(currentWindow);
-                currentWindow.OpenAlertWindow("Settings", properties);
+                //currentWindow.OpenAlertWindow("Settings", properties);
             }
             else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
