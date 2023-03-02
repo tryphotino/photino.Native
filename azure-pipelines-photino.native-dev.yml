@@ -179,7 +179,7 @@ jobs:
         - 'Publish_Nuspec' 
         - 'Build_Win_x64' 
         #- 'Build_Win_Arm64' 
-        - 'Build Linux x64' 
+        - 'Build_Linux_x64' 
         #- 'Build_Linux_Arm64' 
         - 'Build_Mac_x64' 
         #- 'Build_Mac_Arm64'
