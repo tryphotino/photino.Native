@@ -48,31 +48,31 @@ jobs:
         artifactName: WindowsIntelArtifact
 
 
-#  - job: 'Build_Win_Arm64'
-#    pool:
-#      vmImage: 'windows-latest'
-#
-    #steps:
-    #- task: NuGetCommand@2
-    #  displayName: 'NuGet package restore for Windows (ARM64)'
-    #  inputs:
-    #    command: 'restore'
-    #    restoreSolution: 'Photino.Native.sln'
-    #    feedsToUse: 'select'
+  #- job: 'Build_Win_Arm64'
+  #  pool:
+  #    vmImage: 'windows-latest'
 
-    #- task: VSBuild@1
-    #  displayName: 'Build Windows (ARM64) native assets'
-    #  inputs:
-    #    solution: 'Photino.Native.sln'
-    #    platform: 'ARM64'
-    #    msbuildArchitecture: 'ARM64'
-    #    configuration: '$(buildConfiguration)'
+  #steps:
+  #- task: NuGetCommand@2
+  #  displayName: 'NuGet package restore for Windows (ARM64)'
+  #  inputs:
+  #    command: 'restore'
+  #    restoreSolution: 'Photino.Native.sln'
+  #    feedsToUse: 'select'
 
-    #- task: PublishPipelineArtifact@1
-    #  displayName: 'Publish Windows (ARM64) libraries to artifacts'
-    #  inputs:
-    #    targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-    #    artifactName: WindowsArm64Artifact
+  #- task: VSBuild@1
+  #  displayName: 'Build Windows (ARM64) native assets'
+  #  inputs:
+  #    solution: 'Photino.Native.sln'
+  #    platform: 'ARM64'
+  #    msbuildArchitecture: 'ARM64'
+  #    configuration: '$(buildConfiguration)'
+
+  #- task: PublishPipelineArtifact@1
+  #  displayName: 'Publish Windows (ARM64) libraries to artifacts'
+  #  inputs:
+  #    targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+  #    artifactName: WindowsArm64Artifact
 
 
   - job: 'Build_Linux_x64'
@@ -96,25 +96,25 @@ jobs:
         artifactName: LinuxIntelArtifact
 
 
-#  - job: 'Build_Linux_Arm64'
-#    pool:
-#      vmImage: 'ubuntu-latest'
-#
-#    steps:
-#    - task: CmdLine@2
-#      displayName: 'Build Linux (ARM64) native assets'
-#      inputs:
-#        workingDirectory: '.'
-#        script: |
-#          mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-#          make linux-dev
-#          mv ./lib/dev/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
-#
-#    - task: PublishPipelineArtifact@1
-#      displayName: 'Publish Linux (ARM64) libraries to artifacts'
-#      inputs:
-#        targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-#        artifactName: LinuxArm64Artifact
+  #- job: 'Build_Linux_Arm64'
+  #  pool:
+  #    vmImage: 'ubuntu-latest'
+
+  #  steps:
+  #  - task: CmdLine@2
+  #    displayName: 'Build Linux (ARM64) native assets'
+  #    inputs:
+  #      workingDirectory: '.'
+  #      script: |
+  #        mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
+  #        make linux-dev
+  #        mv ./lib/dev/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
+
+  #  - task: PublishPipelineArtifact@1
+  #    displayName: 'Publish Linux (ARM64) libraries to artifacts'
+  #    inputs:
+  #      targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+  #      artifactName: LinuxArm64Artifact
 
 
   - job: 'Build_Mac_Universal'
