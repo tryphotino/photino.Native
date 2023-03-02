@@ -9,7 +9,7 @@ variables:
   buildConfiguration: 'Release'
 
 jobs:
-  - job: 'Publish Nuspec'
+  - job: 'Publish_Nuspec'
     pool:
       vmImage: 'windows-latest'
       rid: 'win-x64'
@@ -22,7 +22,7 @@ jobs:
         artifactName: NuspecArtifact
   
 
-  - job: 'Build Win x64'
+  - job: 'Build_Win_x64'
     pool:
       vmImage: 'windows-latest'
       rid: 'win-x64'
@@ -50,7 +50,7 @@ jobs:
         artifactName: WindowsIntelArtifact
 
 
-#  - job: 'Build Win Arm64'
+#  - job: 'Build_Win_Arm64'
 #    pool:
 #      vmImage: 'windows-latest'
 #      rid: 'win-arm64'
@@ -78,7 +78,7 @@ jobs:
     #    artifactName: WindowsArm64Artifact
 
 
-  - job: 'Build Linux x64'
+  - job: 'Build_Linux_x64'
     pool:
       vmImage: 'ubuntu-latest'
       rid: 'linux-x64'
@@ -100,7 +100,7 @@ jobs:
         artifactName: LinuxIntelArtifact
 
 
-#  - job: 'Build Linux Arm64'
+#  - job: 'Build_Linux_Arm64'
 #    pool:
 #      vmImage: 'ubuntu-latest'
 #      rid: 'linux-arm64'
@@ -122,7 +122,7 @@ jobs:
 #        artifactName: LinuxArm64Artifact
 
 
-  - job: 'Build Mac x64'
+  - job: 'Build_Mac_x64'
     pool:
       vmImage: 'macos-12'
       rid: 'osx.12-x64'
@@ -150,7 +150,7 @@ jobs:
         targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: MacOsArm64Artifact
 
-#  - job: 'Build Mac Arm64'
+#  - job: 'Build_Mac_Arm64'
 #    pool:
 #      vmImage: 'macos-12'
 #      rid: 'osx.12-arm64'
@@ -176,13 +176,13 @@ jobs:
   # 1 instance to download all native files, create NuGet package and publish to Artifacts
   - job: 'PublishPackage'
     dependsOn: 
-        - 'Publish Nuspec' 
-        - 'Build Win x64' 
-        #- 'Build Win Arm64' 
+        - 'Publish_Nuspec' 
+        - 'Build_Win_x64' 
+        #- 'Build_Win_Arm64' 
         - 'Build Linux x64' 
-        #- 'Build Linux Arm64' 
-        - 'Build Mac x64' 
-        #- 'Build Mac Arm64'
+        #- 'Build_Linux_Arm64' 
+        - 'Build_Mac_x64' 
+        #- 'Build_Mac_Arm64'
     
     pool:
       vmImage: 'windows-latest'
