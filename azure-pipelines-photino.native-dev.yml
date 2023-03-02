@@ -12,7 +12,6 @@ jobs:
   - job: 'Publish_Nuspec'
     pool:
       vmImage: 'windows-latest'
-      rid: 'win-x64'
 
     steps:
     - task: PublishPipelineArtifact@1
@@ -25,7 +24,6 @@ jobs:
   - job: 'Build_Win_x64'
     pool:
       vmImage: 'windows-latest'
-      rid: 'win-x64'
 
     steps:
     - task: NuGetCommand@2
@@ -53,7 +51,6 @@ jobs:
 #  - job: 'Build_Win_Arm64'
 #    pool:
 #      vmImage: 'windows-latest'
-#      rid: 'win-arm64'
 #
     #steps:
     #- task: NuGetCommand@2
@@ -81,7 +78,6 @@ jobs:
   - job: 'Build_Linux_x64'
     pool:
       vmImage: 'ubuntu-latest'
-      rid: 'linux-x64'
 
     steps:
     - task: CmdLine@2
@@ -103,7 +99,6 @@ jobs:
 #  - job: 'Build_Linux_Arm64'
 #    pool:
 #      vmImage: 'ubuntu-latest'
-#      rid: 'linux-arm64'
 #
 #    steps:
 #    - task: CmdLine@2
@@ -122,10 +117,9 @@ jobs:
 #        artifactName: LinuxArm64Artifact
 
 
-  - job: 'Build_Mac_x64'
+  - job: 'Build_Mac_Universal'
     pool:
       vmImage: 'macos-12'
-      rid: 'osx.12-x64'
 
     steps:
     - task: CmdLine@2
@@ -151,28 +145,6 @@ jobs:
         targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: MacOsArm64Artifact
 
-#  - job: 'Build_Mac_Arm64'
-#    pool:
-#      vmImage: 'macos-12'
-#      rid: 'osx.12-arm64'
-#
-#    steps:
-#    - task: CmdLine@2
-#      displayName: 'Build macOS (ARM64) native assets'
-#      inputs:
-#        workingDirectory: '.'
-#        script: |
-#          mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-#          make mac-dev
-#          mv ./lib/dev/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
-#
-#    - task: PublishPipelineArtifact@1
-#      displayName: 'Publish macOS (ARM64) libraries to artifacts'
-#      inputs:
-#        targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib'
-#        artifactName: MacOsArm64Artifact
-
-
 
   # 1 instance to download all native files, create NuGet package and publish to Artifacts
   - job: 'PublishPackage'
@@ -182,8 +154,7 @@ jobs:
         #- 'Build_Win_Arm64' 
         - 'Build_Linux_x64' 
         #- 'Build_Linux_Arm64' 
-        - 'Build_Mac_x64' 
-        #- 'Build_Mac_Arm64'
+        - 'Build_Mac_Universal' 
     
     pool:
       vmImage: 'windows-latest'
