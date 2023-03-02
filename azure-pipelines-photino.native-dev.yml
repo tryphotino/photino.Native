@@ -134,8 +134,9 @@ jobs:
         workingDirectory: '.'
         script: |
           mkdir -p ./Photino.Native/x64/$(buildConfiguration)
-          make mac-x64
-          mv ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
+          make mac-universal
+          cp ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
+          cp ./lib/x64/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish macOS (x64) libraries to artifacts'
@@ -143,6 +144,11 @@ jobs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: MacOsIntelArtifact
 
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish macOS (ARM64) libraries to artifacts'
+      inputs:
+        targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib'
+        artifactName: MacOsArm64Artifact
 
 #  - job: 'Build Mac Arm64'
 #    pool:
@@ -172,11 +178,11 @@ jobs:
     dependsOn: 
         - 'Publish Nuspec' 
         - 'Build Win x64' 
-        - 'Build Win Arm64' 
+        #- 'Build Win Arm64' 
         - 'Build Linux x64' 
-        - 'Build Linux Arm64' 
+        #- 'Build Linux Arm64' 
         - 'Build Mac x64' 
-        - 'Build Mac Arm64'
+        #- 'Build Mac Arm64'
     
     pool:
       vmImage: 'windows-latest'
@@ -196,12 +202,12 @@ jobs:
         patterns: '**/*.dll'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download WindowsArm64Artifact'
-      inputs:
-        artifact: WindowsArm64Artifact
-        patterns: '**/*.dll'
-        targetPath: '$(Pipeline.Workspace)/arm64/'
+    #- task: DownloadPipelineArtifact@2
+    #  displayName: 'Download WindowsArm64Artifact'
+    #  inputs:
+    #    artifact: WindowsArm64Artifact
+    #    patterns: '**/*.dll'
+    #    targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download LinuxIntelArtifact'
@@ -210,12 +216,12 @@ jobs:
         patterns: '**/*.so'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download LinuxArm64Artifact'
-      inputs:
-        artifact: LinuxArm64Artifact
-        patterns: '**/*.so'
-        targetPath: '$(Pipeline.Workspace)/arm64/'
+    #- task: DownloadPipelineArtifact@2
+    #  displayName: 'Download LinuxArm64Artifact'
+    #  inputs:
+    #    artifact: LinuxArm64Artifact
+    #    patterns: '**/*.so'
+    #    targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download MacOsIntelArtifact'
