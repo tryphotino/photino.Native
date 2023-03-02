@@ -134,6 +134,7 @@ jobs:
         workingDirectory: '.'
         script: |
           mkdir -p ./Photino.Native/x64/$(buildConfiguration)
+          mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
           make mac-universal
           cp ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
           cp ./lib/x64/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
