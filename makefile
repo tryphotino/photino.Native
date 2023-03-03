@@ -19,6 +19,7 @@ all:
 
 windows: clean-x64 build-photino-windows
 
+mac-universal: clean-x64 build-photino-mac-universal
 mac-x64: clean-x64 build-photino-mac-x64
 mac-arm64: clean-arm64 build-photino-mac-arm64
 
@@ -27,6 +28,23 @@ linux-arm64: clean-arm64 install-linux-dependencies build-photino-linux-arm64
 
 build-photino-windows:
 	# "build-photino-windows is not defined"
+
+build-photino-mac-universal:
+	cp $(SRC)/Exports.cpp $(SRC)/Exports.mm &&\
+	$(CC) -o $(DEST_PATH_X64)/$(DEST_FILE).dylib\
+		  $(CFLAGS)\
+		  -arch x86_64\
+		  -arch arm64\
+		  -framework Cocoa\
+		  -framework WebKit\
+		  -framework UserNotifications\
+		  $(SRC)/Photino.Mac.AppDelegate.mm\
+		  $(SRC)/Photino.Mac.UiDelegate.mm\
+		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
+		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
+		  $(SRC)/Photino.Mac.mm\
+		  $(SRC)/Exports.mm &&\
+	rm $(SRC)/Exports.mm
 
 build-photino-mac-x64:
 	cp $(SRC)/Exports.cpp $(SRC)/Exports.mm &&\
