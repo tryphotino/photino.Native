@@ -9,49 +9,25 @@ variables:
   buildConfiguration: 'Release'
 
 jobs:
-  - job: 'Build'
-    strategy:
-      maxParallel: 6
-      matrix:
-        # Windows
-        windows-intel:
-          rid: 'win-x64'
-          imageName: 'windows-latest'
-        windows-arm64:
-          rid: 'win-arm64'
-          imageName: 'windows-latest'
-        
-        # Linux
-        linux-intel:
-          rid: 'linux-x64'
-          imageName: 'ubuntu-latest'
-        linux-arm64:
-          rid: 'linux-arm64'
-          imageName: 'ubuntu-latest'
-
-        # macOS
-        mac-intel:
-          rid: 'osx-x64'
-          imageName: 'macos-latest'
-        mac-arm64:
-         rid: 'osx-arm64'
-         imagename: 'macos-latest'
-
+  - job: 'Publish_Nuspec'
     pool:
-      vmImage: $(imageName)
+      vmImage: 'windows-latest'
 
     steps:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Windows (x64) nuspec to artifacts'
-      condition: eq(variables.rid, 'win-x64')
       inputs:
         targetPath: './Photino.Native/Photino.Native.nuspec'
         artifactName: NuspecArtifact
+  
 
-    # Windows x64
+  - job: 'Build_Win_x64'
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
     - task: NuGetCommand@2
       displayName: 'NuGet package restore for Windows (x64)'
-      condition: eq(variables.rid, 'win-x64')
       inputs:
         command: 'restore'
         restoreSolution: 'Photino.Native.sln'
@@ -59,7 +35,6 @@ jobs:
 
     - task: VSBuild@1
       displayName: 'Build Windows (x64) native assets'
-      condition: eq(variables.rid, 'win-x64')
       inputs:
         solution: 'Photino.Native.sln'
         platform: 'x64'
@@ -68,40 +43,45 @@ jobs:
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Windows (x64) libraries to artifacts'
-      condition: eq(variables.rid, 'win-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)'
         artifactName: WindowsIntelArtifact
 
-    # Windows ARM64
-    - task: NuGetCommand@2
-      displayName: 'NuGet package restore for Windows (ARM64)'
-      condition: eq(variables.rid, 'win-arm64')
-      inputs:
-        command: 'restore'
-        restoreSolution: 'Photino.Native.sln'
-        feedsToUse: 'select'
 
-    - task: VSBuild@1
-      displayName: 'Build Windows (ARM64) native assets'
-      condition: eq(variables.rid, 'win-arm64')
-      inputs:
-        solution: 'Photino.Native.sln'
-        platform: 'ARM64'
-        msbuildArchitecture: 'ARM64'
-        configuration: '$(buildConfiguration)'
+  #- job: 'Build_Win_Arm64'
+  #  pool:
+  #    vmImage: 'windows-latest'
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Windows (ARM64) libraries to artifacts'
-      condition: eq(variables.rid, 'win-arm64')
-      inputs:
-        targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-        artifactName: WindowsArm64Artifact
+  #steps:
+  #- task: NuGetCommand@2
+  #  displayName: 'NuGet package restore for Windows (ARM64)'
+  #  inputs:
+  #    command: 'restore'
+  #    restoreSolution: 'Photino.Native.sln'
+  #    feedsToUse: 'select'
 
-    # Linux x64
+  #- task: VSBuild@1
+  #  displayName: 'Build Windows (ARM64) native assets'
+  #  inputs:
+  #    solution: 'Photino.Native.sln'
+  #    platform: 'ARM64'
+  #    msbuildArchitecture: 'ARM64'
+  #    configuration: '$(buildConfiguration)'
+
+  #- task: PublishPipelineArtifact@1
+  #  displayName: 'Publish Windows (ARM64) libraries to artifacts'
+  #  inputs:
+  #    targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+  #    artifactName: WindowsArm64Artifact
+
+
+  - job: 'Build_Linux_x64'
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    steps:
     - task: CmdLine@2
       displayName: 'Build Linux (x64) native assets'
-      condition: eq(variables.rid, 'linux-x64')
       inputs:
         workingDirectory: '.'
         script: |
@@ -111,68 +91,70 @@ jobs:
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Linux (x64) libraries to artifacts'
-      condition: eq(variables.rid, 'linux-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)'
         artifactName: LinuxIntelArtifact
 
-    # Linux ARM64
-    - task: CmdLine@2
-      displayName: 'Build Linux (ARM64) native assets'
-      condition: eq(variables.rid, 'linux-arm64')
-      inputs:
-        workingDirectory: '.'
-        script: |
-          mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-          make linux-arm64
-          mv ./lib/arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Linux (ARM64) libraries to artifacts'
-      condition: eq(variables.rid, 'linux-arm64')
-      inputs:
-        targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-        artifactName: LinuxArm64Artifact
+  #- job: 'Build_Linux_Arm64'
+  #  pool:
+  #    vmImage: 'ubuntu-latest'
 
-    # macOS x64
+  #  steps:
+  #  - task: CmdLine@2
+  #    displayName: 'Build Linux (ARM64) native assets'
+  #    inputs:
+  #      workingDirectory: '.'
+  #      script: |
+  #        mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
+  #        make linux-dev
+  #        mv ./lib/dev/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
+
+  #  - task: PublishPipelineArtifact@1
+  #    displayName: 'Publish Linux (ARM64) libraries to artifacts'
+  #    inputs:
+  #      targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+  #      artifactName: LinuxArm64Artifact
+
+
+  - job: 'Build_Mac_Universal'
+    pool:
+      vmImage: 'macos-12'
+
+    steps:
     - task: CmdLine@2
       displayName: 'Build macOS (x64) native assets'
-      condition: eq(variables.rid, 'osx-x64')
       inputs:
         workingDirectory: '.'
         script: |
           mkdir -p ./Photino.Native/x64/$(buildConfiguration)
-          make mac-x64
-          mv ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
+          mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
+          make mac-universal
+          cp ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
+          cp ./lib/x64/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish macOS (x64) libraries to artifacts'
-      condition: eq(variables.rid, 'osx-x64')
       inputs:
         targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: MacOsIntelArtifact
 
-    # macOS ARM64
-    - task: CmdLine@2
-      displayName: 'Build macOS (ARM64) native assets'
-      condition: eq(variables.rid, 'osx-arm64')
-      inputs:
-        workingDirectory: '.'
-        script: |
-          mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-          make mac-arm64
-          mv ./lib/arm64/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
-
     - task: PublishPipelineArtifact@1
       displayName: 'Publish macOS (ARM64) libraries to artifacts'
-      condition: eq(variables.rid, 'osx-arm64')
       inputs:
         targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib'
         artifactName: MacOsArm64Artifact
 
+
   # 1 instance to download all native files, create NuGet package and publish to Artifacts
   - job: 'PublishPackage'
-    dependsOn: 'Build'
+    dependsOn: 
+        - 'Publish_Nuspec' 
+        - 'Build_Win_x64' 
+        #- 'Build_Win_Arm64' 
+        - 'Build_Linux_x64' 
+        #- 'Build_Linux_Arm64' 
+        - 'Build_Mac_Universal' 
     
     pool:
       vmImage: 'windows-latest'
@@ -192,12 +174,12 @@ jobs:
         patterns: '**/*.dll'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download WindowsArm64Artifact'
-      inputs:
-        artifact: WindowsArm64Artifact
-        patterns: '**/*.dll'
-        targetPath: '$(Pipeline.Workspace)/arm64/'
+    #- task: DownloadPipelineArtifact@2
+    #  displayName: 'Download WindowsArm64Artifact'
+    #  inputs:
+    #    artifact: WindowsArm64Artifact
+    #    patterns: '**/*.dll'
+    #    targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download LinuxIntelArtifact'
@@ -206,12 +188,12 @@ jobs:
         patterns: '**/*.so'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download LinuxArm64Artifact'
-      inputs:
-        artifact: LinuxArm64Artifact
-        patterns: '**/*.so'
-        targetPath: '$(Pipeline.Workspace)/arm64/'
+    #- task: DownloadPipelineArtifact@2
+    #  displayName: 'Download LinuxArm64Artifact'
+    #  inputs:
+    #    artifact: LinuxArm64Artifact
+    #    patterns: '**/*.so'
+    #    targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download MacOsIntelArtifact'

@@ -1,3 +1,4 @@
+#include "Photino.Dialog.h"
 #include "Photino.h"
 
 #ifdef _WIN32
@@ -204,12 +205,7 @@ extern "C"
 	{
 		instance->SetZoom(zoom);
 	}
-
-	EXPORTED void Photino_ShowMessage(Photino* instance, AutoString title, AutoString body, unsigned int type)
-	{
-		instance->ShowMessage(title, body, type);
-	}
-
+	
 	EXPORTED void Photino_ShowNotification(Photino* instance, AutoString title, AutoString body)
 	{
 		instance->ShowNotification(title, body);
@@ -218,6 +214,22 @@ extern "C"
 	EXPORTED void Photino_WaitForExit(Photino* instance)
 	{
 		instance->WaitForExit();
+	}
+
+
+
+	//Dialog
+	EXPORTED AutoString* Photino_ShowOpenFile(Photino* inst, AutoString title, AutoString defaultPath, bool multiSelect, AutoString* filters, int filterCount, int* resultCount) {
+		return inst->GetDialog()->ShowOpenFile(title, defaultPath, multiSelect, filters, filterCount, resultCount);
+	}
+	EXPORTED AutoString* Photino_ShowOpenFolder(Photino* inst, AutoString title, AutoString defaultPath, bool multiSelect, int* resultCount) {
+		return inst->GetDialog()->ShowOpenFolder(title, defaultPath, multiSelect, resultCount);
+	}
+	EXPORTED AutoString Photino_ShowSaveFile(Photino* inst, AutoString title, AutoString defaultPath, AutoString* filters, int filterCount) {
+		return inst->GetDialog()->ShowSaveFile(title, defaultPath, filters, filterCount);
+	}
+	EXPORTED DialogResult Photino_ShowMessage(Photino* inst, AutoString title, AutoString text, DialogButtons buttons, DialogIcon icon) {
+		return inst->GetDialog()->ShowMessage(title, text, buttons, icon);
 	}
 
 

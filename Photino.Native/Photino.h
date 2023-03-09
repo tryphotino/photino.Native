@@ -7,6 +7,7 @@
 typedef wchar_t *AutoString;
 class WinToastHandler;
 #else
+#include "Photino.Dialog.h"
 // AutoString for macOS/Linux
 typedef char *AutoString;
 #endif
@@ -49,6 +50,7 @@ typedef bool (*ClosingCallback)();
 typedef void (*FocusInCallback)();
 typedef void (*FocusOutCallback)();
 
+class PhotinoDialog;
 class Photino;
 
 struct PhotinoInitParams
@@ -125,6 +127,7 @@ private:
 	int _zoom;
 
 	Photino *_parent;
+	PhotinoDialog *_dialog;
 	void Show();
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
@@ -176,6 +179,8 @@ public:
 	Photino(PhotinoInitParams *initParams);
 	~Photino();
 
+	PhotinoDialog* GetDialog() const { return _dialog; };
+
 	void Center();
 	void ClearBrowserAutoFill();
 	void Close();
@@ -213,8 +218,7 @@ public:
 	void SetTitle(AutoString title);
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
-
-	void ShowMessage(AutoString title, AutoString body, unsigned int type);
+	
 	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();
 

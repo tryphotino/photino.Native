@@ -97,6 +97,18 @@
             window.external.sendMessage('toastNotification');
         }
 
+        function ShowOpenFile() {
+            window.external.sendMessage('showOpenFile');
+        }
+
+        function ShowOpenFolder() {
+            window.external.sendMessage('showOpenFolder');
+        }
+
+        function ShowSaveFile() {
+            window.external.sendMessage('showSaveFile');
+        }
+
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
         (function () {
@@ -201,6 +213,9 @@
     <button onclick="ShowState()">Show State</button>
     <button onclick="SendWebMessage()">Send Web Message</button>
     <button onclick="ToastNotification()">Toast Notification</button>
+    <button onclick="ShowOpenFile()">Open File Dialog</button>
+    <button onclick="ShowOpenFolder()">Open Folder Dialog</button>
+    <button onclick="ShowSaveFile()">Save File Dialog</button>
     <br>
     <button onclick="ClearBrowserAutoFill()">ClearBrowserAutoFill</button>
     <form>
