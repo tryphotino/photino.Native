@@ -9,11 +9,8 @@
 #include <Cocoa/Cocoa.h>
 #endif
 
-#ifdef __linux__
-typedef char *AutoString;
-#endif
-
-enum class DialogResult {
+enum class DialogResult
+{
 	Cancel = -1,
 	Ok,
 	Yes,
@@ -23,7 +20,8 @@ enum class DialogResult {
 	Ignore,
 };
 
-enum class DialogButtons {
+enum class DialogButtons
+{
 	Ok,
 	OkCancel,
 	YesNo,
@@ -32,35 +30,37 @@ enum class DialogButtons {
 	AbortRetryIgnore,
 };
 
-enum class DialogIcon {
+enum class DialogIcon
+{
 	Info,
 	Warning,
 	Error,
 	Question,
 };
 
-class PhotinoDialog {
+class PhotinoDialog
+{
 public:
 #ifdef _WIN32
-	PhotinoDialog(Photino* window);
+	PhotinoDialog(Photino *window);
 #else
 	PhotinoDialog();
 #endif
 	~PhotinoDialog();
 
-	AutoString* ShowOpenFile(AutoString title, AutoString defaultPath, bool multiSelect, AutoString* filters, int filterCount, int* resultCount);
-	AutoString* ShowOpenFolder(AutoString title, AutoString defaultPath, bool multiSelect, int* resultCount);
-	AutoString ShowSaveFile(AutoString title, AutoString defaultPath, AutoString* filters, int filterCount);
+	AutoString *ShowOpenFile(AutoString title, AutoString defaultPath, bool multiSelect, AutoString *filters, int filterCount, int *resultCount);
+	AutoString *ShowOpenFolder(AutoString title, AutoString defaultPath, bool multiSelect, int *resultCount);
+	AutoString ShowSaveFile(AutoString title, AutoString defaultPath, AutoString *filters, int filterCount);
 	DialogResult ShowMessage(AutoString title, AutoString text, DialogButtons buttons, DialogIcon icon);
-protected:
 
+protected:
 #ifdef __APPLE__
-	NSImage* _errorIcon;
-	NSImage* _infoIcon;
-	NSImage* _questionIcon;
-	NSImage* _warningIcon;
+	NSImage *_errorIcon;
+	NSImage *_infoIcon;
+	NSImage *_questionIcon;
+	NSImage *_warningIcon;
 #elif _WIN32
-	Photino* _window;
+	Photino *_window;
 #endif
 };
 

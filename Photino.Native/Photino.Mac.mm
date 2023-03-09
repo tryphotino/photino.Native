@@ -1,5 +1,6 @@
 #ifdef __APPLE__
 #include "Photino.h"
+#include "Photino.Dialog.h"
 #include "Photino.Mac.AppDelegate.h"
 #include "Photino.Mac.UiDelegate.h"
 #include "Photino.Mac.UrlSchemeHandler.h"
