@@ -240,6 +240,7 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net6.0\</Comm
     <ClCompile Include="Photino.Linux.cpp" />
     <ClCompile Include="Photino.Windows.cpp" />
     <ClCompile Include="Photino.Windows.DarkMode.cpp" />
+    <ClCompile Include="Photino.Windows.DpiHelp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\wintoastlib.h" />
@@ -249,6 +250,7 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net6.0\</Comm
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h" />
     <ClInclude Include="Photino.Windows.ToastHandler.h" />
     <ClInclude Include="Photino.Windows.DarkMode.h" />
+    <ClInclude Include="Photino.Windows.DpiHelp.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
