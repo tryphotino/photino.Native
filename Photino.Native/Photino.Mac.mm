@@ -1,5 +1,6 @@
 #ifdef __APPLE__
 #include "Photino.h"
+#include "Photino.Dialog.h"
 #include "Photino.Mac.AppDelegate.h"
 #include "Photino.Mac.UiDelegate.h"
 #include "Photino.Mac.UrlSchemeHandler.h"
@@ -185,6 +186,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 
     _webview = nil;
     AttachWebView();
+
+    _dialog = new PhotinoDialog();
 
     if (_grantBrowserPermissions)
         SetGrantBrowserPermissions(_grantBrowserPermissions);
@@ -480,26 +483,6 @@ void EnsureInvoke(dispatch_block_t block)
         block();
     else
         dispatch_async(dispatch_get_main_queue(), block);
-}
-
-void Photino::ShowMessage(AutoString title, AutoString body, unsigned int type)
-{
-    EnsureInvoke(^{
-        NSAlert *alert = [[NSAlert alloc] init];
-
-        NSString *nstitle = [NSString stringWithUTF8String: title];
-        NSString *nsbody= [NSString stringWithUTF8String: body];
-
-        [alert setMessageText: nstitle];
-        [alert setInformativeText: nsbody];
-        [alert addButtonWithTitle: @"OK"];
-
-        [alert
-            beginSheetModalForWindow: _window
-            completionHandler: ^void (NSModalResponse response) {
-                [alert release];
-            }];
-    });
 }
 
 void Photino::ShowNotification(AutoString title, AutoString body)

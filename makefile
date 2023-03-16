@@ -42,6 +42,7 @@ build-photino-mac-universal:
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
 		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
 		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
+		  $(SRC)/Photino.Mac.Dialog.mm\
 		  $(SRC)/Photino.Mac.mm\
 		  $(SRC)/Exports.mm &&\
 	rm $(SRC)/Exports.mm
@@ -57,6 +58,7 @@ build-photino-mac-x64:
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
 		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
 		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
+		  $(SRC)/Photino.Mac.Dialog.mm\
 		  $(SRC)/Photino.Mac.mm\
 		  $(SRC)/Exports.mm &&\
 	rm $(SRC)/Exports.mm
@@ -72,6 +74,7 @@ build-photino-mac-arm64:
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
 		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
 		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
+		  $(SRC)/Photino.Mac.Dialog.mm\
 		  $(SRC)/Photino.Mac.mm\
 		  $(SRC)/Exports.mm &&\
 	rm $(SRC)/Exports.mm
@@ -83,6 +86,7 @@ install-linux-dependencies:
 build-photino-linux-x64:
 	$(CC) -o $(DEST_PATH_X64)/$(DEST_FILE).so\
 		  $(CFLAGS)\
+		  $(SRC)/Photino.Linux.Dialog.cpp\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
 		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
@@ -90,6 +94,7 @@ build-photino-linux-x64:
 build-photino-linux-arm64:
 	$(CC) -o $(DEST_PATH_ARM64)/$(DEST_FILE).so\
 		  $(CFLAGS)\
+		  $(SRC)/Photino.Linux.Dialog.cpp\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
 		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
