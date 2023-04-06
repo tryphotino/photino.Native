@@ -324,9 +324,9 @@ namespace PhotinoNET
                 var properties = GetPropertiesDisplay(currentWindow);
                 currentWindow.ShowMessage("Settings", properties);
             }
-            else if (string.Compare(message, "showOpenFile", true) == 0) 
+            else if (string.Compare(message, "showOpenFile", true) == 0)
             {
-                var results = currentWindow.ShowOpenFile(filters: new []{ 
+                var results = currentWindow.ShowOpenFile(filters: new[]{
                     ("All files", new [] {"*.*"}),
                     ("Text files", new [] {"*.txt"}),
                     ("Image files", new [] {"*.png", "*.jpg", "*.jpeg"}),
@@ -353,6 +353,10 @@ namespace PhotinoNET
                     currentWindow.ShowMessage("Save File", result);
                 else
                     currentWindow.ShowMessage("Save File", "File not saved", icon: PhotinoDialogIcon.Error);
+            }
+            else if (string.Compare(message, "showMessage", true) == 0)
+            {
+                var result = currentWindow.ShowMessage("Title", "Testing...");
             }
             else
                 throw new Exception($"Unknown message '{message}'");

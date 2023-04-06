@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photino</title>
 
+    <!--
     <script src="app://dynamic.js"></script>
+    -->
 
     <script>
         function OpenChildWindow() {
@@ -109,6 +111,10 @@
             window.external.sendMessage('showSaveFile');
         }
 
+        function ShowMessage() {
+            window.external.sendMessage('showMessage');
+        }
+
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
         (function () {
@@ -180,7 +186,7 @@
                     clearphoto();
                 }
             }
-
+           
             window.addEventListener('load', startup, false);
         })();
     </script>
@@ -216,6 +222,7 @@
     <button onclick="ShowOpenFile()">Open File Dialog</button>
     <button onclick="ShowOpenFolder()">Open Folder Dialog</button>
     <button onclick="ShowSaveFile()">Save File Dialog</button>
+    <button onclick="ShowMessage()">MessageBox</button>
     <br>
     <button onclick="ClearBrowserAutoFill()">ClearBrowserAutoFill</button>
     <form>

@@ -49,7 +49,7 @@
 
   <ItemGroup>
     <None Update="wwwroot\main.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="wwwroot\photino-logo.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
