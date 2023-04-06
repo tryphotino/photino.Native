@@ -167,6 +167,7 @@ AutoString* GetResults(IFileOpenDialog* pfd, HRESULT* hr, int* resultCount)
 		}
 		psiResults->Release();
 	}
+	pfd->Release();
 
 	return nullptr;
 }
