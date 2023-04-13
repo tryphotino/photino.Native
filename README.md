@@ -32,4 +32,4 @@ The GitHub repository includes .yml files for automated CI/CD builds, packaging 
   
 * Linux - (Tested with Ubuntu 18.04 and 20.04) Install dependencies: `sudo apt-get update && sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify-dev`. To compile, run `gcc -std=c++11 -shared -DOS_LINUX Exports.cpp Photino.Linux.cpp -o x64/$(buildConfiguration)/Photino.Native.so 'pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify' -fPIC`
 
-* Mac - Install Xcode. To compile, run `gcc -shared -lstdc++ -DOS_MAC -framework Cocoa -framework WebKit Photino.Mac.mm Exports.cpp Photino.Mac.AppDelegate.mm Photino.Mac.UiDelegate.mm Photino.Mac.UrlSchemeHandler.m -o x64/$(buildConfiguration)/Photino.Native.dylib`.
+* Mac - Install Xcode. To compile, run `gcc -shared -lstdc++ -DOS_MAC -framework Cocoa -framework WebKit Photino.Mac.mm Exports.cpp Photino.Mac.AppDelegate.mm Photino.Mac.UiDelegate.mm Photino.Mac.UrlSchemeHandler.mm -o x64/$(buildConfiguration)/Photino.Native.dylib`.

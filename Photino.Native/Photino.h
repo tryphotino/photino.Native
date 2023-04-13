@@ -16,7 +16,7 @@ typedef char *AutoString;
 #include <WebKit/WebKit.h>
 #include <Foundation/Foundation.h>
 #include <UserNotifications/UserNotifications.h>
-//#include <WebKit/WKPreferences.h>
+// #include <WebKit/WKPreferences.h>
 #endif
 
 #ifdef __linux__
@@ -49,35 +49,36 @@ typedef bool (*ClosingCallback)();
 typedef void (*FocusInCallback)();
 typedef void (*FocusOutCallback)();
 
+class PhotinoDialog;
 class Photino;
 
 struct PhotinoInitParams
 {
-	wchar_t* StartStringWide;
-	char* StartString;
-	wchar_t* StartUrlWide;
-	char* StartUrl;
-	wchar_t* TitleWide;
-	char* Title;
-	wchar_t* WindowIconFileWide;
-	char* WindowIconFile;
-	wchar_t* TemporaryFilesPathWide;
-	char* TemporaryFilesPath;
+	wchar_t *StartStringWide;
+	char *StartString;
+	wchar_t *StartUrlWide;
+	char *StartUrl;
+	wchar_t *TitleWide;
+	char *Title;
+	wchar_t *WindowIconFileWide;
+	char *WindowIconFile;
+	wchar_t *TemporaryFilesPathWide;
+	char *TemporaryFilesPath;
 
-	Photino* ParentInstance;
+	Photino *ParentInstance;
 
-	ClosingCallback* ClosingHandler;
-	FocusInCallback* FocusInHandler;
-	FocusOutCallback* FocusOutHandler;
-	ResizedCallback* ResizedHandler;
-	MaximizedCallback* MaximizedHandler;
-	RestoredCallback* RestoredHandler;
-	MinimizedCallback* MinimizedHandler;
-	MovedCallback* MovedHandler;
-	WebMessageReceivedCallback* WebMessageReceivedHandler;
-	wchar_t* CustomSchemeNamesWide[16];
-	char* CustomSchemeNames[16];
-	WebResourceRequestedCallback* CustomSchemeHandler;
+	ClosingCallback *ClosingHandler;
+	FocusInCallback *FocusInHandler;
+	FocusOutCallback *FocusOutHandler;
+	ResizedCallback *ResizedHandler;
+	MaximizedCallback *MaximizedHandler;
+	RestoredCallback *RestoredHandler;
+	MinimizedCallback *MinimizedHandler;
+	MovedCallback *MovedHandler;
+	WebMessageReceivedCallback *WebMessageReceivedHandler;
+	wchar_t *CustomSchemeNamesWide[16];
+	char *CustomSchemeNames[16];
+	WebResourceRequestedCallback *CustomSchemeHandler;
 
 	int Left;
 	int Top;
@@ -125,6 +126,7 @@ private:
 	int _zoom;
 
 	Photino *_parent;
+	PhotinoDialog *_dialog;
 	void Show();
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
@@ -137,7 +139,7 @@ private:
 	bool InstallWebView2();
 	void AttachWebView();
 #elif __linux__
-	//GtkWidget* _window;
+	// GtkWidget* _window;
 	GtkWidget *_webview;
 	void AddCustomSchemeHandlers();
 	bool _isFullScreen;
@@ -176,6 +178,8 @@ public:
 	Photino(PhotinoInitParams *initParams);
 	~Photino();
 
+	PhotinoDialog *GetDialog() const { return _dialog; };
+
 	void Center();
 	void ClearBrowserAutoFill();
 	void Close();
@@ -197,7 +201,7 @@ public:
 
 	void NavigateToString(AutoString content);
 	void NavigateToUrl(AutoString url);
-	void Restore(); //required anymore?backward compat?
+	void Restore(); // required anymore?backward compat?
 	void SendWebMessage(AutoString message);
 
 	void SetContextMenuEnabled(bool enabled);
@@ -214,11 +218,10 @@ public:
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
 
-	void ShowMessage(AutoString title, AutoString body, unsigned int type);
 	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();
 
-	//Callbacks
+	// Callbacks
 	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back((AutoString)scheme); };
 	void GetAllMonitors(GetAllMonitorsCallback callback);
 	void SetClosingCallback(ClosingCallback callback) { _closingCallback = callback; }
@@ -231,12 +234,46 @@ public:
 	void SetMinimizedCallback(MinimizedCallback callback) { _minimizedCallback = callback; }
 
 	void Invoke(ACTION callback);
-	bool InvokeClose() { if (_closingCallback) return _closingCallback(); else return false; }
-	void InvokeFocusIn() { if (_focusInCallback) return _focusInCallback(); }
-	void InvokeFocusOut() { if (_focusOutCallback) return _focusOutCallback(); }
-	void InvokeMove(int x, int y) { if (_movedCallback) _movedCallback(x, y); }
-	void InvokeResize(int width, int height) { if (_resizedCallback) _resizedCallback(width, height); }
-	void InvokeMaximized() { if (_maximizedCallback) return _maximizedCallback(); }
-	void InvokeRestored() { if (_restoredCallback) return _restoredCallback(); }
-	void InvokeMinimized() { if (_minimizedCallback) return _minimizedCallback(); }
+	bool InvokeClose()
+	{
+		if (_closingCallback)
+			return _closingCallback();
+		else
+			return false;
+	}
+	void InvokeFocusIn()
+	{
+		if (_focusInCallback)
+			return _focusInCallback();
+	}
+	void InvokeFocusOut()
+	{
+		if (_focusOutCallback)
+			return _focusOutCallback();
+	}
+	void InvokeMove(int x, int y)
+	{
+		if (_movedCallback)
+			_movedCallback(x, y);
+	}
+	void InvokeResize(int width, int height)
+	{
+		if (_resizedCallback)
+			_resizedCallback(width, height);
+	}
+	void InvokeMaximized()
+	{
+		if (_maximizedCallback)
+			return _maximizedCallback();
+	}
+	void InvokeRestored()
+	{
+		if (_restoredCallback)
+			return _restoredCallback();
+	}
+	void InvokeMinimized()
+	{
+		if (_minimizedCallback)
+			return _minimizedCallback();
+	}
 };

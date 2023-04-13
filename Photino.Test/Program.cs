@@ -314,7 +314,7 @@ namespace PhotinoNET
             else if (string.Compare(message, "showproperties", true) == 0)
             {
                 var properties = GetPropertiesDisplay(currentWindow);
-                currentWindow.OpenAlertWindow("Settings", properties);
+                currentWindow.ShowMessage("Settings", properties);
             }
             else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
@@ -323,6 +323,40 @@ namespace PhotinoNET
             else if (string.Compare(message, "toastNotification", true) == 0)
             {
                 currentWindow.SendNotification("Toast Title", " Taoast message!");
+            }
+            else if (string.Compare(message, "showOpenFile", true) == 0)
+            {
+                var results = currentWindow.ShowOpenFile(filters: new[]{
+                    ("All files", new [] {"*.*"}),
+                    ("Text files", new [] {"*.txt"}),
+                    ("Image files", new [] {"*.png", "*.jpg", "*.jpeg"}),
+                    ("PDF files", new [] {"*.pdf"}),
+                    ("CSharp files", new [] { "*.cs" })
+                });
+                if (results.Length > 0)
+                    currentWindow.ShowMessage("Open File", string.Join(Environment.NewLine, results));
+                else
+                    currentWindow.ShowMessage("Open File", "No file chosen", icon: PhotinoDialogIcon.Error);
+            }
+            else if (string.Compare(message, "showOpenFolder", true) == 0)
+            {
+                var results = currentWindow.ShowOpenFolder(multiSelect: true);
+                if (results.Length > 0)
+                    currentWindow.ShowMessage("Open Folder", string.Join(Environment.NewLine, results));
+                else
+                    currentWindow.ShowMessage("Open Folder", "No folder chosen", icon: PhotinoDialogIcon.Error);
+            }
+            else if (string.Compare(message, "showSaveFile", true) == 0)
+            {
+                var result = currentWindow.ShowSaveFile();
+                if (result != null)
+                    currentWindow.ShowMessage("Save File", result);
+                else
+                    currentWindow.ShowMessage("Save File", "File not saved", icon: PhotinoDialogIcon.Error);
+            }
+            else if (string.Compare(message, "showMessage", true) == 0)
+            {
+                var result = currentWindow.ShowMessage("Title", "Testing...");
             }
             else
                 throw new Exception($"Unknown message '{message}'");

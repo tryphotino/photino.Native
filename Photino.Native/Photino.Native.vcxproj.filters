@@ -30,6 +30,9 @@
     <ClCompile Include="Photino.Windows.DarkMode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Photino.Windows.Dialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -69,5 +72,11 @@
     <ClInclude Include="Photino.Windows.DarkMode.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Photino.Dialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
   </ItemGroup>
 </Project>
