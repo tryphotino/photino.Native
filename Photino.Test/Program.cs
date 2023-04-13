@@ -311,6 +311,11 @@ namespace PhotinoNET
             {
                 currentWindow.SetFullScreen(!currentWindow.FullScreen);
             }
+            else if (string.Compare(message, "showproperties", true) == 0)
+            {
+                var properties = GetPropertiesDisplay(currentWindow);
+                currentWindow.ShowMessage("Settings", properties);
+            }
             else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
                 currentWindow.SendWebMessage("alert('web message');");
@@ -318,11 +323,6 @@ namespace PhotinoNET
             else if (string.Compare(message, "toastNotification", true) == 0)
             {
                 currentWindow.SendNotification("Toast Title", " Taoast message!");
-            }
-            else if (string.Compare(message, "showproperties", true) == 0)
-            {
-                var properties = GetPropertiesDisplay(currentWindow);
-                currentWindow.ShowMessage("Settings", properties);
             }
             else if (string.Compare(message, "showOpenFile", true) == 0)
             {
