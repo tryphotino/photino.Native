@@ -629,7 +629,7 @@ void Photino::Show()
 		webkit_settings_set_allow_universal_access_from_file_urls(settings, TRUE);
 
 		webkit_settings_set_enable_back_forward_navigation_gestures(settings, TRUE);
-		webkit_settings_set_enable_caret_browsing(settings, TRUE);
+		//webkit_settings_set_enable_caret_browsing(settings, TRUE);
 		webkit_settings_set_enable_developer_extras(settings, _devToolsEnabled);
 		webkit_settings_set_enable_media_capabilities(settings, TRUE);
 		webkit_settings_set_enable_media_stream(settings, TRUE);
