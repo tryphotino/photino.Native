@@ -1,3 +1,4 @@
+#ifdef __linux__
 #include "Photino.Dialog.h"
 
 enum DialogType {
@@ -101,7 +102,9 @@ AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPa
 
 AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString* filters, int filterCount)
 {
-    return ShowDialog(SaveFile, title, defaultPath, false, filters, filterCount, NULL)[0];
+    AutoString result = ShowDialog(SaveFile, title, defaultPath, false, filters, filterCount, NULL);
+    if result != null return result[0];
+    return null;
 }
 
 DialogResult PhotinoDialog::ShowMessage(AutoString title, AutoString text, DialogButtons buttons, DialogIcon icon)
@@ -190,3 +193,4 @@ DialogResult PhotinoDialog::ShowMessage(AutoString title, AutoString text, Dialo
             return DialogResult::Cancel;
     }
 }
+#endif

@@ -238,6 +238,7 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net6.0\</Comm
     <ClCompile Include="Exports.cpp" />
     <ClCompile Include="Dependencies\wintoastlib.cpp" />
     <ClCompile Include="Photino.Linux.cpp" />
+    <ClCompile Include="Photino.Linux.Dialog.cpp" />
     <ClCompile Include="Photino.Windows.cpp" />
     <ClCompile Include="Photino.Windows.DarkMode.cpp" />
     <ClCompile Include="Photino.Windows.Dialog.cpp" />
