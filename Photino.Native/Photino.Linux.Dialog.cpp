@@ -103,8 +103,8 @@ AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPa
 AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString* filters, int filterCount)
 {
     char** result = ShowDialog(SaveFile, title, defaultPath, false, filters, filterCount, NULL);
-    if (result != null) return result[0];
-    return null;
+    if (result != NULL) return result[0];
+    return NULL;
 }
 
 DialogResult PhotinoDialog::ShowMessage(AutoString title, AutoString text, DialogButtons buttons, DialogIcon icon)
