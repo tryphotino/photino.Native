@@ -109,7 +109,11 @@ namespace PhotinoNET
                 //Chromeless = true,
                 //FullScreen = true,
                 //Maximized = true,
+                MaxWidth = 640,
+                MaxHeight = 480,
                 //Minimized = true,
+                MinWidth = 320,
+                MinHeight = 240,
                 //Resizable = false,
                 //TopMost = true,
                 //UseOsDefaultLocation = false,
@@ -320,7 +324,7 @@ namespace PhotinoNET
             }
             else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
-                currentWindow.SendWebMessage("alert('web message');");
+                currentWindow.SendWebMessage("web message");
             }
             else if (string.Compare(message, "setMinSize", true) == 0)
             {

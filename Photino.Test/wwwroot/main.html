@@ -11,6 +11,9 @@
     -->
 
     <script>
+        //This code fires when .NET calls SendWebMessage
+        window.external.receiveMessage(message => alert(message));
+
         function OpenChildWindow() {
             window.external.sendMessage('child-window');
         }
