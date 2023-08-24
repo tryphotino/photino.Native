@@ -18,8 +18,8 @@ namespace PhotinoNET
         {
             try
             {
-                //FluentStyle();
-                PropertyInitStyle();
+                FluentStyle();
+                //PropertyInitStyle();
             }
             catch (Exception ex)
             {
@@ -42,10 +42,12 @@ namespace PhotinoNET
                 .Load("wwwroot/main.html")
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
-                .SetChromeless(true)
+                //.SetChromeless(true)
                 //.SetFullScreen(true)
                 //.SetMaximized(true)
+                .SetMaxSize(640, 480)
                 //.SetMinimized(true)
+                .SetMinSize(320, 240)
                 //.SetResizable(false)
                 //.SetTopMost(true)
                 .SetUseOsDefaultLocation(false)

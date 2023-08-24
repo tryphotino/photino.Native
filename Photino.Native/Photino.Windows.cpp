@@ -10,6 +10,7 @@
 #include <wrl.h>
 #include <windows.h>
 #include <algorithm>
+#include <limits>
 
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
@@ -72,7 +73,11 @@ void Photino::Register(HINSTANCE hInstance)
 Photino::Photino(PhotinoInitParams* initParams)
 {
 	//wchar_t msg[50];
-	//swprintf(msg, 50, L"sz: %i", initParams->sz);
+	//swprintf(msg, 50, L"Size: %i", initParams->Size);
+	//MessageBox(nullptr, msg, L"", MB_OK);
+
+	//wchar_t msg[50];
+	//swprintf(msg, 50, L"MaxWidth: %i", initParams->MaxWidth);
 	//MessageBox(nullptr, msg, L"", MB_OK);
 
 	if (initParams->Size != sizeof(PhotinoInitParams))
@@ -124,6 +129,10 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
 
 	_zoom = initParams->Zoom;
+	_minWidth = initParams->MinWidth;
+	_minHeight = initParams->MinHeight;
+	_maxWidth = initParams->MaxWidth;
+	_maxHeight = initParams->MaxHeight;
 
 	//these handlers are ALWAYS hooked up
 	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
@@ -189,6 +198,11 @@ Photino::Photino(PhotinoInitParams* initParams)
 		if (initParams->Height == CW_USEDEFAULT) initParams->Height = 600;
 		if (initParams->Width == CW_USEDEFAULT) initParams->Width = 800;
 	}
+
+	if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight;
+	if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight;
+	if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth;
+	if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth;
 
 	//Create the window
 	_hWnd = CreateWindowEx(
@@ -320,6 +334,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		waitInfo->completionNotifier.notify_one();
 		//delete waitInfo; ?
+		return 0;
+	}
+	case WM_GETMINMAXINFO:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (Photino == NULL)
+			return 0;
+
+		MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+		if (Photino->_minWidth > 0)
+			mmi->ptMinTrackSize.x = Photino->_minWidth;
+		if (Photino->_minHeight > 0)
+			mmi->ptMinTrackSize.y = Photino->_minHeight;	
+		if (Photino->_maxWidth < INT_MAX)
+			mmi->ptMaxTrackSize.x = Photino->_maxWidth;
+		if (Photino->_maxHeight < INT_MAX)
+			mmi->ptMaxTrackSize.y = Photino->_maxHeight;
 		return 0;
 	}
 	case WM_SIZE:
@@ -569,12 +600,24 @@ void Photino::SetMinimized(bool minimized)
 		ShowWindow(_hWnd, SW_NORMAL);
 }
 
+void Photino::SetMinSize(int width, int height)
+{
+	_minWidth = width;
+	_minHeight = height;
+}
+
 void Photino::SetMaximized(bool maximized)
 {
 	if (maximized)
 		ShowWindow(_hWnd, SW_MAXIMIZE);
 	else
 		ShowWindow(_hWnd, SW_NORMAL);
+}
+
+void Photino::SetMaxSize(int width, int height)
+{
+	_maxWidth = width;
+	_maxHeight = height;
 }
 
 void Photino::SetPosition(int x, int y)

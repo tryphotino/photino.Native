@@ -171,9 +171,19 @@ extern "C"
 		instance->SetMaximized(maximized);
 	}
 
+	EXPORTED void Photino_SetMaxSize(Photino* instance, int width, int height)
+	{
+		instance->SetMaxSize(width, height);
+	}
+
 	EXPORTED void Photino_SetMinimized(Photino* instance, bool minimized)
 	{
 		instance->SetMinimized(minimized);
+	}
+
+	EXPORTED void Photino_SetMinSize(Photino* instance, int width, int height)
+	{
+		instance->SetMinSize(width, height);
 	}
 
 	EXPORTED void Photino_SetPosition(Photino* instance, int x, int y)

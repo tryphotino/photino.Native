@@ -85,6 +85,10 @@ struct PhotinoInitParams
 	int Width;
 	int Height;
 	int Zoom;
+	int MinWidth;
+	int MinHeight;
+	int MaxWidth;
+	int MaxHeight;
 
 	bool CenterOnInitialize;
 	bool Chromeless;
@@ -158,6 +162,11 @@ public:
 	bool _contextMenuEnabled;
 	bool _devToolsEnabled;
 	bool _grantBrowserPermissions;
+	
+	int _minWidth;
+	int _minHeight;
+	int _maxWidth;
+	int _maxHeight;
 
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
@@ -210,7 +219,9 @@ public:
 	void SetGrantBrowserPermissions(bool grant);
 	void SetIconFile(AutoString filename);
 	void SetMaximized(bool maximized);
+	void SetMaxSize(int width, int height);
 	void SetMinimized(bool minimized);
+	void SetMinSize(int width, int height);
 	void SetPosition(int x, int y);
 	void SetResizable(bool resizable);
 	void SetSize(int width, int height);
