@@ -140,10 +140,19 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 		SetFullScreen(true);
 	else
 	{
+		// Ensure that the default size does not exceed any set min/max dimension
+		if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth
+		if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight
+		if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth
+		if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight
+
 		if (initParams->UseOsDefaultSize)
 			gtk_window_set_default_size(GTK_WINDOW(_window), -1, -1);
 		else
 			gtk_window_set_default_size(GTK_WINDOW(_window), initParams->Width, initParams->Height);
+
+		SetMinSize(initParams->MinWidth, initParams->MinHeight); // Defaults to 0,0
+		SetMaxSize(initParams->MaxWidth, initParams->MaxHeight); // Defaults to max int, max int
 
 		if (initParams->UseOsDefaultLocation)
 			gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_NONE);
@@ -504,20 +513,33 @@ void Photino::SetResizable(bool resizable)
 	gtk_window_set_resizable(GTK_WINDOW(_window), resizable);
 }
 
+void Photino::SetMinSize(int width, int height)
+{
+    _hints.min_width = width;
+    _hints.min_height = height;
+
+    gtk_window_set_geometry_hints(
+		GTK_WINDOW(_window),
+		NULL,
+		&_hints,
+		(GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
+}
+
+void Photino::SetMaxSize(int width, int height)
+{	
+    _hints.max_width = width;
+    _hints.max_height = height;
+
+    gtk_window_set_geometry_hints(
+		GTK_WINDOW(_window),
+		NULL,
+		&_hints,
+		(GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
+}
+
 void Photino::SetSize(int width, int height)
 {
 	gtk_window_resize(GTK_WINDOW(_window), width, height);
-
-	// TODO: Uncomment this and it works properly. Commented, it only changes width.
-	// GtkWidget* dialog = gtk_message_dialog_new(
-	//	nullptr
-	//	, GTK_DIALOG_DESTROY_WITH_PARENT
-	//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
-	//	, "width: %i bytes, height %i"
-	//	, width
-	//	, height);
-	// gtk_dialog_run(GTK_DIALOG(dialog));
-	// gtk_widget_destroy(dialog);
 }
 
 void Photino::SetTitle(AutoString title)
