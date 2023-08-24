@@ -604,6 +604,13 @@ void Photino::SetMinSize(int width, int height)
 {
 	_minWidth = width;
 	_minHeight = height;
+
+	int currWidth, currHeight;
+	GetSize(&currWidth, &currHeight);
+	if (currWidth < _minWidth)
+		SetSize(_minWidth, currHeight);
+	if (currHeight < _minHeight)
+		SetSize(currWidth, _minHeight);
 }
 
 void Photino::SetMaximized(bool maximized)
@@ -618,6 +625,13 @@ void Photino::SetMaxSize(int width, int height)
 {
 	_maxWidth = width;
 	_maxHeight = height;
+
+	int currWidth, currHeight;
+	GetSize(&currWidth, &currHeight);
+	if (currWidth > _maxWidth)
+		SetSize(_maxWidth, currHeight);
+	if (currWidth > _maxHeight)
+		SetSize(currWidth, _maxHeight);
 }
 
 void Photino::SetPosition(int x, int y)

@@ -45,9 +45,9 @@ namespace PhotinoNET
                 //.SetChromeless(true)
                 //.SetFullScreen(true)
                 //.SetMaximized(true)
-                .SetMaxSize(640, 480)
+                //.SetMaxSize(640, 480)
                 //.SetMinimized(true)
-                .SetMinSize(320, 240)
+                //.SetMinSize(320, 240)
                 //.SetResizable(false)
                 //.SetTopMost(true)
                 .SetUseOsDefaultLocation(false)
@@ -321,6 +321,14 @@ namespace PhotinoNET
             else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
                 currentWindow.SendWebMessage("alert('web message');");
+            }
+            else if (string.Compare(message, "setMinSize", true) == 0)
+            {
+                currentWindow.SetMinSize(320, 240);
+            }
+            else if (string.Compare(message, "setMaxSize", true) == 0)
+            {
+                currentWindow.SetMaxSize(640, 480);
             }
             else if (string.Compare(message, "toastNotification", true) == 0)
             {

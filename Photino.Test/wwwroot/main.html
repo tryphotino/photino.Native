@@ -115,6 +115,14 @@
             window.external.sendMessage('showMessage');
         }
 
+        function SetMinSize() {
+            window.external.sendMessage('setMinSize');
+        }
+
+        function SetMaxSize() {
+            window.external.sendMessage('setMaxSize');
+        }
+
         //Photo stuff
         //https://github.com/mdn/samples-server/tree/master/s/webrtc-capturestill
         (function () {
@@ -193,38 +201,45 @@
 </head>
 <body>
     <h1 id="Title">Test Bench</h1>
-    <a href="https://www.google.com">Google</a>
-
-    <button onclick="OpenChildWindow()">Open Child Window</button>
-    <button onclick="ZoomIn()">Zoom In</button>
-    <button onclick="ZoomOut()">Zoom Out</button>
+    <b>Window</b><br>
+    <button onclick="SetIconFile()">Icon</button>
+    <button onclick="SetTitle()">Title</button>
     <button onclick="Center()">Center</button>
-    <button id="startbutton">Take Picture</button>
+    <button onclick="SetPosition()">Position</button>
+    <button onclick="SetTopmost()">Topmost</button>
+    <button onclick="SetFullScreen()">Kiosk</button>
     <button onclick="Close()">Close</button>
     <br>
+    <b>Size</b><br>
     <button onclick="Minimize()">Minimize</button>
     <button onclick="Maximize()">Maximize</button>
-    <button onclick="SetContextMenuEnabled()">Context Menu</button>
-    <button onclick="SetDevToolsEnabled()">Dev Tools</button>
-    <button onclick="SetGrantBrowserPermissions()">Browser Permissions</button>
-    <button onclick="SetIconFile()">Icon</button>
-    <button onclick="SetPosition()">Position</button>
-    <br>
     <button onclick="SetResizable()">Resizable</button>
     <button onclick="SetSizeUp()">Size Up</button>
     <button onclick="SetSizeDown()">Size Down</button>
-    <button onclick="SetTitle()">Title</button>
-    <button onclick="SetTopmost()">Topmost</button>
-    <button onclick="SetFullScreen()">Kiosk</button>
+    <button onclick="SetMinSize()">Set Min Size</button>
+    <button onclick="SetMaxSize()">Set Max Size</button>
     <br>
-    <button onclick="ShowState()">Show State</button>
-    <button onclick="SendWebMessage()">Send Web Message</button>
-    <button onclick="ToastNotification()">Toast Notification</button>
+    <b>Browser</b><br>
+    <button onclick="ZoomIn()">Zoom In</button>
+    <button onclick="ZoomOut()">Zoom Out</button>
+    <button onclick="SetContextMenuEnabled()">Context Menu</button>
+    <button onclick="SetDevToolsEnabled()">Dev Tools</button>
+    <button onclick="SetGrantBrowserPermissions()">Browser Permissions</button>
+    <br>
+    <b>Dialogs</b><br>
     <button onclick="ShowOpenFile()">Open File Dialog</button>
     <button onclick="ShowOpenFolder()">Open Folder Dialog</button>
     <button onclick="ShowSaveFile()">Save File Dialog</button>
-    <button onclick="ShowMessage()">MessageBox</button>
     <br>
+    <b>Misc</b><br>
+    <a href="https://www.google.com">Google</a>
+    <button onclick="ShowState()">Show State</button>
+    <button onclick="SendWebMessage()">Send Web Message</button>
+    <button onclick="ToastNotification()">Toast Notification</button>
+    <button onclick="ShowMessage()">MessageBox</button>
+    <button onclick="OpenChildWindow()">Child Window</button>
+    <br>
+    <button id="startbutton">Take Picture</button>
     <button onclick="ClearBrowserAutoFill()">ClearBrowserAutoFill</button>
     <form>
         <input id="myInput" type="text" name="myCountry" placeholder="Country" autocomplete="on">
