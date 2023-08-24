@@ -153,7 +153,16 @@ Photino::Photino(PhotinoInitParams* initParams)
     
     SetTitle(_windowTitle);
     SetPosition(initParams->Left, initParams->Top);
+
+    // Ensure that the default size does not exceed any set min/max dimension
+    if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth
+    if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight
+    if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth
+    if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight
+
     SetSize(initParams->Width, initParams->Height);
+    SetMinSize(initParams->MinWidth, initParams->MinHeight); // Defaults to 0,0
+    SetMaxSize(initParams->MaxWidth, initParams->MaxHeight); // Defaults to 10000,10000
 
     if (initParams->WindowIconFile != NULL && initParams->WindowIconFile[0] != '\0')
 		Photino::SetIconFile(initParams->WindowIconFile);
@@ -450,13 +459,46 @@ void Photino::SetResizable(bool resizable)
 
 void Photino::SetSize(int width, int height)
 {
+    // The macOS window server has a limit of 10,000 pixels for either dimension
+    // See: https://developer.apple.com/documentation/appkit/nswindow/1419595-maxsize
+    width = width > 10000 ? 10000 : width;
+    height = height > 10000 ? 10000 : height;
+
     NSRect frame = [_window frame];
+    
     CGFloat fw = (CGFloat)width;
     CGFloat fh = (CGFloat)height;
+    
     CGFloat oldHeight = frame.size.height;
+
     frame.size = CGSizeMake(fw, fh);
+    
+    // Reposition the window so that the bottom left corner stays in the same place
     frame.origin.y -= fh - oldHeight;
+    
     [_window setFrame: frame display: true];
+}
+
+void Photino::SetMinSize(int width, int height)
+{
+    // The macOS window server has a limit of 10,000 pixels for either dimension
+    // See: https://developer.apple.com/documentation/appkit/nswindow/1419595-maxsize
+    width = width > 10000 ? 10000 : width;
+    height = height > 10000 ? 10000 : height;
+
+    NSSize minSize = NSMakeSize(width, height);
+    [_window setMinSize: minSize];
+}
+
+void Photino::SetMaxSize(int width, int height)
+{
+    // The macOS window server has a limit of 10,000 pixels for either dimension
+    // See: https://developer.apple.com/documentation/appkit/nswindow/1419595-maxsize
+    width = width > 10000 ? 10000 : width;
+    height = height > 10000 ? 10000 : height;
+
+    NSSize maxSize = NSMakeSize(width, height);
+    [_window setMaxSize: maxSize];
 }
 
 void Photino::SetTitle(AutoString title)
