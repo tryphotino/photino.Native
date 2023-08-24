@@ -155,10 +155,10 @@ Photino::Photino(PhotinoInitParams* initParams)
     SetPosition(initParams->Left, initParams->Top);
 
     // Ensure that the default size does not exceed any set min/max dimension
-    if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth
-    if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight
-    if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth
-    if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight
+    if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth;
+    if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight;
+    if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth;
+    if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight;
 
     SetSize(initParams->Width, initParams->Height);
     SetMinSize(initParams->MinWidth, initParams->MinHeight); // Defaults to 0,0
