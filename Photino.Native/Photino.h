@@ -163,17 +163,17 @@ public:
 	bool _devToolsEnabled;
 	bool _grantBrowserPermissions;
 	
-	int _minWidth;
-	int _minHeight;
-	int _maxWidth;
-	int _maxHeight;
-
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
 	static void SetWebView2RuntimePath(AutoString pathToWebView2);
 	HWND getHwnd();
 	void RefitContent();
 	void FocusWebView2();
+
+	int _minWidth;
+	int _minHeight;
+	int _maxWidth;
+	int _maxHeight;
 #elif __linux__
 	GtkWidget *_window;
 	int _lastHeight;
