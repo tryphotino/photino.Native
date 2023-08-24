@@ -154,15 +154,12 @@ Photino::Photino(PhotinoInitParams* initParams)
     SetTitle(_windowTitle);
     SetPosition(initParams->Left, initParams->Top);
 
-    // Ensure that the default size does not exceed any set min/max dimension
-    if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth;
-    if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight;
-    if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth;
-    if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight;
-
-    SetSize(initParams->Width, initParams->Height);
+    // It's important to set min/max size before setting size
+    // SetSize is ensuring internally that the size is within min/max
+    // but requires that min/max be set first.
     SetMinSize(initParams->MinWidth, initParams->MinHeight); // Defaults to 0,0
     SetMaxSize(initParams->MaxWidth, initParams->MaxHeight); // Defaults to 10000,10000
+    SetSize(initParams->Width, initParams->Height);
 
     if (initParams->WindowIconFile != NULL && initParams->WindowIconFile[0] != '\0')
 		Photino::SetIconFile(initParams->WindowIconFile);
@@ -463,6 +460,17 @@ void Photino::SetSize(int width, int height)
     // See: https://developer.apple.com/documentation/appkit/nswindow/1419595-maxsize
     width = width > 10000 ? 10000 : width;
     height = height > 10000 ? 10000 : height;
+
+    // Ensure that the size does not exceed any set min/max dimension:
+    // This is done here because the window server will not enforce this
+    // when the size is set programmatically compared to when the user
+    // resizes the window manually.
+    // This behavior is different from Windows and Linux where the OS
+    // will enforce the min/max size regardless of how the size is set.
+    if (width > _window.maxSize.width) width = _window.maxSize.width;
+    if (height > _window.maxSize.height) height = _window.maxSize.height;
+    if (width < _window.minSize.width) width = _window.minSize.width;
+    if (height < _window.minSize.height) height = _window.minSize.height;
 
     NSRect frame = [_window frame];
     
