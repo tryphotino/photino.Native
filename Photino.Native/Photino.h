@@ -145,6 +145,7 @@ private:
 #elif __linux__
 	// GtkWidget* _window;
 	GtkWidget *_webview;
+	GdkGeometry _hints;
 	void AddCustomSchemeHandlers();
 	bool _isFullScreen;
 
