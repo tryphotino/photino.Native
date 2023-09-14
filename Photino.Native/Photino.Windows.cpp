@@ -813,6 +813,7 @@ void Photino::AttachWebView()
 	PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
 
 	//TODO: Implement special startup strings.
+	//https://peter.sh/experiments/chromium-command-line-switches/
 	//Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
 	
 	// UserAgent								--user-agent=<UserAgent>
