@@ -11,6 +11,7 @@
 #include <windows.h>
 #include <algorithm>
 #include <limits>
+#include <WebView2EnvironmentOptions.h>
 
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
@@ -124,9 +125,24 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	}
 
+	_userAgent = NULL;
+	if (initParams->UserAgentWide != NULL)
+	{
+		_userAgent = new wchar_t[wcslen(initParams->UserAgentWide) + 1];
+		if (_userAgent == NULL) exit(0);
+		wcscpy(_userAgent, initParams->UserAgentWide);
+	}
+
+
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
+	_mediaAutoplayEnabled = initParams->MediaAutoplayEnabled;
+	_fileSystemAccessEnabled = initParams->FileSystemAccessEnabled;
+	_webSecurityEnabled = initParams->WebSecurityEnabled;
+	_javascriptClipboardAccessEnabled = initParams->JavascriptClipboardAccessEnabled;
+	_mediaStreamEnabled = initParams->MediaStreamEnabled;
+	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -449,6 +465,41 @@ void Photino::GetGrantBrowserPermissions(bool* grant)
 	*grant = _grantBrowserPermissions;
 }
 
+AutoString Photino::GetUserAgent()
+{
+	return this->_userAgent;
+}
+
+void Photino::GetMediaAutoplayEnabled(bool* enabled)
+{
+	*enabled = this->_mediaAutoplayEnabled;
+}
+
+void Photino::GetFileSystemAccessEnabled(bool* enabled)
+{
+	*enabled = this->_fileSystemAccessEnabled;
+}
+
+void Photino::GetWebSecurityEnabled(bool* enabled)
+{
+	*enabled = this->_webSecurityEnabled;
+}
+
+void Photino::GetJavascriptClipboardAccessEnabled(bool* enabled)
+{
+	*enabled = this->_javascriptClipboardAccessEnabled;
+}
+
+void Photino::GetMediaStreamEnabled(bool* enabled)
+{
+	*enabled = this->_mediaStreamEnabled;
+}
+
+void Photino::GetSmoothScrollingEnabled(bool* enabled)
+{
+	*enabled = this->_smoothScrollingEnabled;
+}
+
 AutoString Photino::GetIconFileName()
 {
 	return this->_iconFileName;
@@ -571,11 +622,6 @@ void Photino::SetFullScreen(bool fullScreen)
 		style &= (~WS_POPUP);
 	}
 	SetWindowLongPtr(_hWnd, GWL_STYLE, style);
-}
-
-void Photino::SetGrantBrowserPermissions(bool grant)
-{
-	_grantBrowserPermissions = grant;
 }
 
 void Photino::SetIconFile(AutoString filename)
@@ -766,7 +812,22 @@ void Photino::AttachWebView()
 	size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
 	PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
 
-	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, nullptr,
+	//TODO: Implement special startup strings.
+	//Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
+	
+	// UserAgent								--user-agent=<UserAgent>
+	// + _mediaAutoplayEnabled 					--autoplay-policy=no-user-gesture-required
+	// + _fileSystemAccessEnabled				--allow-file-access-from-files
+	// + _webSecurityEnabled					--disable-web-security
+	// + _javascriptClipboardAccessEnabled		--enable-javascript-clipboard-access
+	// + _mediaStreamEnabled					--enable-usermedia-screen-capturing
+	// + _smoothScrollingEnabled				--disable-smooth-scrolling
+	// + custom string						e.g.--hide-scrollbars
+
+	auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+	//options->put_AdditionalBrowserArguments(L"--hide-scrollbars");	//--autoplay-policy=no-user-gesture-required
+
+	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }

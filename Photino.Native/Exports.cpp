@@ -76,6 +76,41 @@ extern "C"
 		instance->GetGrantBrowserPermissions(grant);
 	}
 
+	EXPORTED AutoString Photino_GetUserAgent(Photino* instance)
+	{
+		return instance->GetUserAgent();
+	}
+
+	EXPORTED void Photino_GetMediaAutoplayEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetMediaAutoplayEnabled(enabled);
+	}
+
+	EXPORTED void Photino_GetFileSystemAccessEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetFileSystemAccessEnabled(enabled);
+	}
+
+	EXPORTED void Photino_GetWebSecurityEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetWebSecurityEnabled(enabled);
+	}
+
+	EXPORTED void Photino_GetJavascriptClipboardAccessEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetJavascriptClipboardAccessEnabled(enabled);
+	}
+
+	EXPORTED void Photino_GetMediaStreamEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetMediaStreamEnabled(enabled);
+	}
+
+	EXPORTED void Photino_GetSmoothScrollingEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetSmoothScrollingEnabled(enabled);
+	}
+
 	EXPORTED void Photino_GetMaximized(Photino* instance, bool* isMaximized)
 	{
 		instance->GetMaximized(isMaximized);
@@ -154,11 +189,6 @@ extern "C"
 	EXPORTED void Photino_SetFullScreen(Photino* instance, bool fullScreen)
 	{
 		instance->SetFullScreen(fullScreen);
-	}
-
-	EXPORTED void Photino_SetGrantBrowserPermissions(Photino* instance, bool grant)
-	{
-		instance->SetGrantBrowserPermissions(grant);
 	}
 
 	EXPORTED void Photino_SetIconFile(Photino* instance, AutoString filename)

@@ -64,6 +64,8 @@ struct PhotinoInitParams
 	char *WindowIconFile;
 	wchar_t *TemporaryFilesPathWide;
 	char *TemporaryFilesPath;
+	wchar_t* UserAgentWide;
+	char * UserAgent;
 
 	Photino *ParentInstance;
 
@@ -102,6 +104,12 @@ struct PhotinoInitParams
 	bool UseOsDefaultLocation;
 	bool UseOsDefaultSize;
 	bool GrantBrowserPermissions;
+	bool MediaAutoplayEnabled;
+	bool FileSystemAccessEnabled;
+	bool WebSecurityEnabled;
+	bool JavascriptClipboardAccessEnabled;
+	bool MediaStreamEnabled;
+	bool SmoothScrollingEnabled;
 
 	int Size;
 };
@@ -126,6 +134,14 @@ private:
 	AutoString _temporaryFilesPath;
 	AutoString _windowTitle;
 	AutoString _iconFileName;
+	AutoString _userAgent;
+
+	bool _mediaAutoplayEnabled;
+	bool _fileSystemAccessEnabled;
+	bool _webSecurityEnabled;
+	bool _javascriptClipboardAccessEnabled;
+	bool _mediaStreamEnabled;
+	bool _smoothScrollingEnabled;
 
 	int _zoom;
 
@@ -198,6 +214,13 @@ public:
 	void GetDevToolsEnabled(bool *enabled);
 	void GetFullScreen(bool *fullScreen);
 	void GetGrantBrowserPermissions(bool *grant);
+	AutoString GetUserAgent();
+	void GetMediaAutoplayEnabled(bool* enabled);
+	void GetFileSystemAccessEnabled(bool* enabled);
+	void GetWebSecurityEnabled(bool* enabled);
+	void GetJavascriptClipboardAccessEnabled(bool* enabled);
+	void GetMediaStreamEnabled(bool* enabled);
+	void GetSmoothScrollingEnabled(bool* enabled);
 	AutoString GetIconFileName();
 	void GetMaximized(bool *isMaximized);
 	void GetMinimized(bool *isMinimized);
@@ -217,7 +240,6 @@ public:
 	void SetContextMenuEnabled(bool enabled);
 	void SetDevToolsEnabled(bool enabled);
 	void SetFullScreen(bool fullScreen);
-	void SetGrantBrowserPermissions(bool grant);
 	void SetIconFile(AutoString filename);
 	void SetMaximized(bool maximized);
 	void SetMaxSize(int width, int height);
