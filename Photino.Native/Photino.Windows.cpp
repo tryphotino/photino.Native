@@ -814,6 +814,7 @@ void Photino::AttachWebView()
 
 	//TODO: Implement special startup strings.
 	//https://peter.sh/experiments/chromium-command-line-switches/
+	//https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2environmentoptions.additionalbrowserarguments?view=webview2-dotnet-1.0.1938.49&viewFallbackFrom=webview2-dotnet-1.0.1901.177view%3Dwebview2-1.0.1901.177
 	//Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
 	
 	// UserAgent								--user-agent=<UserAgent>
