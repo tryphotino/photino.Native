@@ -186,13 +186,12 @@ public:
 	HWND getHwnd();
 	void RefitContent();
 	void FocusWebView2();
-
 	int _minWidth;
 	int _minHeight;
 	int _maxWidth;
 	int _maxHeight;
 #elif __linux__
-	void set_webkit_settings()
+	void set_webkit_settings();
 	GtkWidget *_window;
 	int _lastHeight;
 	int _lastWidth;
