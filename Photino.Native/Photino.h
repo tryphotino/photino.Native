@@ -162,20 +162,12 @@ private:
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
 	void AttachWebView();
-	int _minWidth;
-	int _minHeight;
-	int _maxWidth;
-	int _maxHeight;
 #elif __linux__
 	// GtkWidget* _window;
 	GtkWidget *_webview;
 	GdkGeometry _hints;
 	void AddCustomSchemeHandlers();
 	bool _isFullScreen;
-	int _minWidth;
-	int _minHeight;
-	int _maxWidth;
-	int _maxHeight;
 #elif __APPLE__
 	NSWindow *_window;
 	WKWebView *_webview;
@@ -212,6 +204,10 @@ public:
 	HWND getHwnd();
 	void RefitContent();
 	void FocusWebView2();
+	int _minWidth;
+	int _minHeight;
+	int _maxWidth;
+	int _maxHeight;
 #elif __linux__
 	void set_webkit_settings();
 	GtkWidget *_window;
@@ -219,6 +215,10 @@ public:
 	int _lastWidth;
 	int _lastTop;
 	int _lastLeft;
+	int _minWidth;
+	int _minHeight;
+	int _maxWidth;
+	int _maxHeight;
 #elif __APPLE__
 	static void Register();
 #endif
