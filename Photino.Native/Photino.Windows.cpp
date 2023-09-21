@@ -818,17 +818,27 @@ void Photino::AttachWebView()
 	//https://www.chromium.org/developers/how-tos/run-chromium-with-flags/
 	//Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
 	
-	// UserAgent								--user-agent=<UserAgent>
-	// + _mediaAutoplayEnabled 					--autoplay-policy=no-user-gesture-required
-	// + _fileSystemAccessEnabled				--allow-file-access-from-files
-	// + _webSecurityEnabled					--disable-web-security
-	// + _javascriptClipboardAccessEnabled		--enable-javascript-clipboard-access
-	// + _mediaStreamEnabled					--enable-usermedia-screen-capturing
-	// + _smoothScrollingEnabled				--disable-smooth-scrolling
-	// + custom string						e.g.--hide-scrollbars
+	std::wstring startupString = L"";
+	if (wcslen(_userAgent) > 0)
+		startupString += L"--user-agent=" + std::wstring(_userAgent) + L" ";
+	if (_mediaAutoplayEnabled) 
+		startupString += L"--autoplay-policy=no-user-gesture-required ";
+	if (_fileSystemAccessEnabled) 
+		startupString += L"--allow-file-access-from-files ";
+	if (_webSecurityEnabled)
+		startupString += L"--disable-web-security ";
+	if (_javascriptClipboardAccessEnabled)
+		startupString += L"--enable-javascript-clipboard-access ";
+	if (_mediaStreamEnabled)
+		startupString += L"--enable-usermedia-screen-capturing ";
+	if (_smoothScrollingEnabled)
+		startupString += L"--disable-smooth-scrolling ";
+	//if (_customStartupString != NULL)
+	//	startupString += _customStartupString;	//e.g.--hide-scrollbars
 
 	auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-	//options->put_AdditionalBrowserArguments(L"--hide-scrollbars");	//--autoplay-policy=no-user-gesture-required
+	if (startupString.length() > 0)
+		options->put_AdditionalBrowserArguments(startupString.c_str());
 
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
