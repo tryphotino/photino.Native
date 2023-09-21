@@ -137,7 +137,6 @@ private:
 	AutoString _iconFileName;
 	AutoString _userAgent;
 
-	bool _contextMenuEnabled;
 	bool _devToolsEnabled;
 	bool _grantBrowserPermissions;
 	bool _mediaAutoplayEnabled;
@@ -198,6 +197,8 @@ private:
 #endif
 
 public:
+	bool _contextMenuEnabled;
+
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
 	static void SetWebView2RuntimePath(AutoString pathToWebView2);
