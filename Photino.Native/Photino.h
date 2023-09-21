@@ -168,10 +168,6 @@ private:
 	GdkGeometry _hints;
 	void AddCustomSchemeHandlers();
 	bool _isFullScreen;
-	int _lastHeight;
-	int _lastWidth;
-	int _lastTop;
-	int _lastLeft;
 	int _minWidth;
 	int _minHeight;
 	int _maxWidth;
@@ -200,6 +196,10 @@ public:
 #elif __linux__
 	void set_webkit_settings();
 	GtkWidget *_window;
+	int _lastHeight;
+	int _lastWidth;
+	int _lastTop;
+	int _lastLeft;
 #elif __APPLE__
 	static void Register();
 #endif
