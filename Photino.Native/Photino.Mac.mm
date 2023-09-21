@@ -22,22 +22,76 @@ void Photino::Register()
     [application setActivationPolicy: NSApplicationActivationPolicyRegular];
 
     NSString *appName = [[NSProcessInfo processInfo] processName];
+    
+    NSMenu *mainMenu = [[NSMenu new] autorelease];
 
-    NSString *quitTitle = [@"Quit " stringByAppendingString: appName];
+    NSMenuItem *mainMenuItem = [[NSMenuItem new] autorelease];
+    [mainMenu addItem: mainMenuItem];
+
+    NSMenu *mainSubMenu = [[NSMenu new] autorelease];
+    [mainMenuItem setSubmenu: mainSubMenu];
+
+    // Add SelectAll, Cut, Copy & Paste Menu items to new edit menu
+    // NSMenuItem *editMenuItem = [[
+    //     [NSMenuItem alloc]
+    //     initWithTitle: @"Edit"
+    //     action: nil
+    //     keyEquivalent: @""
+    // ] autorelease];
+    // [mainMenu addItem: editMenuItem];
+
+    // NSMenu *editSubMenu = [[NSMenu new] autorelease];
+    // [editMenuItem setSubmenu: editSubMenu];
+
+    NSMenuItem *selectMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Select All"
+        action: @selector(selectAll:)
+        keyEquivalent: @"a"
+    ] autorelease];
+
+    // [editSubMenu addItem: selectMenuItem];
+    [mainSubMenu addItem: selectMenuItem];
+
+    NSMenuItem *cutMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Cut"
+        action: @selector(cut:)
+        keyEquivalent: @"x"
+    ] autorelease];
+
+    // [editSubMenu addItem: cutMenuItem];
+    [mainSubMenu addItem: cutMenuItem];
+
+    NSMenuItem *copyMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Copy"
+        action: @selector(copy:)
+        keyEquivalent: @"c"
+    ] autorelease];
+
+    // [editSubMenu addItem: copyMenuItem];
+    [mainSubMenu addItem: copyMenuItem];
+
+    NSMenuItem *pasteMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Paste"
+        action: @selector(paste:)
+        keyEquivalent: @"v"
+    ] autorelease];
+
+    // [editSubMenu addItem: pasteMenuItem];
+    [mainSubMenu addItem: pasteMenuItem];
+
+    // Add Quit Menu Item
     NSMenuItem *quitMenuItem = [[
         [NSMenuItem alloc]
-        initWithTitle: quitTitle
+        initWithTitle: [@"Quit " stringByAppendingString: appName]
         action: @selector(terminate:)
         keyEquivalent: @"q"
     ] autorelease];
-    
-    NSMenu *mainMenu = [[NSMenu new] autorelease];
-    NSMenuItem *mainMenuItem = [[NSMenuItem new] autorelease];
-    NSMenu *subMenu = [[NSMenu new] autorelease];
 
-    [mainMenu addItem: mainMenuItem];
-    [mainMenuItem setSubmenu: subMenu];
-    [subMenu addItem: quitMenuItem];
+    [mainSubMenu addItem: quitMenuItem];
 
     [NSApp setMainMenu: mainMenu];
 }
