@@ -819,19 +819,19 @@ void Photino::AttachWebView()
 	//Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
 	
 	std::wstring startupString = L"";
-	if (wcslen(_userAgent) > 0)
-		startupString += L"--user-agent=" + std::wstring(_userAgent) + L" ";
+	if (_userAgent != NULL && wcslen(_userAgent) > 0)
+		startupString += L"--user-agent=\"" + std::wstring(_userAgent) + L"\" ";
 	if (_mediaAutoplayEnabled) 
 		startupString += L"--autoplay-policy=no-user-gesture-required ";
 	if (_fileSystemAccessEnabled) 
 		startupString += L"--allow-file-access-from-files ";
-	if (_webSecurityEnabled)
+	if (!_webSecurityEnabled)
 		startupString += L"--disable-web-security ";
 	if (_javascriptClipboardAccessEnabled)
 		startupString += L"--enable-javascript-clipboard-access ";
 	if (_mediaStreamEnabled)
 		startupString += L"--enable-usermedia-screen-capturing ";
-	if (_smoothScrollingEnabled)
+	if (!_smoothScrollingEnabled)
 		startupString += L"--disable-smooth-scrolling ";
 	//if (_customStartupString != NULL)
 	//	startupString += _customStartupString;	//e.g.--hide-scrollbars

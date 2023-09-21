@@ -35,13 +35,13 @@ namespace PhotinoNET
                 : "wwwroot/photino-logo.png";
 
             mainWindow = new PhotinoWindow()
-                .SetIconFile(iconFile)
-                .SetTitle($"My Photino Window {_windowNumber++}")
-
                 //.Load(new Uri("https://google.com"))
                 .Load("wwwroot/main.html")
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
+                //Window settings
+                .SetIconFile(iconFile)
+                .SetTitle($"My Photino Window {_windowNumber++}")
                 //.SetChromeless(true)
                 //.SetFullScreen(true)
                 //.SetMaximized(true)
@@ -52,12 +52,6 @@ namespace PhotinoNET
                 //.SetTopMost(true)
                 .SetUseOsDefaultLocation(false)
                 .SetUseOsDefaultSize(false)
-                //.SetZoom(150)
-
-                .SetContextMenuEnabled(false)
-                //.SetDevToolsEnabled(false)
-                //.SetGrantBrowserPermissions(false)
-
                 //.Center()
                 //.SetSize(new Size(800, 600))
                 .SetHeight(600)
@@ -70,6 +64,22 @@ namespace PhotinoNET
                 //.Offset(new Point(150, 150))
                 //.Offset(250, 250)
 
+                //Browser settings
+                .SetContextMenuEnabled(false)
+                //.SetDevToolsEnabled(false)
+                //.SetGrantBrowserPermissions(false)
+                //.SetZoom(150)
+
+                //Browser startup flags
+                .SetUserAgent("Custom Photino User Agent")
+                .SetMediaAutoplayEnabled(true)
+                .SetFileSystemAccessEnabled(true)
+                .SetWebSecurityEnabled(true)
+                .SetJavascriptClipboardAccessEnabled(true)
+                .SetMediaStreamEnabled(true)
+                .SetSmoothScrollingEnabled(true)
+                //.SetTemporaryFilesPath(@"C:\Temp")
+
                 .RegisterCustomSchemeHandler("app", AppCustomSchemeUsed)
 
                 .RegisterWindowCreatingHandler(WindowCreating)
@@ -81,10 +91,7 @@ namespace PhotinoNET
                 .RegisterFocusInHandler(WindowFocusIn)
                 .RegisterFocusOutHandler(WindowFocusOut)
 
-                //.SetTemporaryFilesPath(@"C:\Temp")
-
                 .SetLogVerbosity(_logEvents ? 2 : 0);
-
 
             mainWindow.WaitForClose();
 
