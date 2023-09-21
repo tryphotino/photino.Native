@@ -129,10 +129,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 	_contextMenuEnabled = true; //not configurable on mac //initParams->ContextMenuEnabled;
-	_devToolsEnabled = initParams->DevToolsEnabled;
-	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
-
-	_zoom = initParams->Zoom;
+	// _zoom = initParams->Zoom;
 
 	//these handlers are ALWAYS hooked up
 	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
@@ -205,7 +202,12 @@ Photino::Photino(PhotinoInitParams* initParams)
             defer: true];
     }
     
+    // Set Window options
     SetTitle(_windowTitle);
+    if (initParams->WindowIconFile != NULL && initParams->WindowIconFile[0] != '\0')
+		Photino::SetIconFile(initParams->WindowIconFile);
+
+	SetTopmost(initParams->Topmost);
     SetPosition(initParams->Left, initParams->Top);
 
     // It's important to set min/max size before setting size
@@ -215,47 +217,43 @@ Photino::Photino(PhotinoInitParams* initParams)
     SetMaxSize(initParams->MaxWidth, initParams->MaxHeight); // Defaults to 10000,10000
     SetSize(initParams->Width, initParams->Height);
 
-    if (initParams->WindowIconFile != NULL && initParams->WindowIconFile[0] != '\0')
-		Photino::SetIconFile(initParams->WindowIconFile);
+	SetMinimized(initParams->Minimized);
+	SetMaximized(initParams->Maximized);
+    
+	SetResizable(initParams->Resizable);
 
 	if (initParams->CenterOnInitialize)
 		Photino::Center();
-
-	if (initParams->Minimized)
-		SetMinimized(true);
-
-	if (initParams->Maximized)
-		SetMaximized(true);
-
-	if (initParams->Resizable == false)
-		SetResizable(false);
-
-	if (initParams->Topmost)
-		SetTopmost(true);
   
+    // Create WebView Configuration
     _webviewConfiguration = [[WKWebViewConfiguration alloc] init];
-    if (_contextMenuEnabled) {} //Not configurable on mac
-    if (_devToolsEnabled)
-        [_webviewConfiguration.preferences setValue: @YES forKey: @"developerExtrasEnabled"];
 
-    //wire up custom url schemes
+    // Add Custom URL Schemes to WebView Configuration
     for (auto & scheme : _customSchemeNames)
     {
         AddCustomScheme(scheme, _customSchemeCallback);
     }
 
-    _webview = nil;
+    // Create WebView
     AttachWebView();
+
+    // Set initialized WebView (Configuration) options
+    SetDevToolsEnabled(initParams->DevToolsEnabled);
+    SetGrantBrowserPermissions(initParams->GrantBrowserPermissions);
+    SetUserAgent(initParams->UserAgent);
+    SetWebSecurityEnabled(initParams->WebSecurityEnabled);
+    SetJavascriptClipboardAccessEnabled(initParams->JavascriptClipboardAccessEnabled);
+    SetMediaStreamEnabled(initParams->MediaStreamEnabled);
+
+    // Exposed in Photino.NET, but unsupported on macOS:
+    // SetMediaAutoplayEnabled(initParams->MediaAutoplayEnabled);
+    // SetFileSystemAccessEnabled(initParams->FileSystemAccessEnabled);
+    // SetSmoothScrollingEnabled(initParams->SmoothScrollingEnabled);
 
     _dialog = new PhotinoDialog();
 
-    if (_grantBrowserPermissions)
-        SetGrantBrowserPermissions(_grantBrowserPermissions);
-
     Show();
-    
-    if (initParams->FullScreen)
-        SetFullScreen(true);
+    SetFullScreen(initParams->FullScreen);
 }
 
 Photino::~Photino()
@@ -312,14 +310,52 @@ void Photino::GetDevToolsEnabled(bool* enabled)
     *enabled = _devToolsEnabled;
 }
 
+void Photino::GetGrantBrowserPermissions(bool* enabled)
+{
+    *enabled = _grantBrowserPermissions;
+}
+
+AutoString Photino::GetUserAgent()
+{
+    return _userAgent;
+}
+
+void Photino::GetMediaAutoplayEnabled(bool* enabled)
+{
+    //! Always enabled on macOS. This is always true.
+    *enabled = true;
+}
+
+void Photino::GetFileSystemAccessEnabled(bool* enabled)
+{
+    //! Not supported on macOS. This is always false.
+    *enabled = false;
+}
+
+void Photino::GetWebSecurityEnabled(bool* enabled)
+{
+    *enabled = _webSecurityEnabled;
+}
+
+void Photino::GetJavascriptClipboardAccessEnabled(bool* enabled)
+{
+    *enabled = _javascriptClipboardAccessEnabled;
+}
+
+void Photino::GetMediaStreamEnabled(bool* enabled)
+{
+    *enabled = _mediaStreamEnabled;
+}
+
+void Photino::GetSmoothScrollingEnabled(bool* enabled)
+{
+    //! Not supported on macOS. This is always false.
+    *enabled = false;
+}
+
 void Photino::GetFullScreen(bool* fullScreen)
 {
     *fullScreen = ([_window.contentView isInFullScreenMode]);
-}
-
-void Photino::GetGrantBrowserPermissions(bool* grant)
-{
-    *grant = _grantBrowserPermissions;
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -399,7 +435,7 @@ void Photino::Restore()
     bool maximized;
     GetMinimized(&minimized);
     GetMaximized(&maximized);
-	if (minimized) SetMinimized(false);
+    if (minimized) SetMinimized(false);
     if (maximized) SetMaximized(false);
 }
 
@@ -437,16 +473,90 @@ void Photino::SendWebMessage(AutoString message)
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
-    //Can't be changed after initialization on mac
-    //_contextMenuEnabled = enabled;
-    //TODO:
+    //! Not supported on macOS
 }
 
 void Photino::SetDevToolsEnabled(bool enabled)
 {
-    //Can't be changed after initialization on mac
-    //_devToolsEnabled = enabled;
-    //[_webview configuration: preferences: enableDevExtras: YES];
+    _devToolsEnabled = enabled;
+
+    [_webviewConfiguration.preferences
+        setValue: enabled ? @YES : @NO
+        forKey: @"developerExtrasEnabled"];
+}
+
+void Photino::SetGrantBrowserPermissions(bool grant)
+{
+    //not available until macOS 11.3 aka 10.15.?
+    _grantBrowserPermissions = grant;
+    
+    [_webview setCameraCaptureState: WKMediaCaptureStateActive completionHandler: nil];
+    [_webview setMicrophoneCaptureState: WKMediaCaptureStateActive completionHandler: nil];
+}
+
+void Photino::SetUserAgent(AutoString userAgent)
+{
+    _userAgent = userAgent;
+    [_webview setCustomUserAgent: [NSString stringWithUTF8String: userAgent]];
+}
+
+//! Appears to be disregarded on macOS
+//! Wether this is enabled or not, autoplay works as expected when set.
+// void Photino::SetMediaAutoplayEnabled(bool enabled)
+// {
+//     _mediaAutoplayEnabled = enabled;
+
+//     [_webviewConfiguration setMediaTypesRequiringUserActionForPlayback: enabled ? WKAudiovisualMediaTypeNone : WKAudiovisualMediaTypeAll];
+// }
+
+//! Not supported on macOS
+// void Photino::SetFileSystemAccessEnabled(bool enabled)
+// {
+//     _fileSystemAccessEnabled = enabled;
+
+//     [_webviewConfiguration.preferences
+//         setValue: enabled ? @YES : @NO
+//         forKey: @"allowFileAccessFromFileURL"];
+// }
+
+void Photino::SetWebSecurityEnabled(bool enabled)
+{
+    _webSecurityEnabled = enabled;
+
+    [_webviewConfiguration.preferences
+        setValue: enabled ? @YES : @NO
+        forKey: @"secureContextChecksEnabled"];
+}
+
+void Photino::SetJavascriptClipboardAccessEnabled(bool enabled)
+{
+    _javascriptClipboardAccessEnabled = enabled;
+
+    [_webviewConfiguration.preferences
+        setValue: enabled ? @YES : @NO
+        forKey: @"javaScriptCanAccessClipboard"];
+}
+
+void Photino::SetMediaStreamEnabled(bool enabled)
+{
+    _mediaStreamEnabled = enabled;
+
+    [_webviewConfiguration.preferences
+        setValue: enabled ? @YES : @NO
+        forKey: @"mediaStreamEnabled"];
+}
+
+//! Not supported on macOS
+// void Photino::SetSmoothScrollingEnabled(bool enabled)
+// {
+// }
+
+void Photino::SetIconFile(AutoString filename)
+{
+	NSString* path = [NSString stringWithUTF8String: filename];
+    NSImage* icon = [[NSImage alloc] initWithContentsOfFile: path];
+    if (icon != nil)
+        [[_window standardWindowButton: NSWindowDocumentIconButton] setImage:icon];
 }
 
 void Photino::SetFullScreen(bool fullScreen)
@@ -455,22 +565,6 @@ void Photino::SetFullScreen(bool fullScreen)
         [_window.contentView enterFullScreenMode: [NSScreen mainScreen] withOptions: nil];
     else
         [_window.contentView exitFullScreenModeWithOptions: nil];
-}
-
-void Photino::SetGrantBrowserPermissions(bool grant)
-{
-    //not available until macOS 11.3 aka 10.15.?
-    //_grantBrowserPermissions = grant;
-    //[_webview setCameraCaptureState: WKMediaCaptureStateActive];
-    //[_webview setMicrophoneCaptureState: WKMediaCaptureStateActive];  
-}
-
-void Photino::SetIconFile(AutoString filename)
-{
-	NSString* path = [NSString stringWithUTF8String: filename];
-    NSImage* icon = [[NSImage alloc] initWithContentsOfFile: path];
-    if (icon != nil)
-        [[_window standardWindowButton: NSWindowDocumentIconButton] setImage:icon];
 }
 
 void Photino::SetMinimized(bool minimized)
@@ -485,7 +579,27 @@ void Photino::SetMinimized(bool minimized)
 
 void Photino::SetMaximized(bool maximized)
 {
-    [_window toggleFullScreen: NULL];
+    // Maximize window by filling the screen with the window instead of setting it to fullscreen
+    if (maximized)
+    {
+        NSRect window = [_window frame];
+        _preMaximizedWidth = window.size.width;
+        _preMaximizedHeight = window.size.height;
+        _preMaximizedXPosition = window.origin.x;
+        _preMaximizedYPosition = window.origin.y;
+        
+        NSRect screen = [[_window screen] visibleFrame];
+        CGFloat xPos = screen.origin.x;
+        CGFloat yPos = screen.origin.y;
+        CGFloat width = screen.size.width;
+        CGFloat height = screen.size.height;
+        [_window setFrame: NSMakeRect(xPos, yPos, width, height) display:YES];
+    }
+    else if (!maximized && _preMaximizedWidth > 0 && _preMaximizedHeight > 0)
+    {
+        // Restore window to its previous size
+        [_window setFrame: NSMakeRect(_preMaximizedXPosition, _preMaximizedYPosition, _preMaximizedWidth, _preMaximizedHeight) display:YES];
+    }
 }
 
 void Photino::SetPosition(int x, int y)
