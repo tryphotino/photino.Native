@@ -691,7 +691,7 @@ void Photino::Show()
 		WebKitUserContentManager *contentManager = webkit_user_content_manager_new();
 		_webview = webkit_web_view_new_with_user_content_manager(contentManager);
 
-		set_webkit_settings();
+		Photino::set_webkit_settings();
 
 		// this may or may not work
 		// g_object_set(G_OBJECT(settings), "enable-auto-fill-form", TRUE, NULL);
@@ -737,7 +737,7 @@ void Photino::Show()
 	gtk_widget_show_all(_window);
 }
 
-void set_webkit_settings()
+void Photino::set_webkit_settings()
 {
 	//TODO: Read custom browser control configuration JSON and set these values accordingly.
 	
