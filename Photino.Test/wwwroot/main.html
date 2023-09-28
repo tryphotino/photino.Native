@@ -143,10 +143,25 @@
                 photo = document.getElementById('photo');
                 startbutton = document.getElementById('startbutton');
 
+                const constraints = {
+                    width: { min: 640, ideal: 1280 },
+                    height: { min: 480, ideal: 720 },
+                    advanced: [{ width: 1920, height: 1280 }, { aspectRatio: 1.333 }],
+                    };
+
                 navigator.mediaDevices.getUserMedia({ video: true, audio: false })
                     .then(function (stream) {
-                        video.srcObject = stream;
-                        video.play();
+                        const track = stream.getVideoTracks()[0];
+                        track
+                        .applyConstraints(constraints)
+                            .then(() => {
+                                video.srcObject = track;
+                                video.play();
+                            })
+                            .catch((e) => {
+                                console.log("An error occurred: " + err);
+                            });
+
                     })
                     .catch(function (err) {
                         console.log("An error occurred: " + err);

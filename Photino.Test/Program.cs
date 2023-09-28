@@ -36,6 +36,7 @@ namespace PhotinoNET
 
             mainWindow = new PhotinoWindow()
                 //.Load(new Uri("https://google.com"))
+                //.Load("https://duckduckgo.com/?t=ffab&q=user+agent+&ia=answer")
                 .Load("wwwroot/main.html")
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 

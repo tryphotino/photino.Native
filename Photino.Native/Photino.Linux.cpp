@@ -105,7 +105,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_userAgent = NULL;
 	if (initParams->UserAgent != NULL)
 	{
-		_userAgent = new char[strlen(initParams->StartString) + 1];
+		_userAgent = new char[strlen(initParams->UserAgent) + 1];
 		if (_userAgent == NULL)
 			exit(0);
 		strcpy(_userAgent, initParams->UserAgent);
