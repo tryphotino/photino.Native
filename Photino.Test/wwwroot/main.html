@@ -155,13 +155,12 @@
                         track
                         .applyConstraints(constraints)
                             .then(() => {
-                                video.srcObject = track;
+                                video.srcObject = stream;
                                 video.play();
                             })
                             .catch((e) => {
-                                console.log("An error occurred: " + err);
+                                console.log("An error occurred: " + e);
                             });
-
                     })
                     .catch(function (err) {
                         console.log("An error occurred: " + err);
