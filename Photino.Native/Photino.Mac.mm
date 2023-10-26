@@ -604,12 +604,22 @@ void Photino::SetMaximized(bool maximized)
 
 void Photino::SetPosition(int x, int y)
 {
-    NSRect frame = [_window frame];
+    // Currently assuming window is on monitor 0
+    
+    // Todo: Determine the monitor the window is on.
+    // To determine the current monitor, check the window's position
+    // and compare it to the width/height of the monitors. If the position
+    // is larger than the dimensions of the first monitor, then use the
+    // second / third montior.
     std::vector<Monitor*> monitors = GetMonitors();
     Monitor monitor = *monitors[0];
+    
+    NSRect frame = [_window frame];
     int height = (int)roundf(frame.size.height);
+    
     CGFloat left = (CGFloat)x;
-    CGFloat top = (CGFloat)(monitor.monitor.height - (y + height)); // Assuming window is on monitor 0
+    CGFloat top = (CGFloat)(monitor.monitor.height - (y + height));
+
     CGPoint position = CGPointMake(left, top);
     [_window setFrameOrigin: position];
 }
