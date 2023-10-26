@@ -232,7 +232,7 @@ namespace PhotinoNET
 
         private static void MessageReceivedFromWindow(object sender, string message)
         {
-            Log(sender, $"MessageRecievedFromWindow Callback Fired.");
+            Log(sender, $"MessageReceivedFromWindow Callback Fired.");
 
             var currentWindow = sender as PhotinoWindow;
             if (string.Compare(message, "child-window", true) == 0)
@@ -370,7 +370,7 @@ namespace PhotinoNET
             }
             else if (string.Compare(message, "toastNotification", true) == 0)
             {
-                currentWindow.SendNotification("Toast Title", " Taoast message!");
+                currentWindow.SendNotification("Toast Title", " Toast message!");
             }
             else if (string.Compare(message, "showOpenFile", true) == 0)
             {
