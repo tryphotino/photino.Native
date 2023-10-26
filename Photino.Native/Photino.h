@@ -13,9 +13,9 @@ typedef char *AutoString;
 
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
-#include <WebKit/WebKit.h>
 #include <Foundation/Foundation.h>
 #include <UserNotifications/UserNotifications.h>
+#include <WebKit/WebKit.h>
 #include <WebKit/WKWebView.h>
 #include <WebKit/WKWebViewConfiguration.h>
 #endif
@@ -187,17 +187,17 @@ private:
 	void AttachWebView();
 	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
 
-
-	void SetGrantBrowserPermissions(bool enabled);
 	void SetUserAgent(AutoString userAgent);
-	void SetWebSecurityEnabled(bool enabled);
-	void SetJavascriptClipboardAccessEnabled(bool enabled);
-	void SetMediaStreamEnabled(bool enabled);
 
-    // Exposed in Photino.NET, but unsupported on macOS:
-	// void SetMediaAutoplayEnabled(bool enabled);
-	// void SetFileSystemAccessEnabled(bool enabled);
-	// void SetSmoothScrollingEnabled(bool enabled);
+	void SetPreference(NSString *key, NSNumber *value);
+	// void SetPreference(NSString *key, NSUInteger value);
+	// void SetPreference(NSString *key, double value);
+	void SetPreference(NSString *key, NSString *value);
+	// void SetPreference(NSString *key, _WKEditableLinkBehavior value);
+	// void SetPreference(NSString *key, _WKJavaScriptRuntimeFlags value);
+	// void SetPreference(NSString *key, _WKPitchCorrectionAlgorithm value);
+	// void SetPreference(NSString *key, _WKStorageBlockingPolicy value);
+	// void SetPreference(NSString *key, _WKDebugOverlayRegions value);
 #endif
 
 public:
