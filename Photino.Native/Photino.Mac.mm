@@ -238,17 +238,19 @@ Photino::Photino(PhotinoInitParams* initParams)
     AttachWebView();
 
     // Set initialized WebView (Configuration) options
-    SetDevToolsEnabled(initParams->DevToolsEnabled);
-    SetGrantBrowserPermissions(initParams->GrantBrowserPermissions);
     SetUserAgent(initParams->UserAgent);
-    SetWebSecurityEnabled(initParams->WebSecurityEnabled);
-    SetJavascriptClipboardAccessEnabled(initParams->JavascriptClipboardAccessEnabled);
-    SetMediaStreamEnabled(initParams->MediaStreamEnabled);
+    
+    SetPreference(@"developerExtrasEnabled", initParams->DevToolsEnabled ? @YES : @NO);
+    SetPreference(@"allowFileAccessFromFileURLs", initParams->FileSystemAccessEnabled ? @YES : @NO);
+    SetPreference(@"webSecurityEnabled", initParams->WebSecurityEnabled ? @YES : @NO);
+    SetPreference(@"javaScriptCanAccessClipboard", initParams->JavascriptClipboardAccessEnabled ? @YES : @NO);
+    SetPreference(@"mediaStreamEnabled", initParams->MediaStreamEnabled ? @YES : @NO);
 
-    // Exposed in Photino.NET, but unsupported on macOS:
-    // SetMediaAutoplayEnabled(initParams->MediaAutoplayEnabled);
-    // SetFileSystemAccessEnabled(initParams->FileSystemAccessEnabled);
-    // SetSmoothScrollingEnabled(initParams->SmoothScrollingEnabled);
+    SetPreference(@"mediaDevicesEnabled", @YES);
+    SetPreference(@"mediaCaptureRequiresSecureConnection", @NO);
+    SetPreference(@"notificationEventEnabled", @YES);
+    SetPreference(@"notificationsEnabled", @YES);
+    SetPreference(@"screenCaptureEnabled", @YES);
 
     _dialog = new PhotinoDialog();
 
@@ -320,15 +322,21 @@ AutoString Photino::GetUserAgent()
     return _userAgent;
 }
 
+//! Always enabled on macOS. This is always true.
 void Photino::GetMediaAutoplayEnabled(bool* enabled)
 {
-    //! Always enabled on macOS. This is always true.
     *enabled = true;
 }
 
+//! Not supported on macOS. This is always false.
 void Photino::GetFileSystemAccessEnabled(bool* enabled)
 {
-    //! Not supported on macOS. This is always false.
+    *enabled = _fileSystemAccessEnabled;
+}
+
+//! Not supported on macOS. This is always false.
+void Photino::GetSmoothScrollingEnabled(bool* enabled)
+{
     *enabled = false;
 }
 
@@ -345,12 +353,6 @@ void Photino::GetJavascriptClipboardAccessEnabled(bool* enabled)
 void Photino::GetMediaStreamEnabled(bool* enabled)
 {
     *enabled = _mediaStreamEnabled;
-}
-
-void Photino::GetSmoothScrollingEnabled(bool* enabled)
-{
-    //! Not supported on macOS. This is always false.
-    *enabled = false;
 }
 
 void Photino::GetFullScreen(bool* fullScreen)
@@ -441,11 +443,6 @@ void Photino::Restore()
 
 void Photino::SendWebMessage(AutoString message)
 {
-    //NSString *msg = [NSString stringWithUTF8String: message];
-    //NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-    //[alert setMessageText:msg];
-    //[alert runModal];
-
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String: message];
 
@@ -471,85 +468,72 @@ void Photino::SendWebMessage(AutoString message)
     [_webview evaluateJavaScript: javaScriptToEval completionHandler: nil];
 }
 
-void Photino::SetContextMenuEnabled(bool enabled)
-{
-    //! Not supported on macOS
-}
-
-void Photino::SetDevToolsEnabled(bool enabled)
-{
-    _devToolsEnabled = enabled;
-
-    [_webviewConfiguration.preferences
-        setValue: enabled ? @YES : @NO
-        forKey: @"developerExtrasEnabled"];
-}
-
-void Photino::SetGrantBrowserPermissions(bool grant)
-{
-    //not available until macOS 11.3 aka 10.15.?
-    _grantBrowserPermissions = grant;
-    
-    [_webview setCameraCaptureState: WKMediaCaptureStateActive completionHandler: nil];
-    [_webview setMicrophoneCaptureState: WKMediaCaptureStateActive completionHandler: nil];
-}
-
 void Photino::SetUserAgent(AutoString userAgent)
 {
     _userAgent = userAgent;
     [_webview setCustomUserAgent: [NSString stringWithUTF8String: userAgent]];
 }
 
-//! Appears to be disregarded on macOS
-//! Wether this is enabled or not, autoplay works as expected when set.
-// void Photino::SetMediaAutoplayEnabled(bool enabled)
-// {
-//     _mediaAutoplayEnabled = enabled;
-
-//     [_webviewConfiguration setMediaTypesRequiringUserActionForPlayback: enabled ? WKAudiovisualMediaTypeNone : WKAudiovisualMediaTypeAll];
-// }
-
-//! Not supported on macOS
-// void Photino::SetFileSystemAccessEnabled(bool enabled)
-// {
-//     _fileSystemAccessEnabled = enabled;
-
-//     [_webviewConfiguration.preferences
-//         setValue: enabled ? @YES : @NO
-//         forKey: @"allowFileAccessFromFileURL"];
-// }
-
-void Photino::SetWebSecurityEnabled(bool enabled)
+// Set preferences with a string key and a value of any type
+void Photino::SetPreference(NSString *key, NSNumber *value)
 {
-    _webSecurityEnabled = enabled;
-
-    [_webviewConfiguration.preferences
-        setValue: enabled ? @YES : @NO
-        forKey: @"secureContextChecksEnabled"];
+    [_webviewConfiguration.preferences setValue: value forKey: key];
+}
+void Photino::SetPreference(NSString *key, NSString *value)
+{
+    [_webviewConfiguration.preferences setValue: value forKey: key];
 }
 
-void Photino::SetJavascriptClipboardAccessEnabled(bool enabled)
-{
-    _javascriptClipboardAccessEnabled = enabled;
+// Fail to compile because NSUInteger and double are not "id _Nullable"?
 
-    [_webviewConfiguration.preferences
-        setValue: enabled ? @YES : @NO
-        forKey: @"javaScriptCanAccessClipboard"];
-}
-
-void Photino::SetMediaStreamEnabled(bool enabled)
-{
-    _mediaStreamEnabled = enabled;
-
-    [_webviewConfiguration.preferences
-        setValue: enabled ? @YES : @NO
-        forKey: @"mediaStreamEnabled"];
-}
-
-//! Not supported on macOS
-// void Photino::SetSmoothScrollingEnabled(bool enabled)
+// void Photino::SetPreference(NSString *key, NSUInteger value)
 // {
+//     [_webviewConfiguration.preferences setValue: value forKey: key];
 // }
+// void Photino::SetPreference(NSString *key, double value)
+// {
+//     [_webviewConfiguration.preferences setValue: value forKey: key];
+// }
+
+// Fail to compile because value types are not available with currently linked SDKs?
+
+// void Photino::SetPreference(NSString *key, _WKEditableLinkBehavior value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKJavaScriptRuntimeFlags value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKPitchCorrectionAlgorithm value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKStorageBlockingPolicy value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKDebugOverlayRegions value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+
+// // Get preference based on a string key
+// id Photino::GetPreference(NSString *key)
+// {
+//     return [_webviewConfiguration.preferences valueForKey: key];
+// }
+
+void Photino::SetDevToolsEnabled(bool enabled)
+{
+    _devToolsEnabled = enabled;
+    SetPreference(@"developerExtrasEnabled", enabled ? @YES : @NO);
+}
+
+void Photino::SetContextMenuEnabled(bool enabled)
+{
+    //! Not supported on macOS
+}
 
 void Photino::SetIconFile(AutoString filename)
 {
