@@ -87,6 +87,15 @@
     }];
 }
 
+- (void)webView:(WKWebView *)webView 
+        requestMediaCapturePermissionForOrigin:(WKSecurityOrigin *)origin 
+        initiatedByFrame:(WKFrameInfo *)frame 
+        type:(WKMediaCaptureType)type 
+        decisionHandler:(void (^)(WKPermissionDecision decision))decisionHandler
+{
+    decisionHandler(WKPermissionDecisionPrompt);
+}
+
 - (void)windowDidResize:(NSNotification *)notification {
     int width, height;
     photino->GetSize(&width, &height);
