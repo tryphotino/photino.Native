@@ -62,7 +62,9 @@ AutoString* ShowDialog(DialogType type, AutoString title, AutoString defaultPath
     gint res = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if (res != GTK_RESPONSE_ACCEPT) {
-        *resultCount = 0;
+        if (type == OpenFile || type == OpenFolder)
+            *resultCount = 0;
+
         gtk_widget_destroy(dialog);
         return NULL;
     }

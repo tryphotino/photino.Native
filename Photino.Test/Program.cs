@@ -38,6 +38,7 @@ namespace PhotinoNET
                 //.Load(new Uri("https://google.com"))
                 //.Load("https://duckduckgo.com/?t=ffab&q=user+agent+&ia=answer")
                 .Load("wwwroot/main.html")
+                //.Load("wwwroot/index.html")
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
                 //Window settings
@@ -66,9 +67,9 @@ namespace PhotinoNET
                 //.Offset(250, 250)
 
                 //Browser settings
-                .SetContextMenuEnabled(false)
+                //.SetContextMenuEnabled(false)
                 //.SetDevToolsEnabled(false)
-                //.SetGrantBrowserPermissions(false)
+                .SetGrantBrowserPermissions(true)
                 //.SetZoom(150)
 
                 //Browser startup flags
