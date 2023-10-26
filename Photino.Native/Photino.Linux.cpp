@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iomanip>
 #include <libnotify/notify.h>
+#include <dlfcn.h>	//for dynamically calling functions from shared libraries
 
 /* --- PRINTF_BINARY_FORMAT macro's --- */
 // #define FMT_BUF_SIZE (CHAR_BIT*sizeof(uintmax_t)+1)
@@ -111,6 +112,15 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 		strcpy(_userAgent, initParams->UserAgent);
 	}
 
+	_browserControlInitParameters = NULL;
+	if (initParams->BrowserControlInitParameters != NULL)
+	{
+		_browserControlInitParameters = new char[strlen(initParams->BrowserControlInitParameters) + 1];
+		if (_browserControlInitParameters == NULL)
+			exit(0);
+		strcpy(_browserControlInitParameters, initParams->BrowserControlInitParameters);
+	}
+
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
@@ -186,7 +196,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	if (initParams->Chromeless)
 		gtk_window_set_decorated(GTK_WINDOW(_window), false);
 
-	if (initParams->WindowIconFile != NULL && initParams->WindowIconFile != "")
+	if (initParams->WindowIconFile != NULL && strlen(initParams->WindowIconFile) > 0)
 		Photino::SetIconFile(initParams->WindowIconFile);
 
 	if (initParams->CenterOnInitialize)
@@ -808,6 +818,81 @@ void Photino::set_webkit_settings()
 	//webkit_settings_set_sans_serif_font_family(settings, "sans-serif");			//webkit default: "sans-serif"
 	webkit_settings_set_user_agent(settings, _userAgent);								//webkit default: None
 	//webkit_settings_set_zoom_text_only(settings, FALSE);								//webkit default: False
+
+	if (_browserControlInitParameters != NULL && strlen(_browserControlInitParameters) > 0)
+		Photino::set_webkit_customsettings(settings);		//if any custom init parameters were passed, set them now.
+}
+
+void Photino::set_webkit_customsettings(WebKitSettings* settings)
+{
+	//TODO: parse the JSON out of _browserControlInitParameters
+
+	//open the webkit2gtk library dynamically
+	void* handle = dlopen("libwebkit2gtk-4.0.so", RTLD_LAZY);
+	if (handle == NULL) {
+		GtkWidget* dialog = gtk_message_dialog_new(
+			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not load webkit2.so library.");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+	}
+
+	std::string fName = (std::string)"webkit_settings_" + (std::string)"set_enable_developer_extras";
+	char* functionName = (char*)fName.c_str();
+
+	//GtkWidget* dialog = gtk_message_dialog_new(
+	//	nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, fName);
+	//gtk_dialog_run(GTK_DIALOG(dialog));
+	//gtk_widget_destroy(dialog);
+
+	bool isBool = true;
+	bool isString = false;
+	bool isInt = false;
+
+	// Get a function pointer from the library and call it.
+	if (isBool)
+	{
+		bool boolValue = true;
+
+		void (*example_function)(WebKitSettings*, bool) = (void (*)(WebKitSettings*, bool))dlsym(handle, functionName);
+		if (example_function == NULL) {
+			GtkWidget* dialog = gtk_message_dialog_new(
+				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
+			gtk_dialog_run(GTK_DIALOG(dialog));
+			gtk_widget_destroy(dialog);
+		}
+
+		example_function(settings, boolValue);
+	}
+	else if (isString)
+	{
+		char* stringValue = (char*)"sans-serif";
+
+		void (*example_function)(WebKitSettings*, char*) = (void (*)(WebKitSettings*, char*))dlsym(handle, functionName);
+		if (example_function == NULL) {
+			GtkWidget* dialog = gtk_message_dialog_new(
+				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
+			gtk_dialog_run(GTK_DIALOG(dialog));
+			gtk_widget_destroy(dialog);
+		}
+
+		example_function(settings, stringValue);
+	}
+	else if (isInt)
+	{
+		int intValue = 16;
+
+		void (*example_function)(WebKitSettings*, int) = (void (*)(WebKitSettings*, int))dlsym(handle, functionName);
+		if (example_function == NULL) {
+			GtkWidget* dialog = gtk_message_dialog_new(
+				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
+			gtk_dialog_run(GTK_DIALOG(dialog));
+			gtk_widget_destroy(dialog);
+		}
+
+		example_function(settings, intValue);
+	}
+
+	dlclose(handle);
 }
 
 gboolean on_configure_event(GtkWidget *widget, GdkEvent *event, gpointer self)

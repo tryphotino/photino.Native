@@ -59,8 +59,10 @@
     </None>
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-
+  <Target Name="CopyNativeLibs" AfterTargets="Build">
+	<!--<Copy SourceFiles="../Photino.Native/x64/Debug/Photino.Native.dll" DestinationFolder="$(TargetDir)" Condition="$(IsWindows) == 'true'" />-->
+	<Copy SourceFiles="../lib/x64/Photino.Native.dylib" DestinationFolder="$(TargetDir)" Condition="$(IsOSX) == 'true'" />
+	<Copy SourceFiles="../lib/x64/Photino.Native.so" DestinationFolder="$(TargetDir)" Condition="$(IsLinux) == 'true'" />
   </Target>
 
 </Project>

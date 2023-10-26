@@ -22,6 +22,7 @@ typedef char *AutoString;
 
 #ifdef __linux__
 #include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
 #endif
 
 #include <map>
@@ -67,6 +68,8 @@ struct PhotinoInitParams
 	char *TemporaryFilesPath;
 	wchar_t* UserAgentWide;
 	char * UserAgent;
+	wchar_t* BrowserControlInitParametersWide;
+	char* BrowserControlInitParameters;
 
 	Photino *ParentInstance;
 
@@ -136,6 +139,7 @@ private:
 	AutoString _windowTitle;
 	AutoString _iconFileName;
 	AutoString _userAgent;
+	AutoString _browserControlInitParameters;
 
 	bool _devToolsEnabled;
 	bool _grantBrowserPermissions;
@@ -211,6 +215,7 @@ public:
 	int _maxHeight;
 #elif __linux__
 	void set_webkit_settings();
+	void set_webkit_customsettings(WebKitSettings* settings);
 	GtkWidget *_window;
 	int _lastHeight;
 	int _lastWidth;
