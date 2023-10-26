@@ -34,6 +34,12 @@ namespace PhotinoNET
                 ? "wwwroot/photino-logo.ico"
                 : "wwwroot/photino-logo.png";
 
+            var browserInit = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "--disable-web-security --hide-scrollbars "           //Windows example for WebView2
+                : RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "{ 'set_enable_encrypted_media': true }"          //Linux example for Webkit2Gtk
+                    : "{ 'setLegacyEncryptedMediaAPIEnabled': true }";  //Mac example for Webkit on Cocoa
+
             mainWindow = new PhotinoWindow()
                 //.Load(new Uri("https://google.com"))
                 //.Load("https://duckduckgo.com/?t=ffab&q=user+agent+&ia=answer")
@@ -51,7 +57,7 @@ namespace PhotinoNET
                 //.SetMinSize(320, 240)
                 //.SetResizable(false)
                 //.SetTopMost(true)
-                .SetUseOsDefaultLocation(false)
+                //.SetUseOsDefaultLocation(false)
                 .SetUseOsDefaultSize(false)
                 //.Center()
                 //.SetSize(new Size(800, 600))
@@ -66,19 +72,20 @@ namespace PhotinoNET
                 //.Offset(250, 250)
 
                 //Browser settings
-                .SetContextMenuEnabled(false)
+                //.SetContextMenuEnabled(false)
                 //.SetDevToolsEnabled(false)
                 //.SetGrantBrowserPermissions(false)
                 //.SetZoom(150)
 
                 //Browser startup flags
-                .SetUserAgent("Custom Photino User Agent")
-                .SetMediaAutoplayEnabled(true)
-                .SetFileSystemAccessEnabled(true)
-                .SetWebSecurityEnabled(true)
-                .SetJavascriptClipboardAccessEnabled(true)
-                .SetMediaStreamEnabled(true)
-                .SetSmoothScrollingEnabled(true)
+                .SetBrowserControlInitParameters(browserInit)
+                //.SetUserAgent("Custom Photino User Agent")
+                //.SetMediaAutoplayEnabled(true)
+                //.SetFileSystemAccessEnabled(true)
+                //.SetWebSecurityEnabled(true)
+                //.SetJavascriptClipboardAccessEnabled(true)
+                //.SetMediaStreamEnabled(true)
+                //.SetSmoothScrollingEnabled(true)
                 //.SetTemporaryFilesPath(@"C:\Temp")
 
                 .RegisterCustomSchemeHandler("app", AppCustomSchemeUsed)
@@ -105,40 +112,60 @@ namespace PhotinoNET
                 ? "wwwroot/photino-logo.ico"
                 : "wwwroot/photino-logo.png";
 
+            var browserInit = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "--disable-web-security --hide-scrollbars "           //Windows example for WebView2
+                : RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "{ 'set_enable_encrypted_media': true }"          //Linux example for Webkit2Gtk
+                    : "{ 'setLegacyEncryptedMediaAPIEnabled': true }";  //Mac example for Webkit on Cocoa
+
             mainWindow = new PhotinoWindow
             {
-                IconFile = iconFile,
-                Title = $"My Photino Window {_windowNumber++}",
-
+                //StartUrl = "https://google.com",
+                //StartUrl = "https://duckduckgo.com/?t=ffab&q=user+agent+&ia=answer",
                 StartUrl = "wwwroot/main.html",
                 //StartString = "<h1>Hello Photino!</h1>",
 
-                //Centered = true,
+                //Window settings
+                IconFile = iconFile,
+                Title = $"My Photino Window {_windowNumber++}",
                 //Chromeless = true,
                 //FullScreen = true,
                 //Maximized = true,
                 MaxWidth = 640,
                 MaxHeight = 480,
+                //MaxSize = new Point(640, 480),
                 //Minimized = true,
                 MinWidth = 320,
                 MinHeight = 240,
+                //MinSize = new Point(320, 240),
                 //Resizable = false,
                 //TopMost = true,
-                //UseOsDefaultLocation = false,
+                UseOsDefaultLocation = false,
                 UseOsDefaultSize = false,
-                //Zoom = 300,
-
-                //ContextMenuEnabled = false,
-                //DevToolsEnabled = false,
-                //GrantBrowserPermissions = false,
-
-                //CenterOnInitialize = true,
-                //Size = new Size(800, 600),
+                Centered = true,
+                Size = new Size(800, 600),
                 Height = 600,
                 Width = 800,
-                //Location = new Point(50, 50),
-                //Top = 50,
-                //Left = 50,
+                Location = new Point(50, 50),
+                Top = 50,
+                Left = 50,
+
+                //Browser settings
+                ContextMenuEnabled = false,
+                DevToolsEnabled = false,
+                GrantBrowserPermissions = false,
+                Zoom = 150,
+
+                //Browser startup flags
+                BrowserControlInitParameters = browserInit,
+                UserAgent = "Custom Photino User Agent",
+                MediaAutoplayEnabled = true,
+                FileSystemAccessEnabled = true,
+                WebSecurityEnabled = true,
+                JavascriptClipboardAccessEnabled = true,
+                MediaStreamEnabled = true,
+                SmoothScrollingEnabled = true,
+                //TemporaryFilesPath = @"C:\Temp",
 
                 WindowCreatingHandler = WindowCreating,
                 WindowCreatedHandler = WindowCreated,
@@ -151,8 +178,6 @@ namespace PhotinoNET
                 WindowClosingHandler = WindowIsClosing,
                 WindowFocusInHandler = WindowFocusIn,
                 WindowFocusOutHandler = WindowFocusOut,
-
-                //TemporaryFilesPath = @"C:\Temp",
 
                 LogVerbosity = _logEvents ? 2 : 0,
             };

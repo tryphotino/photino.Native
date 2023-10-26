@@ -133,6 +133,14 @@ Photino::Photino(PhotinoInitParams* initParams)
 		wcscpy(_userAgent, initParams->UserAgentWide);
 	}
 
+	_browserControlInitParameters = NULL;
+	if (initParams->BrowserControlInitParametersWide != NULL)
+	{
+		_browserControlInitParameters = new wchar_t[wcslen(initParams->BrowserControlInitParametersWide) + 1];
+		if (_browserControlInitParameters == NULL) exit(0);
+		wcscpy(_browserControlInitParameters, initParams->BrowserControlInitParametersWide);
+	}
+
 
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
@@ -833,8 +841,8 @@ void Photino::AttachWebView()
 		startupString += L"--enable-usermedia-screen-capturing ";
 	if (!_smoothScrollingEnabled)
 		startupString += L"--disable-smooth-scrolling ";
-	//if (_customStartupString != NULL)
-	//	startupString += _customStartupString;	//e.g.--hide-scrollbars
+	if (_browserControlInitParameters != NULL)
+		startupString += _browserControlInitParameters;	//e.g.--hide-scrollbars
 
 	auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
 	if (startupString.length() > 0)
