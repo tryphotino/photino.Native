@@ -3,6 +3,8 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace PhotinoNET
 {
@@ -30,15 +32,33 @@ namespace PhotinoNET
 
         private static void FluentStyle()
         {
-            var iconFile = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            var iconFile = PhotinoWindow.IsWindowsPlatform
                 ? "wwwroot/photino-logo.ico"
                 : "wwwroot/photino-logo.png";
 
-            var browserInit = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? "--disable-web-security --hide-scrollbars "           //Windows example for WebView2
-                : RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? "{ 'set_enable_encrypted_media': true }"          //Linux example for Webkit2Gtk
-                    : "{ 'setLegacyEncryptedMediaAPIEnabled': true }";  //Mac example for Webkit on Cocoa
+            string browserInit = string.Empty;
+
+            if (PhotinoWindow.IsWindowsPlatform)
+            {
+                //Windows example for WebView2
+                browserInit = "--disable-web-security --hide-scrollbars ";
+            }
+            else if (PhotinoWindow.IsMacOsPlatform)
+            {
+                //Mac example for Webkit on Cocoa
+                browserInit = JsonSerializer.Serialize(new
+                {
+                    setLegacyEncryptedMediaAPIEnabled = true
+                });
+            }
+            else if (PhotinoWindow.IsLinuxPlatform)
+            {
+                //Linux example for Webkit2Gtk
+                browserInit = JsonSerializer.Serialize(new
+                {
+                    set_enable_encrypted_media = true
+                });
+            }
 
             mainWindow = new PhotinoWindow()
                 //.Load(new Uri("https://google.com"))
