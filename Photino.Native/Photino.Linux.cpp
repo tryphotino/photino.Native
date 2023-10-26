@@ -12,6 +12,8 @@
 #include <iomanip>
 #include <libnotify/notify.h>
 #include <dlfcn.h>	//for dynamically calling functions from shared libraries
+#include "json.hpp"
+using json = nlohmann::json;
 
 /* --- PRINTF_BINARY_FORMAT macro's --- */
 // #define FMT_BUF_SIZE (CHAR_BIT*sizeof(uintmax_t)+1)
@@ -752,8 +754,6 @@ void Photino::Show()
 
 void Photino::set_webkit_settings()
 {
-	//TODO: Read custom browser control configuration JSON and set these values accordingly.
-	
 	//https://webkitgtk.org/reference/webkit2gtk/2.5.1/WebKitSettings.html
 	//https://lazka.github.io/pgi-docs/WebKit2-4.0/classes/Settings.html
 	WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
@@ -825,71 +825,72 @@ void Photino::set_webkit_settings()
 
 void Photino::set_webkit_customsettings(WebKitSettings* settings)
 {
-	//TODO: parse the JSON out of _browserControlInitParameters
-
 	//open the webkit2gtk library dynamically
-	void* handle = dlopen("libwebkit2gtk-4.0.so", RTLD_LAZY);
+	void* handle = dlopen("libwebkit2gtk-4.1.so", RTLD_LAZY);
 	if (handle == NULL) {
 		GtkWidget* dialog = gtk_message_dialog_new(
-			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not load webkit2.so library.");
+			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not load libwebkit2gtk-4.1.so library.");
 		gtk_dialog_run(GTK_DIALOG(dialog));
 		gtk_widget_destroy(dialog);
 	}
-
-	std::string fName = (std::string)"webkit_settings_" + (std::string)"set_enable_developer_extras";
-	char* functionName = (char*)fName.c_str();
-
-	//GtkWidget* dialog = gtk_message_dialog_new(
-	//	nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, fName);
-	//gtk_dialog_run(GTK_DIALOG(dialog));
-	//gtk_widget_destroy(dialog);
-
-	bool isBool = true;
-	bool isString = false;
-	bool isInt = false;
-
-	// Get a function pointer from the library and call it.
-	if (isBool)
+	
+	//parse the JSON out of _browserControlInitParameters
+	json data = json::parse(_browserControlInitParameters);
+	for (auto it = data.begin(); it != data.end(); ++it)
 	{
-		bool boolValue = true;
+		json key = it.key();
+		std::string fName = (std::string)"webkit_settings_" + (std::string)key;
+		char* functionName = (char*)fName.c_str();
 
-		void (*example_function)(WebKitSettings*, bool) = (void (*)(WebKitSettings*, bool))dlsym(handle, functionName);
-		if (example_function == NULL) {
-			GtkWidget* dialog = gtk_message_dialog_new(
-				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
-			gtk_dialog_run(GTK_DIALOG(dialog));
-			gtk_widget_destroy(dialog);
+		json value = it.value();
+
+		if (value.is_boolean())
+		{
+			bool boolValue = value;
+
+			void (*example_function)(WebKitSettings*, bool) = (void (*)(WebKitSettings*, bool))dlsym(handle, functionName);
+			if (example_function == NULL) {
+				GtkWidget* dialog = gtk_message_dialog_new(
+					nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
+				gtk_dialog_run(GTK_DIALOG(dialog));
+				gtk_widget_destroy(dialog);
+			}
+
+			example_function(settings, boolValue);
 		}
+		else if (value.is_number())
+		{
+			int intValue = value;
 
-		example_function(settings, boolValue);
-	}
-	else if (isString)
-	{
-		char* stringValue = (char*)"sans-serif";
+			void (*example_function)(WebKitSettings*, int) = (void (*)(WebKitSettings*, int))dlsym(handle, functionName);
+			if (example_function == NULL) {
+				GtkWidget* dialog = gtk_message_dialog_new(
+					nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
+				gtk_dialog_run(GTK_DIALOG(dialog));
+				gtk_widget_destroy(dialog);
+			}
 
-		void (*example_function)(WebKitSettings*, char*) = (void (*)(WebKitSettings*, char*))dlsym(handle, functionName);
-		if (example_function == NULL) {
-			GtkWidget* dialog = gtk_message_dialog_new(
-				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
-			gtk_dialog_run(GTK_DIALOG(dialog));
-			gtk_widget_destroy(dialog);
+			example_function(settings, intValue);
 		}
+		else if (value.is_string())
+		{
+			char* stringValue = (char*)value.get<std::string>().c_str();
 
-		example_function(settings, stringValue);
-	}
-	else if (isInt)
-	{
-		int intValue = 16;
+			//GtkWidget* dialog = gtk_message_dialog_new(
+			//	nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Setting: %s  Value: %s", functionName, stringValue);
+			//gtk_dialog_run(GTK_DIALOG(dialog));
+			//gtk_widget_destroy(dialog);
 
-		void (*example_function)(WebKitSettings*, int) = (void (*)(WebKitSettings*, int))dlsym(handle, functionName);
-		if (example_function == NULL) {
-			GtkWidget* dialog = gtk_message_dialog_new(
-				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
-			gtk_dialog_run(GTK_DIALOG(dialog));
-			gtk_widget_destroy(dialog);
+			void (*example_function)(WebKitSettings*, char*) = (void (*)(WebKitSettings*, char*))dlsym(handle, functionName);
+			if (example_function == NULL) {
+				GtkWidget* dialog = gtk_message_dialog_new(
+					nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Could not dynamically load function %s.", functionName);
+				gtk_dialog_run(GTK_DIALOG(dialog));
+				gtk_widget_destroy(dialog);
+			}
+
+			example_function(settings, stringValue);
 		}
-
-		example_function(settings, intValue);
 	}
 
 	dlclose(handle);

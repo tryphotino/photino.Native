@@ -56,7 +56,10 @@ namespace PhotinoNET
                 //Linux example for Webkit2Gtk
                 browserInit = JsonSerializer.Serialize(new
                 {
-                    set_enable_encrypted_media = true
+                    set_enable_encrypted_media = true,
+                    //set_default_font_size = 48,
+                    //set_enable_developer_extras = true,
+                    set_default_font_family = "monospace"
                 });
             }
 
