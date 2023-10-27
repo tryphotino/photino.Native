@@ -7,6 +7,10 @@
 #include "Photino.Mac.NSWindowBorderless.h"
 #include <vector>
 
+#include "json.hpp"
+
+using json = nlohmann::json;
+
 using namespace std;
 
 //Creates an instance of the 'application' under which, all windows will run
@@ -237,7 +241,7 @@ Photino::Photino(PhotinoInitParams* initParams)
     // Create WebView
     AttachWebView();
 
-    // Set initialized WebView (Configuration) options
+    // Set initialized WebKit (Configuration) options
     SetUserAgent(initParams->UserAgent);
     
     SetPreference(@"developerExtrasEnabled", initParams->DevToolsEnabled ? @YES : @NO);
@@ -251,6 +255,36 @@ Photino::Photino(PhotinoInitParams* initParams)
     SetPreference(@"notificationEventEnabled", @YES);
     SetPreference(@"notificationsEnabled", @YES);
     SetPreference(@"screenCaptureEnabled", @YES);
+
+    // Set initialized WebKit (Configuration) options
+    json wkPreferences = json::parse(initParams->BrowserControlInitParameters);
+
+    // Iterate over wkPreferences json object and set preferences
+    for (json::iterator it = wkPreferences.begin(); it != wkPreferences.end(); ++it)
+    {
+        json key = it.key();
+        json value = it.value();
+        
+        NSString *preferenceKey = [NSString stringWithUTF8String: (char*)key.get<std::string>().c_str()];
+
+        if (value.is_number_integer())
+        {
+            SetPreference(preferenceKey, [NSNumber numberWithInt: value]);
+        }
+        else if (value.is_number_float())
+        {
+            SetPreference(preferenceKey, [NSNumber numberWithDouble: value]);
+        }
+        else if (value.is_boolean())
+        {
+            SetPreference(preferenceKey, [NSNumber numberWithBool: value]);
+        }
+        else if (value.is_string())
+        {
+            NSString *preferenceValue = [[NSString alloc] initWithUTF8String: (char*)value.get<std::string>().c_str()];
+            SetPreference(preferenceKey, preferenceValue);
+        }
+    }
 
     _dialog = new PhotinoDialog();
 
