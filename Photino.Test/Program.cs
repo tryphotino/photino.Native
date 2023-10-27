@@ -48,7 +48,8 @@ namespace PhotinoNET
                 //Mac example for Webkit on Cocoa
                 browserInit = JsonSerializer.Serialize(new
                 {
-                    setLegacyEncryptedMediaAPIEnabled = true
+                    standardFontFamily = "Helvetica Neue",
+                    defaultFontSize = 22
                 });
             }
             else if (PhotinoWindow.IsLinuxPlatform)
