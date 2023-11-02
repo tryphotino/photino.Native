@@ -171,42 +171,42 @@ jobs:
       displayName: 'Download WindowsIntelArtifact'
       inputs:
         artifact: WindowsIntelArtifact
-        patterns: '**/*.dll'
+        patterns: '**/x64/*.dll'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    #- task: DownloadPipelineArtifact@2
-    #  displayName: 'Download WindowsArm64Artifact'
-    #  inputs:
-    #    artifact: WindowsArm64Artifact
-    #    patterns: '**/*.dll'
-    #    targetPath: '$(Pipeline.Workspace)/arm64/'
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download WindowsArm64Artifact'
+      inputs:
+        artifact: WindowsArm64Artifact
+        patterns: '**/win-arm64/*.dll'
+        targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download LinuxIntelArtifact'
       inputs:
         artifact: LinuxIntelArtifact
-        patterns: '**/*.so'
+        patterns: '**/x64/*.so'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
-    #- task: DownloadPipelineArtifact@2
-    #  displayName: 'Download LinuxArm64Artifact'
-    #  inputs:
-    #    artifact: LinuxArm64Artifact
-    #    patterns: '**/*.so'
-    #    targetPath: '$(Pipeline.Workspace)/arm64/'
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download LinuxArm64Artifact'
+      inputs:
+        artifact: LinuxArm64Artifact
+        patterns: '**/linux-arm64/*.so'
+        targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download MacOsIntelArtifact'
       inputs:
         artifact: MacOsIntelArtifact
-        patterns: '**/*.dylib'
+        patterns: '**/x64/*.dylib'
         targetPath: '$(Pipeline.Workspace)/x64/'
 
     - task: DownloadPipelineArtifact@2
       displayName: 'Download MacOsArm64Artifact'
       inputs:
         artifact: MacOsArm64Artifact
-        patterns: '**/*.dylib'
+        patterns: '**/arm64/*.dylib'
         targetPath: '$(Pipeline.Workspace)/arm64/'
 
     - task: CmdLine@2
