@@ -19,11 +19,11 @@
 	<file src="arm64/Photino.Native.dll" target="runtimes\win-arm64\native\Photino.Native.dll" />
     <file src="arm64/WebView2Loader.dll" target="runtimes\win-arm64\native\WebView2Loader.dll" />
 	-->
-    <file src="x64/Photino.Native.so" target="runtimes\linux-x64\native\Photino.Native.so" />
+    <file src="x64/Photino.Native.so" target="./runtimes/linux-x64/native/Photino.Native.so" />
     <!--
-    <file src="arm64/Photino.Native.so" target="runtimes\linux-arm64\native\Photino.Native.so" />
+    <file src="arm64/Photino.Native.so" target="./runtimes/linux-arm64/native/Photino.Native.so" />
 	-->
-    <file src="x64/Photino.Native.dylib" target="runtimes\osx-x64\native\Photino.Native.dylib" />
-    <file src="arm64/Photino.Native.dylib" target="runtimes\osx-arm64\native\Photino.Native.dylib" />
+    <file src="x64/Photino.Native.dylib" target="./runtimes/osx-x64/native/Photino.Native.dylib" />
+    <file src="arm64/Photino.Native.dylib" target="./runtimes/osx-arm64/native/Photino.Native.dylib" />
   </files>
 </package>

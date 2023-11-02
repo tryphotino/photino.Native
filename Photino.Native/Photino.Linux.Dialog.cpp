@@ -1,3 +1,4 @@
+#ifdef __linux__
 #include "Photino.Dialog.h"
 
 enum DialogType {
@@ -61,7 +62,9 @@ AutoString* ShowDialog(DialogType type, AutoString title, AutoString defaultPath
     gint res = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if (res != GTK_RESPONSE_ACCEPT) {
-        *resultCount = 0;
+        if (type == OpenFile || type == OpenFolder)
+            *resultCount = 0;
+
         gtk_widget_destroy(dialog);
         return NULL;
     }
@@ -101,7 +104,9 @@ AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPa
 
 AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString* filters, int filterCount)
 {
-    return ShowDialog(SaveFile, title, defaultPath, false, filters, filterCount, NULL)[0];
+    char** result = ShowDialog(SaveFile, title, defaultPath, false, filters, filterCount, NULL);
+    if (result != NULL) return result[0];
+    return NULL;
 }
 
 DialogResult PhotinoDialog::ShowMessage(AutoString title, AutoString text, DialogButtons buttons, DialogIcon icon)
@@ -190,3 +195,4 @@ DialogResult PhotinoDialog::ShowMessage(AutoString title, AutoString text, Dialo
             return DialogResult::Cancel;
     }
 }
+#endif

@@ -7,6 +7,10 @@
 #include "Photino.Mac.NSWindowBorderless.h"
 #include <vector>
 
+#include "json.hpp"
+
+using json = nlohmann::json;
+
 using namespace std;
 
 //Creates an instance of the 'application' under which, all windows will run
@@ -22,22 +26,76 @@ void Photino::Register()
     [application setActivationPolicy: NSApplicationActivationPolicyRegular];
 
     NSString *appName = [[NSProcessInfo processInfo] processName];
+    
+    NSMenu *mainMenu = [[NSMenu new] autorelease];
 
-    NSString *quitTitle = [@"Quit " stringByAppendingString: appName];
+    NSMenuItem *mainMenuItem = [[NSMenuItem new] autorelease];
+    [mainMenu addItem: mainMenuItem];
+
+    NSMenu *mainSubMenu = [[NSMenu new] autorelease];
+    [mainMenuItem setSubmenu: mainSubMenu];
+
+    // Add SelectAll, Cut, Copy & Paste Menu items to new edit menu
+    // NSMenuItem *editMenuItem = [[
+    //     [NSMenuItem alloc]
+    //     initWithTitle: @"Edit"
+    //     action: nil
+    //     keyEquivalent: @""
+    // ] autorelease];
+    // [mainMenu addItem: editMenuItem];
+
+    // NSMenu *editSubMenu = [[NSMenu new] autorelease];
+    // [editMenuItem setSubmenu: editSubMenu];
+
+    NSMenuItem *selectMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Select All"
+        action: @selector(selectAll:)
+        keyEquivalent: @"a"
+    ] autorelease];
+
+    // [editSubMenu addItem: selectMenuItem];
+    [mainSubMenu addItem: selectMenuItem];
+
+    NSMenuItem *cutMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Cut"
+        action: @selector(cut:)
+        keyEquivalent: @"x"
+    ] autorelease];
+
+    // [editSubMenu addItem: cutMenuItem];
+    [mainSubMenu addItem: cutMenuItem];
+
+    NSMenuItem *copyMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Copy"
+        action: @selector(copy:)
+        keyEquivalent: @"c"
+    ] autorelease];
+
+    // [editSubMenu addItem: copyMenuItem];
+    [mainSubMenu addItem: copyMenuItem];
+
+    NSMenuItem *pasteMenuItem = [[
+        [NSMenuItem alloc]
+        initWithTitle: @"Paste"
+        action: @selector(paste:)
+        keyEquivalent: @"v"
+    ] autorelease];
+
+    // [editSubMenu addItem: pasteMenuItem];
+    [mainSubMenu addItem: pasteMenuItem];
+
+    // Add Quit Menu Item
     NSMenuItem *quitMenuItem = [[
         [NSMenuItem alloc]
-        initWithTitle: quitTitle
+        initWithTitle: [@"Quit " stringByAppendingString: appName]
         action: @selector(terminate:)
         keyEquivalent: @"q"
     ] autorelease];
-    
-    NSMenu *mainMenu = [[NSMenu new] autorelease];
-    NSMenuItem *mainMenuItem = [[NSMenuItem new] autorelease];
-    NSMenu *subMenu = [[NSMenu new] autorelease];
 
-    [mainMenu addItem: mainMenuItem];
-    [mainMenuItem setSubmenu: subMenu];
-    [subMenu addItem: quitMenuItem];
+    [mainSubMenu addItem: quitMenuItem];
 
     [NSApp setMainMenu: mainMenu];
 }
@@ -75,10 +133,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 	_contextMenuEnabled = true; //not configurable on mac //initParams->ContextMenuEnabled;
-	_devToolsEnabled = initParams->DevToolsEnabled;
-	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
-
-	_zoom = initParams->Zoom;
+	// _zoom = initParams->Zoom;
 
 	//these handlers are ALWAYS hooked up
 	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
@@ -151,51 +206,90 @@ Photino::Photino(PhotinoInitParams* initParams)
             defer: true];
     }
     
+    // Set Window options
     SetTitle(_windowTitle);
-    SetPosition(initParams->Left, initParams->Top);
-    SetSize(initParams->Width, initParams->Height);
-
     if (initParams->WindowIconFile != NULL && initParams->WindowIconFile[0] != '\0')
 		Photino::SetIconFile(initParams->WindowIconFile);
 
+	SetTopmost(initParams->Topmost);
+    SetPosition(initParams->Left, initParams->Top);
+
+    // It's important to set min/max size before setting size
+    // SetSize is ensuring internally that the size is within min/max
+    // but requires that min/max be set first.
+    SetMinSize(initParams->MinWidth, initParams->MinHeight); // Defaults to 0,0
+    SetMaxSize(initParams->MaxWidth, initParams->MaxHeight); // Defaults to 10000,10000
+    SetSize(initParams->Width, initParams->Height);
+
+	SetMinimized(initParams->Minimized);
+	SetMaximized(initParams->Maximized);
+    
+	SetResizable(initParams->Resizable);
+
 	if (initParams->CenterOnInitialize)
 		Photino::Center();
-
-	if (initParams->Minimized)
-		SetMinimized(true);
-
-	if (initParams->Maximized)
-		SetMaximized(true);
-
-	if (initParams->Resizable == false)
-		SetResizable(false);
-
-	if (initParams->Topmost)
-		SetTopmost(true);
   
+    // Create WebView Configuration
     _webviewConfiguration = [[WKWebViewConfiguration alloc] init];
-    if (_contextMenuEnabled) {} //Not configurable on mac
-    if (_devToolsEnabled)
-        [_webviewConfiguration.preferences setValue: @YES forKey: @"developerExtrasEnabled"];
 
-    //wire up custom url schemes
+    // Add Custom URL Schemes to WebView Configuration
     for (auto & scheme : _customSchemeNames)
     {
         AddCustomScheme(scheme, _customSchemeCallback);
     }
 
-    _webview = nil;
+    // Create WebView
     AttachWebView();
+
+    // Set initialized WebKit (Configuration) options
+    SetUserAgent(initParams->UserAgent);
+    
+    SetPreference(@"developerExtrasEnabled", initParams->DevToolsEnabled ? @YES : @NO);
+    SetPreference(@"allowFileAccessFromFileURLs", initParams->FileSystemAccessEnabled ? @YES : @NO);
+    SetPreference(@"webSecurityEnabled", initParams->WebSecurityEnabled ? @YES : @NO);
+    SetPreference(@"javaScriptCanAccessClipboard", initParams->JavascriptClipboardAccessEnabled ? @YES : @NO);
+    SetPreference(@"mediaStreamEnabled", initParams->MediaStreamEnabled ? @YES : @NO);
+
+    SetPreference(@"mediaDevicesEnabled", @YES);
+    SetPreference(@"mediaCaptureRequiresSecureConnection", @NO);
+    SetPreference(@"notificationEventEnabled", @YES);
+    SetPreference(@"notificationsEnabled", @YES);
+    SetPreference(@"screenCaptureEnabled", @YES);
+
+    // Set initialized WebKit (Configuration) options
+    json wkPreferences = json::parse(initParams->BrowserControlInitParameters);
+
+    // Iterate over wkPreferences json object and set preferences
+    for (json::iterator it = wkPreferences.begin(); it != wkPreferences.end(); ++it)
+    {
+        json key = it.key();
+        json value = it.value();
+        
+        NSString *preferenceKey = [NSString stringWithUTF8String: (char*)key.get<std::string>().c_str()];
+
+        if (value.is_number_integer())
+        {
+            SetPreference(preferenceKey, [NSNumber numberWithInt: value]);
+        }
+        else if (value.is_number_float())
+        {
+            SetPreference(preferenceKey, [NSNumber numberWithDouble: value]);
+        }
+        else if (value.is_boolean())
+        {
+            SetPreference(preferenceKey, [NSNumber numberWithBool: value]);
+        }
+        else if (value.is_string())
+        {
+            NSString *preferenceValue = [[NSString alloc] initWithUTF8String: (char*)value.get<std::string>().c_str()];
+            SetPreference(preferenceKey, preferenceValue);
+        }
+    }
 
     _dialog = new PhotinoDialog();
 
-    if (_grantBrowserPermissions)
-        SetGrantBrowserPermissions(_grantBrowserPermissions);
-
     Show();
-    
-    if (initParams->FullScreen)
-        SetFullScreen(true);
+    SetFullScreen(initParams->FullScreen);
 }
 
 Photino::~Photino()
@@ -252,14 +346,52 @@ void Photino::GetDevToolsEnabled(bool* enabled)
     *enabled = _devToolsEnabled;
 }
 
+void Photino::GetGrantBrowserPermissions(bool* enabled)
+{
+    *enabled = _grantBrowserPermissions;
+}
+
+AutoString Photino::GetUserAgent()
+{
+    return _userAgent;
+}
+
+//! Always enabled on macOS. This is always true.
+void Photino::GetMediaAutoplayEnabled(bool* enabled)
+{
+    *enabled = true;
+}
+
+//! Not supported on macOS. This is always false.
+void Photino::GetFileSystemAccessEnabled(bool* enabled)
+{
+    *enabled = _fileSystemAccessEnabled;
+}
+
+//! Not supported on macOS. This is always false.
+void Photino::GetSmoothScrollingEnabled(bool* enabled)
+{
+    *enabled = false;
+}
+
+void Photino::GetWebSecurityEnabled(bool* enabled)
+{
+    *enabled = _webSecurityEnabled;
+}
+
+void Photino::GetJavascriptClipboardAccessEnabled(bool* enabled)
+{
+    *enabled = _javascriptClipboardAccessEnabled;
+}
+
+void Photino::GetMediaStreamEnabled(bool* enabled)
+{
+    *enabled = _mediaStreamEnabled;
+}
+
 void Photino::GetFullScreen(bool* fullScreen)
 {
     *fullScreen = ([_window.contentView isInFullScreenMode]);
-}
-
-void Photino::GetGrantBrowserPermissions(bool* grant)
-{
-    *grant = _grantBrowserPermissions;
 }
 
 void Photino::GetMaximized(bool* isMaximized)
@@ -339,17 +471,12 @@ void Photino::Restore()
     bool maximized;
     GetMinimized(&minimized);
     GetMaximized(&maximized);
-	if (minimized) SetMinimized(false);
+    if (minimized) SetMinimized(false);
     if (maximized) SetMaximized(false);
 }
 
 void Photino::SendWebMessage(AutoString message)
 {
-    //NSString *msg = [NSString stringWithUTF8String: message];
-    //NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-    //[alert setMessageText:msg];
-    //[alert runModal];
-
     // JSON-encode the message
     NSString* nsmessage = [NSString stringWithUTF8String: message];
 
@@ -375,34 +502,71 @@ void Photino::SendWebMessage(AutoString message)
     [_webview evaluateJavaScript: javaScriptToEval completionHandler: nil];
 }
 
-void Photino::SetContextMenuEnabled(bool enabled)
+void Photino::SetUserAgent(AutoString userAgent)
 {
-    //Can't be changed after initialization on mac
-    //_contextMenuEnabled = enabled;
-    //TODO:
+    _userAgent = userAgent;
+    [_webview setCustomUserAgent: [NSString stringWithUTF8String: userAgent]];
 }
+
+// Set preferences with a string key and a value of any type
+void Photino::SetPreference(NSString *key, NSNumber *value)
+{
+    [_webviewConfiguration.preferences setValue: value forKey: key];
+}
+void Photino::SetPreference(NSString *key, NSString *value)
+{
+    [_webviewConfiguration.preferences setValue: value forKey: key];
+}
+
+// Fail to compile because NSUInteger and double are not "id _Nullable"?
+
+// void Photino::SetPreference(NSString *key, NSUInteger value)
+// {
+//     [_webviewConfiguration.preferences setValue: value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, double value)
+// {
+//     [_webviewConfiguration.preferences setValue: value forKey: key];
+// }
+
+// Fail to compile because value types are not available with currently linked SDKs?
+
+// void Photino::SetPreference(NSString *key, _WKEditableLinkBehavior value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKJavaScriptRuntimeFlags value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKPitchCorrectionAlgorithm value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKStorageBlockingPolicy value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+// void Photino::SetPreference(NSString *key, _WKDebugOverlayRegions value)
+// {
+//     [_webviewConfiguration.preferences setValue value forKey: key];
+// }
+
+// // Get preference based on a string key
+// id Photino::GetPreference(NSString *key)
+// {
+//     return [_webviewConfiguration.preferences valueForKey: key];
+// }
 
 void Photino::SetDevToolsEnabled(bool enabled)
 {
-    //Can't be changed after initialization on mac
-    //_devToolsEnabled = enabled;
-    //[_webview configuration: preferences: enableDevExtras: YES];
+    _devToolsEnabled = enabled;
+    SetPreference(@"developerExtrasEnabled", enabled ? @YES : @NO);
 }
 
-void Photino::SetFullScreen(bool fullScreen)
+void Photino::SetContextMenuEnabled(bool enabled)
 {
-    if (fullScreen)
-        [_window.contentView enterFullScreenMode: [NSScreen mainScreen] withOptions: nil];
-    else
-        [_window.contentView exitFullScreenModeWithOptions: nil];
-}
-
-void Photino::SetGrantBrowserPermissions(bool grant)
-{
-    //not available until macOS 11.3 aka 10.15.?
-    //_grantBrowserPermissions = grant;
-    //[_webview setCameraCaptureState: WKMediaCaptureStateActive];
-    //[_webview setMicrophoneCaptureState: WKMediaCaptureStateActive];  
+    //! Not supported on macOS
 }
 
 void Photino::SetIconFile(AutoString filename)
@@ -411,6 +575,14 @@ void Photino::SetIconFile(AutoString filename)
     NSImage* icon = [[NSImage alloc] initWithContentsOfFile: path];
     if (icon != nil)
         [[_window standardWindowButton: NSWindowDocumentIconButton] setImage:icon];
+}
+
+void Photino::SetFullScreen(bool fullScreen)
+{
+    if (fullScreen)
+        [_window.contentView enterFullScreenMode: [NSScreen mainScreen] withOptions: nil];
+    else
+        [_window.contentView exitFullScreenModeWithOptions: nil];
 }
 
 void Photino::SetMinimized(bool minimized)
@@ -425,17 +597,47 @@ void Photino::SetMinimized(bool minimized)
 
 void Photino::SetMaximized(bool maximized)
 {
-    [_window toggleFullScreen: NULL];
+    // Maximize window by filling the screen with the window instead of setting it to fullscreen
+    if (maximized)
+    {
+        NSRect window = [_window frame];
+        _preMaximizedWidth = window.size.width;
+        _preMaximizedHeight = window.size.height;
+        _preMaximizedXPosition = window.origin.x;
+        _preMaximizedYPosition = window.origin.y;
+        
+        NSRect screen = [[_window screen] visibleFrame];
+        CGFloat xPos = screen.origin.x;
+        CGFloat yPos = screen.origin.y;
+        CGFloat width = screen.size.width;
+        CGFloat height = screen.size.height;
+        [_window setFrame: NSMakeRect(xPos, yPos, width, height) display:YES];
+    }
+    else if (!maximized && _preMaximizedWidth > 0 && _preMaximizedHeight > 0)
+    {
+        // Restore window to its previous size
+        [_window setFrame: NSMakeRect(_preMaximizedXPosition, _preMaximizedYPosition, _preMaximizedWidth, _preMaximizedHeight) display:YES];
+    }
 }
 
 void Photino::SetPosition(int x, int y)
 {
-    NSRect frame = [_window frame];
+    // Currently assuming window is on monitor 0
+    
+    // Todo: Determine the monitor the window is on.
+    // To determine the current monitor, check the window's position
+    // and compare it to the width/height of the monitors. If the position
+    // is larger than the dimensions of the first monitor, then use the
+    // second / third montior.
     std::vector<Monitor*> monitors = GetMonitors();
     Monitor monitor = *monitors[0];
+    
+    NSRect frame = [_window frame];
     int height = (int)roundf(frame.size.height);
+    
     CGFloat left = (CGFloat)x;
-    CGFloat top = (CGFloat)(monitor.monitor.height - (y + height)); // Assuming window is on monitor 0
+    CGFloat top = (CGFloat)(monitor.monitor.height - (y + height));
+
     CGPoint position = CGPointMake(left, top);
     [_window setFrameOrigin: position];
 }
@@ -450,13 +652,57 @@ void Photino::SetResizable(bool resizable)
 
 void Photino::SetSize(int width, int height)
 {
+    // The macOS window server has a limit of 10,000 pixels for either dimension
+    // See: https://developer.apple.com/documentation/appkit/nswindow/1419595-maxsize
+    width = width > 10000 ? 10000 : width;
+    height = height > 10000 ? 10000 : height;
+
+    // Ensure that the size does not exceed any set min/max dimension:
+    // This is done here because the window server will not enforce this
+    // when the size is set programmatically compared to when the user
+    // resizes the window manually.
+    // This behavior is different from Windows and Linux where the OS
+    // will enforce the min/max size regardless of how the size is set.
+    if (width > _window.maxSize.width) width = _window.maxSize.width;
+    if (height > _window.maxSize.height) height = _window.maxSize.height;
+    if (width < _window.minSize.width) width = _window.minSize.width;
+    if (height < _window.minSize.height) height = _window.minSize.height;
+
     NSRect frame = [_window frame];
+    
     CGFloat fw = (CGFloat)width;
     CGFloat fh = (CGFloat)height;
+    
     CGFloat oldHeight = frame.size.height;
+
     frame.size = CGSizeMake(fw, fh);
+    
+    // Reposition the window so that the bottom left corner stays in the same place
     frame.origin.y -= fh - oldHeight;
+    
     [_window setFrame: frame display: true];
+}
+
+void Photino::SetMinSize(int width, int height)
+{
+    // The macOS window server has a limit of 10,000 pixels for either dimension
+    // See: https://developer.apple.com/documentation/appkit/nswindow/1419595-maxsize
+    width = width > 10000 ? 10000 : width;
+    height = height > 10000 ? 10000 : height;
+
+    NSSize minSize = NSMakeSize(width, height);
+    [_window setMinSize: minSize];
+}
+
+void Photino::SetMaxSize(int width, int height)
+{
+    // The macOS window server has a limit of 10,000 pixels for either dimension
+    // See: https://developer.apple.com/documentation/appkit/nswindow/1419595-maxsize
+    width = width > 10000 ? 10000 : width;
+    height = height > 10000 ? 10000 : height;
+
+    NSSize maxSize = NSMakeSize(width, height);
+    [_window setMaxSize: maxSize];
 }
 
 void Photino::SetTitle(AutoString title)

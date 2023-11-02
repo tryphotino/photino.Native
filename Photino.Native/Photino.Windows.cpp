@@ -10,6 +10,8 @@
 #include <wrl.h>
 #include <windows.h>
 #include <algorithm>
+#include <limits>
+#include <WebView2EnvironmentOptions.h>
 
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
@@ -72,7 +74,11 @@ void Photino::Register(HINSTANCE hInstance)
 Photino::Photino(PhotinoInitParams* initParams)
 {
 	//wchar_t msg[50];
-	//swprintf(msg, 50, L"sz: %i", initParams->sz);
+	//swprintf(msg, 50, L"Size: %i", initParams->Size);
+	//MessageBox(nullptr, msg, L"", MB_OK);
+
+	//wchar_t msg[50];
+	//swprintf(msg, 50, L"MaxWidth: %i", initParams->MaxWidth);
 	//MessageBox(nullptr, msg, L"", MB_OK);
 
 	if (initParams->Size != sizeof(PhotinoInitParams))
@@ -119,11 +125,38 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	}
 
+	_userAgent = NULL;
+	if (initParams->UserAgentWide != NULL)
+	{
+		_userAgent = new wchar_t[wcslen(initParams->UserAgentWide) + 1];
+		if (_userAgent == NULL) exit(0);
+		wcscpy(_userAgent, initParams->UserAgentWide);
+	}
+
+	_browserControlInitParameters = NULL;
+	if (initParams->BrowserControlInitParametersWide != NULL)
+	{
+		_browserControlInitParameters = new wchar_t[wcslen(initParams->BrowserControlInitParametersWide) + 1];
+		if (_browserControlInitParameters == NULL) exit(0);
+		wcscpy(_browserControlInitParameters, initParams->BrowserControlInitParametersWide);
+	}
+
+
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
+	_mediaAutoplayEnabled = initParams->MediaAutoplayEnabled;
+	_fileSystemAccessEnabled = initParams->FileSystemAccessEnabled;
+	_webSecurityEnabled = initParams->WebSecurityEnabled;
+	_javascriptClipboardAccessEnabled = initParams->JavascriptClipboardAccessEnabled;
+	_mediaStreamEnabled = initParams->MediaStreamEnabled;
+	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
 
 	_zoom = initParams->Zoom;
+	_minWidth = initParams->MinWidth;
+	_minHeight = initParams->MinHeight;
+	_maxWidth = initParams->MaxWidth;
+	_maxHeight = initParams->MaxHeight;
 
 	//these handlers are ALWAYS hooked up
 	_webMessageReceivedCallback = (WebMessageReceivedCallback)initParams->WebMessageReceivedHandler;
@@ -189,6 +222,11 @@ Photino::Photino(PhotinoInitParams* initParams)
 		if (initParams->Height == CW_USEDEFAULT) initParams->Height = 600;
 		if (initParams->Width == CW_USEDEFAULT) initParams->Width = 800;
 	}
+
+	if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight;
+	if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight;
+	if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth;
+	if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth;
 
 	//Create the window
 	_hWnd = CreateWindowEx(
@@ -322,6 +360,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		//delete waitInfo; ?
 		return 0;
 	}
+	case WM_GETMINMAXINFO:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (Photino == NULL)
+			return 0;
+
+		MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+		if (Photino->_minWidth > 0)
+			mmi->ptMinTrackSize.x = Photino->_minWidth;
+		if (Photino->_minHeight > 0)
+			mmi->ptMinTrackSize.y = Photino->_minHeight;	
+		if (Photino->_maxWidth < INT_MAX)
+			mmi->ptMaxTrackSize.x = Photino->_maxWidth;
+		if (Photino->_maxHeight < INT_MAX)
+			mmi->ptMaxTrackSize.y = Photino->_maxHeight;
+		return 0;
+	}
 	case WM_SIZE:
 	{
 		Photino* Photino = hwndToPhotino[hwnd];
@@ -416,6 +471,41 @@ void Photino::GetFullScreen(bool* fullScreen)
 void Photino::GetGrantBrowserPermissions(bool* grant)
 {
 	*grant = _grantBrowserPermissions;
+}
+
+AutoString Photino::GetUserAgent()
+{
+	return this->_userAgent;
+}
+
+void Photino::GetMediaAutoplayEnabled(bool* enabled)
+{
+	*enabled = this->_mediaAutoplayEnabled;
+}
+
+void Photino::GetFileSystemAccessEnabled(bool* enabled)
+{
+	*enabled = this->_fileSystemAccessEnabled;
+}
+
+void Photino::GetWebSecurityEnabled(bool* enabled)
+{
+	*enabled = this->_webSecurityEnabled;
+}
+
+void Photino::GetJavascriptClipboardAccessEnabled(bool* enabled)
+{
+	*enabled = this->_javascriptClipboardAccessEnabled;
+}
+
+void Photino::GetMediaStreamEnabled(bool* enabled)
+{
+	*enabled = this->_mediaStreamEnabled;
+}
+
+void Photino::GetSmoothScrollingEnabled(bool* enabled)
+{
+	*enabled = this->_smoothScrollingEnabled;
 }
 
 AutoString Photino::GetIconFileName()
@@ -542,11 +632,6 @@ void Photino::SetFullScreen(bool fullScreen)
 	SetWindowLongPtr(_hWnd, GWL_STYLE, style);
 }
 
-void Photino::SetGrantBrowserPermissions(bool grant)
-{
-	_grantBrowserPermissions = grant;
-}
-
 void Photino::SetIconFile(AutoString filename)
 {
 	HICON iconSmall = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 16, 16, LR_LOADFROMFILE | LR_LOADTRANSPARENT | LR_SHARED);
@@ -569,12 +654,38 @@ void Photino::SetMinimized(bool minimized)
 		ShowWindow(_hWnd, SW_NORMAL);
 }
 
+void Photino::SetMinSize(int width, int height)
+{
+	_minWidth = width;
+	_minHeight = height;
+
+	int currWidth, currHeight;
+	GetSize(&currWidth, &currHeight);
+	if (currWidth < _minWidth)
+		SetSize(_minWidth, currHeight);
+	if (currHeight < _minHeight)
+		SetSize(currWidth, _minHeight);
+}
+
 void Photino::SetMaximized(bool maximized)
 {
 	if (maximized)
 		ShowWindow(_hWnd, SW_MAXIMIZE);
 	else
 		ShowWindow(_hWnd, SW_NORMAL);
+}
+
+void Photino::SetMaxSize(int width, int height)
+{
+	_maxWidth = width;
+	_maxHeight = height;
+
+	int currWidth, currHeight;
+	GetSize(&currWidth, &currHeight);
+	if (currWidth > _maxWidth)
+		SetSize(_maxWidth, currHeight);
+	if (currWidth > _maxHeight)
+		SetSize(currWidth, _maxHeight);
 }
 
 void Photino::SetPosition(int x, int y)
@@ -709,7 +820,35 @@ void Photino::AttachWebView()
 	size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
 	PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
 
-	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, nullptr,
+	//TODO: Implement special startup strings.
+	//https://peter.sh/experiments/chromium-command-line-switches/
+	//https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2environmentoptions.additionalbrowserarguments?view=webview2-dotnet-1.0.1938.49&viewFallbackFrom=webview2-dotnet-1.0.1901.177view%3Dwebview2-1.0.1901.177
+	//https://www.chromium.org/developers/how-tos/run-chromium-with-flags/
+	//Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
+	
+	std::wstring startupString = L"";
+	if (_userAgent != NULL && wcslen(_userAgent) > 0)
+		startupString += L"--user-agent=\"" + std::wstring(_userAgent) + L"\" ";
+	if (_mediaAutoplayEnabled) 
+		startupString += L"--autoplay-policy=no-user-gesture-required ";
+	if (_fileSystemAccessEnabled) 
+		startupString += L"--allow-file-access-from-files ";
+	if (!_webSecurityEnabled)
+		startupString += L"--disable-web-security ";
+	if (_javascriptClipboardAccessEnabled)
+		startupString += L"--enable-javascript-clipboard-access ";
+	if (_mediaStreamEnabled)
+		startupString += L"--enable-usermedia-screen-capturing ";
+	if (!_smoothScrollingEnabled)
+		startupString += L"--disable-smooth-scrolling ";
+	if (_browserControlInitParameters != NULL)
+		startupString += _browserControlInitParameters;	//e.g.--hide-scrollbars
+
+	auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+	if (startupString.length() > 0)
+		options->put_AdditionalBrowserArguments(startupString.c_str());
+
+	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				if (result != S_OK) { return result; }

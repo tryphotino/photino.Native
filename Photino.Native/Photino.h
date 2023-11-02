@@ -13,14 +13,16 @@ typedef char *AutoString;
 
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
-#include <WebKit/WebKit.h>
 #include <Foundation/Foundation.h>
 #include <UserNotifications/UserNotifications.h>
-// #include <WebKit/WKPreferences.h>
+#include <WebKit/WebKit.h>
+#include <WebKit/WKWebView.h>
+#include <WebKit/WKWebViewConfiguration.h>
 #endif
 
 #ifdef __linux__
 #include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
 #endif
 
 #include <map>
@@ -64,6 +66,10 @@ struct PhotinoInitParams
 	char *WindowIconFile;
 	wchar_t *TemporaryFilesPathWide;
 	char *TemporaryFilesPath;
+	wchar_t* UserAgentWide;
+	char * UserAgent;
+	wchar_t* BrowserControlInitParametersWide;
+	char* BrowserControlInitParameters;
 
 	Photino *ParentInstance;
 
@@ -85,6 +91,10 @@ struct PhotinoInitParams
 	int Width;
 	int Height;
 	int Zoom;
+	int MinWidth;
+	int MinHeight;
+	int MaxWidth;
+	int MaxHeight;
 
 	bool CenterOnInitialize;
 	bool Chromeless;
@@ -98,6 +108,12 @@ struct PhotinoInitParams
 	bool UseOsDefaultLocation;
 	bool UseOsDefaultSize;
 	bool GrantBrowserPermissions;
+	bool MediaAutoplayEnabled;
+	bool FileSystemAccessEnabled;
+	bool WebSecurityEnabled;
+	bool JavascriptClipboardAccessEnabled;
+	bool MediaStreamEnabled;
+	bool SmoothScrollingEnabled;
 
 	int Size;
 };
@@ -122,6 +138,17 @@ private:
 	AutoString _temporaryFilesPath;
 	AutoString _windowTitle;
 	AutoString _iconFileName;
+	AutoString _userAgent;
+	AutoString _browserControlInitParameters;
+
+	bool _devToolsEnabled;
+	bool _grantBrowserPermissions;
+	bool _mediaAutoplayEnabled;
+	bool _fileSystemAccessEnabled;
+	bool _webSecurityEnabled;
+	bool _javascriptClipboardAccessEnabled;
+	bool _mediaStreamEnabled;
+	bool _smoothScrollingEnabled;
 
 	int _zoom;
 
@@ -141,23 +168,40 @@ private:
 #elif __linux__
 	// GtkWidget* _window;
 	GtkWidget *_webview;
+	GdkGeometry _hints;
 	void AddCustomSchemeHandlers();
 	bool _isFullScreen;
-
 #elif __APPLE__
 	NSWindow *_window;
 	WKWebView *_webview;
 	WKWebViewConfiguration *_webviewConfiguration;
 	std::vector<Monitor *> GetMonitors();
+	
+	bool _chromeless;
+
+	int _preMaximizedWidth;
+	int _preMaximizedHeight;
+	int _preMaximizedXPosition;
+	int _preMaximizedYPosition;
+
 	void AttachWebView();
 	void AddCustomScheme(AutoString scheme, WebResourceRequestedCallback requestHandler);
-	BOOL _chromeless;
+
+	void SetUserAgent(AutoString userAgent);
+
+	void SetPreference(NSString *key, NSNumber *value);
+	// void SetPreference(NSString *key, NSUInteger value);
+	// void SetPreference(NSString *key, double value);
+	void SetPreference(NSString *key, NSString *value);
+	// void SetPreference(NSString *key, _WKEditableLinkBehavior value);
+	// void SetPreference(NSString *key, _WKJavaScriptRuntimeFlags value);
+	// void SetPreference(NSString *key, _WKPitchCorrectionAlgorithm value);
+	// void SetPreference(NSString *key, _WKStorageBlockingPolicy value);
+	// void SetPreference(NSString *key, _WKDebugOverlayRegions value);
 #endif
 
 public:
 	bool _contextMenuEnabled;
-	bool _devToolsEnabled;
-	bool _grantBrowserPermissions;
 
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
@@ -165,12 +209,22 @@ public:
 	HWND getHwnd();
 	void RefitContent();
 	void FocusWebView2();
+	int _minWidth;
+	int _minHeight;
+	int _maxWidth;
+	int _maxHeight;
 #elif __linux__
+	void set_webkit_settings();
+	void set_webkit_customsettings(WebKitSettings* settings);
 	GtkWidget *_window;
 	int _lastHeight;
 	int _lastWidth;
 	int _lastTop;
 	int _lastLeft;
+	int _minWidth;
+	int _minHeight;
+	int _maxWidth;
+	int _maxHeight;
 #elif __APPLE__
 	static void Register();
 #endif
@@ -188,6 +242,13 @@ public:
 	void GetDevToolsEnabled(bool *enabled);
 	void GetFullScreen(bool *fullScreen);
 	void GetGrantBrowserPermissions(bool *grant);
+	AutoString GetUserAgent();
+	void GetMediaAutoplayEnabled(bool* enabled);
+	void GetFileSystemAccessEnabled(bool* enabled);
+	void GetWebSecurityEnabled(bool* enabled);
+	void GetJavascriptClipboardAccessEnabled(bool* enabled);
+	void GetMediaStreamEnabled(bool* enabled);
+	void GetSmoothScrollingEnabled(bool* enabled);
 	AutoString GetIconFileName();
 	void GetMaximized(bool *isMaximized);
 	void GetMinimized(bool *isMinimized);
@@ -206,11 +267,12 @@ public:
 
 	void SetContextMenuEnabled(bool enabled);
 	void SetDevToolsEnabled(bool enabled);
-	void SetFullScreen(bool fullScreen);
-	void SetGrantBrowserPermissions(bool grant);
 	void SetIconFile(AutoString filename);
+	void SetFullScreen(bool fullScreen);
 	void SetMaximized(bool maximized);
+	void SetMaxSize(int width, int height);
 	void SetMinimized(bool minimized);
+	void SetMinSize(int width, int height);
 	void SetPosition(int x, int y);
 	void SetResizable(bool resizable);
 	void SetSize(int width, int height);

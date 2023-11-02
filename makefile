@@ -20,8 +20,6 @@ all:
 windows: clean-x64 build-photino-windows
 
 mac-universal: clean-x64 build-photino-mac-universal
-mac-x64: clean-x64 build-photino-mac-x64
-mac-arm64: clean-arm64 build-photino-mac-arm64
 
 linux-x64: clean-x64 install-linux-dependencies build-photino-linux-x64
 linux-arm64: clean-arm64 install-linux-dependencies build-photino-linux-arm64
@@ -47,41 +45,9 @@ build-photino-mac-universal:
 		  $(SRC)/Exports.mm &&\
 	rm $(SRC)/Exports.mm
 
-build-photino-mac-x64:
-	cp $(SRC)/Exports.cpp $(SRC)/Exports.mm &&\
-	$(CC) -o $(DEST_PATH_X64)/$(DEST_FILE).dylib\
-		  $(CFLAGS)\
-		  -framework Cocoa\
-		  -framework WebKit\
-		  -framework UserNotifications\
-		  $(SRC)/Photino.Mac.AppDelegate.mm\
-		  $(SRC)/Photino.Mac.UiDelegate.mm\
-		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
-		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
-		  $(SRC)/Photino.Mac.Dialog.mm\
-		  $(SRC)/Photino.Mac.mm\
-		  $(SRC)/Exports.mm &&\
-	rm $(SRC)/Exports.mm
-
-build-photino-mac-arm64:
-	cp $(SRC)/Exports.cpp $(SRC)/Exports.mm &&\
-	$(CC) -o $(DEST_PATH_ARM64)/$(DEST_FILE).dylib\
-		  $(CFLAGS)\
-		  -framework Cocoa\
-		  -framework WebKit\
-		  -framework UserNotifications\
-		  $(SRC)/Photino.Mac.AppDelegate.mm\
-		  $(SRC)/Photino.Mac.UiDelegate.mm\
-		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
-		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
-		  $(SRC)/Photino.Mac.Dialog.mm\
-		  $(SRC)/Photino.Mac.mm\
-		  $(SRC)/Exports.mm &&\
-	rm $(SRC)/Exports.mm
-
 install-linux-dependencies:
 	sudo apt-get update\
-	&& sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify4 libnotify-dev
+	&& sudo apt-get install libgtk-3-dev libwebkit2gtk-4.1-dev libnotify4 libnotify-dev
 
 build-photino-linux-x64:
 	$(CC) -o $(DEST_PATH_X64)/$(DEST_FILE).so\
@@ -89,7 +55,7 @@ build-photino-linux-x64:
 		  $(SRC)/Photino.Linux.Dialog.cpp\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
-		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
+		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.1 libnotify`
 
 build-photino-linux-arm64:
 	$(CC) -o $(DEST_PATH_ARM64)/$(DEST_FILE).so\
@@ -97,7 +63,7 @@ build-photino-linux-arm64:
 		  $(SRC)/Photino.Linux.Dialog.cpp\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
-		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
+		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.1 libnotify`
 
 clean-x64:
 	rm -rf $(DEST_PATH_X64)/* & mkdir -p $(DEST_PATH_X64)

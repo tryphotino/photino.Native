@@ -38,8 +38,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoDialogEnums.cs" Link="PhotinoDialogEnums.cs" />
-	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoDllImports.cs" Link="PhotinoDllImports.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoDialogEnums.cs" Link="PhotinoDialogEnums.cs" />
+    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoDllImports.cs" Link="PhotinoDllImports.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoMonitorStruct.cs" Link="PhotinoMonitorStruct.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeDelegates.cs" Link="PhotinoNativeDelegates.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeParameters.cs" Link="PhotinoNativeParameters.cs" />
@@ -59,8 +59,10 @@
     </None>
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-
+  <Target Name="CopyNativeLibs" AfterTargets="Build">
+    <!-- <Copy SourceFiles="../lib/x64/Photino.Native.dll" DestinationFolder="$(TargetDir)" Condition="$(IsWindows) == 'true'" /> -->
+    <Copy SourceFiles="../lib/x64/Photino.Native.dylib" DestinationFolder="$(TargetDir)" Condition="$(IsOSX) == 'true'" />
+    <Copy SourceFiles="../lib/x64/Photino.Native.so" DestinationFolder="$(TargetDir)" Condition="$(IsLinux) == 'true'" />
   </Target>
 
 </Project>
