@@ -2,251 +2,274 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- master
+    - master
 
 variables:
-  major: 2
-  minor: 4 
-  patch: $[counter(variables['minor'], 0)] #this will reset when we bump minor
-  buildConfiguration: 'Release'
+    major: 2
+    minor: 5
+    patch: $[counter(variables['minor'], 0)] #this will reset when we bump minor
+    buildConfiguration: "Release"
 
 jobs:
-  - job: 'Publish_Nuspec'
-    pool:
-      vmImage: 'windows-latest'
+    - job: "Publish_Nuspec"
+      pool:
+          vmImage: "windows-latest"
 
-    steps:
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Windows (x64) nuspec to artifacts'
-      inputs:
-        targetPath: './Photino.Native/Photino.Native.nuspec'
-        artifactName: NuspecArtifact
+      steps:
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Windows (x64) nuspec to artifacts"
+            inputs:
+                targetPath: "./Photino.Native/Photino.Native.nuspec"
+                artifactName: NuspecArtifact
 
-  - job: 'Build_Win_x64'
-    pool:
-      vmImage: 'windows-latest'
+    - job: "Build_Win_x64"
+      pool:
+          vmImage: "windows-latest"
 
-    steps:
-    - task: NuGetCommand@2
-      displayName: 'NuGet package restore for Windows (x64)'
-      inputs:
-        command: 'restore'
-        restoreSolution: 'Photino.Native.sln'
-        feedsToUse: 'select'
+      steps:
+          - task: NuGetCommand@2
+            displayName: "NuGet package restore for Windows (x64)"
+            inputs:
+                command: "restore"
+                restoreSolution: "Photino.Native.sln"
+                feedsToUse: "select"
 
-    - task: VSBuild@1
-      displayName: 'Build Windows (x64) native assets'
-      inputs:
-        solution: 'Photino.Native.sln'
-        platform: 'x64'
-        msbuildArchitecture: 'x64'
-        configuration: '$(buildConfiguration)'
+          - task: VSBuild@1
+            displayName: "Build Windows (x64) native assets"
+            inputs:
+                solution: "Photino.Native.sln"
+                platform: "x64"
+                msbuildArchitecture: "x64"
+                configuration: "$(buildConfiguration)"
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Windows (x64) libraries to artifacts'
-      inputs:
-        targetPath: './Photino.Native/x64/$(buildConfiguration)'
-        artifactName: WindowsIntelArtifact
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Windows (x64) libraries to artifacts"
+            inputs:
+                targetPath: "./Photino.Native/x64/$(buildConfiguration)"
+                artifactName: WindowsIntelArtifact
 
+    #- job: 'Build_Win_Arm64'
+    #  pool:
+    #    vmImage: 'windows-latest'
 
-  #- job: 'Build_Win_Arm64'
-  #  pool:
-  #    vmImage: 'windows-latest'
-
-  #steps:
-  #- task: NuGetCommand@2
-  #  displayName: 'NuGet package restore for Windows (ARM64)'
-  #  inputs:
-  #    command: 'restore'
-  #    restoreSolution: 'Photino.Native.sln'
-  #    feedsToUse: 'select'
-
-  #- task: VSBuild@1
-  #  displayName: 'Build Windows (ARM64) native assets'
-  #  inputs:
-  #    solution: 'Photino.Native.sln'
-  #    platform: 'ARM64'
-  #    msbuildArchitecture: 'ARM64'
-  #    configuration: '$(buildConfiguration)'
-
-  #- task: PublishPipelineArtifact@1
-  #  displayName: 'Publish Windows (ARM64) libraries to artifacts'
-  #  inputs:
-  #    targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-  #    artifactName: WindowsArm64Artifact
-
-
-  - job: 'Build_Linux_x64'
-    pool:
-      vmImage: 'ubuntu-latest'
-
-    steps:
-    - task: CmdLine@2
-      displayName: 'Build Linux (x64) native assets'
-      inputs:
-        workingDirectory: '.'
-        script: |
-          mkdir -p ./Photino.Native/x64/$(buildConfiguration)
-          make linux-x64
-          mv ./lib/x64/Photino.Native.so ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.so
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Linux (x64) libraries to artifacts'
-      inputs:
-        targetPath: './Photino.Native/x64/$(buildConfiguration)'
-        artifactName: LinuxIntelArtifact
-
-
-  #- job: 'Build_Linux_Arm64'
-  #  pool:
-  #    vmImage: 'ubuntu-latest'
-
-  #  steps:
-  #  - task: CmdLine@2
-  #    displayName: 'Build Linux (ARM64) native assets'
-  #    inputs:
-  #      workingDirectory: '.'
-  #      script: |
-  #        mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-  #        make linux-dev
-  #        mv ./lib/dev/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
-
-  #  - task: PublishPipelineArtifact@1
-  #    displayName: 'Publish Linux (ARM64) libraries to artifacts'
-  #    inputs:
-  #      targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-  #      artifactName: LinuxArm64Artifact
-
-
-  - job: 'Build_Mac_Universal'
-    pool:
-      vmImage: 'macos-12'
-
-    steps:
-    - task: CmdLine@2
-      displayName: 'Build macOS (x64) native assets'
-      inputs:
-        workingDirectory: '.'
-        script: |
-          mkdir -p ./Photino.Native/x64/$(buildConfiguration)
-          mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
-          make mac-universal
-          cp ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
-          cp ./lib/x64/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish macOS (x64) libraries to artifacts'
-      inputs:
-        targetPath: './Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib'
-        artifactName: MacOsIntelArtifact
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish macOS (ARM64) libraries to artifacts'
-      inputs:
-        targetPath: './Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib'
-        artifactName: MacOsArm64Artifact
-
-
-  # 1 instance to download all native files, create NuGet package and publish to Artifacts
-  - job: 'PublishPackage'
-    dependsOn: 
-        - 'Publish_Nuspec' 
-        - 'Build_Win_x64' 
-        #- 'Build_Win_Arm64' 
-        - 'Build_Linux_x64' 
-        #- 'Build_Linux_Arm64' 
-        - 'Build_Mac_Universal' 
-    
-    pool:
-      vmImage: 'windows-latest'
-    
-    steps:
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download nuspec file from WindowsIntelArtifact'
-      inputs:
-        artifact: 'NuspecArtifact'
-        patterns: '**/*.nuspec'
-        targetPath: '$(Pipeline.Workspace)/'
-
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download WindowsIntelArtifact'
-      inputs:
-        artifact: WindowsIntelArtifact
-        patterns: '**/*.dll'
-        targetPath: '$(Pipeline.Workspace)/x64/'
-
-    #- task: DownloadPipelineArtifact@2
-    #  displayName: 'Download WindowsArm64Artifact'
+    #steps:
+    #- task: NuGetCommand@2
+    #  displayName: 'NuGet package restore for Windows (ARM64)'
     #  inputs:
-    #    artifact: WindowsArm64Artifact
-    #    patterns: '**/*.dll'
-    #    targetPath: '$(Pipeline.Workspace)/arm64/'
+    #    command: 'restore'
+    #    restoreSolution: 'Photino.Native.sln'
+    #    feedsToUse: 'select'
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download LinuxIntelArtifact'
-      inputs:
-        artifact: LinuxIntelArtifact
-        patterns: '**/*.so'
-        targetPath: '$(Pipeline.Workspace)/x64/'
-
-    #- task: DownloadPipelineArtifact@2
-    #  displayName: 'Download LinuxArm64Artifact'
+    #- task: VSBuild@1
+    #  displayName: 'Build Windows (ARM64) native assets'
     #  inputs:
-    #    artifact: LinuxArm64Artifact
-    #    patterns: '**/*.so'
-    #    targetPath: '$(Pipeline.Workspace)/arm64/'
+    #    solution: 'Photino.Native.sln'
+    #    platform: 'ARM64'
+    #    msbuildArchitecture: 'ARM64'
+    #    configuration: '$(buildConfiguration)'
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download MacOsIntelArtifact'
-      inputs:
-        artifact: MacOsIntelArtifact
-        patterns: '**/*.dylib'
-        targetPath: '$(Pipeline.Workspace)/x64/'
+    #- task: PublishPipelineArtifact@1
+    #  displayName: 'Publish Windows (ARM64) libraries to artifacts'
+    #  inputs:
+    #    targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+    #    artifactName: WindowsArm64Artifact
 
-    - task: DownloadPipelineArtifact@2
-      displayName: 'Download MacOsArm64Artifact'
-      inputs:
-        artifact: MacOsArm64Artifact
-        patterns: '**/*.dylib'
-        targetPath: '$(Pipeline.Workspace)/arm64/'
+    - job: "Build_Linux_x64"
+      pool:
+          vmImage: "ubuntu-latest"
 
-    - task: CmdLine@2
-      displayName: 'List downloaded files'
-      inputs:
-        workingDirectory: '$(Pipeline.Workspace)'
-        script: 'dir'
+      steps:
+          - task: CmdLine@2
+            displayName: "Build Linux (x64) native assets"
+            inputs:
+                workingDirectory: "."
+                script: |
+                    mkdir -p ./Photino.Native/x64/$(buildConfiguration)
+                    make linux-x64
+                    mv ./lib/x64/Photino.Native.so ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.so
 
-    - task: CmdLine@2
-      displayName: 'List downloaded x64 libraries'
-      inputs:
-        workingDirectory: '$(Pipeline.Workspace)/x64'
-        script: 'dir'
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Linux (x64) libraries to artifacts"
+            inputs:
+                targetPath: "./Photino.Native/x64/$(buildConfiguration)"
+                artifactName: LinuxIntelArtifact
 
-    - task: CmdLine@2
-      displayName: 'List downloaded arm64 libraries'
-      inputs:
-        workingDirectory: '$(Pipeline.Workspace)/arm64'
-        script: 'dir'
+    #- job: 'Build_Linux_Arm64'
+    #  pool:
+    #    vmImage: 'ubuntu-latest'
 
-    # Create NuGet package
-    - task: CmdLine@2
-      displayName: 'Create NuGet package'
-      inputs:
-        workingDirectory: '$(Pipeline.Workspace)'
-        script: 'nuget.exe pack Photino.Native.nuspec -Version $(major).$(minor).$(patch) -NonInteractive -Properties version=$(major).$(minor).$(patch)'
+    #  steps:
+    #  - task: CmdLine@2
+    #    displayName: 'Build Linux (ARM64) native assets'
+    #    inputs:
+    #      workingDirectory: '.'
+    #      script: |
+    #        mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
+    #        make linux-dev
+    #        mv ./lib/dev/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
 
-    # Uploads the NuGet package file to nuget.org
-    # Important notes:
-    # 1. For this to work, you need to create a 'service connection' with the same name
-    #    as the 'publishFeedCredentials' value.
-    # 2. For security, you *must* ensure that 'Make secrets available to builds of forks'
-    #    is disabled in your PR validation settings (inside build -> Edit -> Triggers).
-    #    Otherwise, PRs would be able to push new packages even without being merged.
-    - task: NuGetCommand@2
-      displayName: 'Publish to nuget.org'
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-      inputs:
-        command: push
-        packagesToPush: '$(Pipeline.Workspace)/**/*.nupkg'
-        nuGetFeedType: external
-        publishFeedCredentials: 'PhotinoNuGet'
+    #  - task: PublishPipelineArtifact@1
+    #    displayName: 'Publish Linux (ARM64) libraries to artifacts'
+    #    inputs:
+    #      targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+    #      artifactName: LinuxArm64Artifact
+
+    - job: "Build_Mac_Universal"
+      pool:
+          vmImage: "macos-12"
+
+      steps:
+          - task: CmdLine@2
+            displayName: "Build macOS (x64) native assets"
+            inputs:
+                workingDirectory: "."
+                script: |
+                    mkdir -p ./Photino.Native/x64/$(buildConfiguration)
+                    mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
+                    make mac-universal
+                    cp ./lib/x64/Photino.Native.dylib ./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib
+                    cp ./lib/x64/Photino.Native.dylib ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish macOS (x64) libraries to artifacts"
+            inputs:
+                targetPath: "./Photino.Native/x64/$(buildConfiguration)/Photino.Native.dylib"
+                artifactName: MacOsIntelArtifact
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish macOS (ARM64) libraries to artifacts"
+            inputs:
+                targetPath: "./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dylib"
+                artifactName: MacOsArm64Artifact
+
+    - job: "Copy_Manual_Arm64_Releases"
+      pool:
+          vmImage: "ubuntu-latest"
+
+      steps:
+          - task: CmdLine@2
+            displayName: "Copy ARM64 native assets"
+            inputs:
+                workingDirectory: "."
+                script: |
+                    mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
+                    mv ./manual-arm-release/linux-arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
+                    mv ./manual-arm-release/win-arm64/Photino.Native.dll ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll
+                    mv ./manual-arm-release/win-arm64/WebView2Loader.dll ./Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Windows (ARM64) libraries to artifacts"
+            inputs:
+                targetPath: "./Photino.Native/arm64/$(buildConfiguration)"
+                artifactName: WindowsArm64Artifact
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Linux (ARM64) libraries to artifacts"
+            inputs:
+                targetPath: "./Photino.Native/arm64/$(buildConfiguration)"
+                artifactName: LinuxArm64Artifact
+
+    # 1 instance to download all native files, create NuGet package and publish to Artifacts
+    - job: "PublishPackage"
+      dependsOn:
+          - "Publish_Nuspec"
+          - "Build_Win_x64"
+          #- 'Build_Win_Arm64'
+          - "Build_Linux_x64"
+          #- 'Build_Linux_Arm64'
+          - "Build_Mac_Universal"
+          - "Copy_Manual_Arm64_Releases"
+
+      pool:
+          vmImage: "windows-latest"
+
+      steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download nuspec file from WindowsIntelArtifact"
+            inputs:
+                artifact: "NuspecArtifact"
+                patterns: "**/*.nuspec"
+                targetPath: "$(Pipeline.Workspace)/"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download WindowsIntelArtifact"
+            inputs:
+                artifact: WindowsIntelArtifact
+                patterns: "**/*.dll"
+                targetPath: "$(Pipeline.Workspace)/x64/"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download WindowsArm64Artifact"
+            inputs:
+                artifact: WindowsArm64Artifact
+                patterns: "**/*.dll"
+                targetPath: "$(Pipeline.Workspace)/arm64/"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download LinuxIntelArtifact"
+            inputs:
+                artifact: LinuxIntelArtifact
+                patterns: "**/*.so"
+                targetPath: "$(Pipeline.Workspace)/x64/"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download LinuxArm64Artifact"
+            inputs:
+                artifact: LinuxArm64Artifact
+                patterns: "**/*.so"
+                targetPath: "$(Pipeline.Workspace)/arm64/"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download MacOsIntelArtifact"
+            inputs:
+                artifact: MacOsIntelArtifact
+                patterns: "**/*.dylib"
+                targetPath: "$(Pipeline.Workspace)/x64/"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download MacOsArm64Artifact"
+            inputs:
+                artifact: MacOsArm64Artifact
+                patterns: "**/*.dylib"
+                targetPath: "$(Pipeline.Workspace)/arm64/"
+
+          - task: CmdLine@2
+            displayName: "List downloaded files"
+            inputs:
+                workingDirectory: "$(Pipeline.Workspace)"
+                script: "dir"
+
+          - task: CmdLine@2
+            displayName: "List downloaded x64 libraries"
+            inputs:
+                workingDirectory: "$(Pipeline.Workspace)/x64"
+                script: "dir"
+
+          - task: CmdLine@2
+            displayName: "List downloaded arm64 libraries"
+            inputs:
+                workingDirectory: "$(Pipeline.Workspace)/arm64"
+                script: "dir"
+
+          # Create NuGet package
+          - task: CmdLine@2
+            displayName: "Create NuGet package"
+            inputs:
+                workingDirectory: "$(Pipeline.Workspace)"
+                script: "nuget.exe pack Photino.Native.nuspec -Version $(major).$(minor).$(patch) -NonInteractive -Properties version=$(major).$(minor).$(patch)"
+
+          # Uploads the NuGet package file to nuget.org
+          # Important notes:
+          # 1. For this to work, you need to create a 'service connection' with the same name
+          #    as the 'publishFeedCredentials' value.
+          # 2. For security, you *must* ensure that 'Make secrets available to builds of forks'
+          #    is disabled in your PR validation settings (inside build -> Edit -> Triggers).
+          #    Otherwise, PRs would be able to push new packages even without being merged.
+          - task: NuGetCommand@2
+            displayName: "Publish to nuget.org"
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+            inputs:
+                command: push
+                packagesToPush: "$(Pipeline.Workspace)/**/*.nupkg"
+                nuGetFeedType: external
+                publishFeedCredentials: "PhotinoNuGet"
