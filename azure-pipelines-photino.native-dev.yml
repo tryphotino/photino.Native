@@ -153,17 +153,18 @@ jobs:
                     mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
                     mv ./manual-arm-release/linux-arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
                     mv ./manual-arm-release/win-arm64/Photino.Native.dll ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll
+                    mv ./manual-arm-release/win-arm64/WebView2Loader.dll ./Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll
 
           - task: PublishPipelineArtifact@1
             displayName: "Publish Windows (ARM64) libraries to artifacts"
             inputs:
-                targetPath: "./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll"
+                targetPath: "./Photino.Native/arm64/$(buildConfiguration)"
                 artifactName: WindowsArm64Artifact
 
           - task: PublishPipelineArtifact@1
             displayName: "Publish Linux (ARM64) libraries to artifacts"
             inputs:
-                targetPath: "./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so"
+                targetPath: "./Photino.Native/arm64/$(buildConfiguration)"
                 artifactName: LinuxArm64Artifact
 
     # 1 instance to download all native files, create NuGet package and publish to Artifacts
