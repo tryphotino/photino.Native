@@ -117,7 +117,7 @@ jobs:
           mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
           #  make linux-dev
           #  mv ./lib/dev/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
-            mv ./manual-arm-release/linux-arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
+          mv ./manual-arm-release/linux-arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Linux (ARM64) libraries to artifacts'
