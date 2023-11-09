@@ -748,7 +748,13 @@ void Photino::ShowNotification(AutoString title, AutoString body)
 
 void Photino::WaitForExit()
 {
-    [NSApp run];
+    while ([NSApp runModalSession:[NSApp beginModalSessionForWindow:_window]] == NSModalResponseContinue)
+    {
+        // The window is still open, so keep running the event loop
+    }
+
+    // The window has been closed, so stop the event loop
+    [NSApp stopModal];
 }
 
 //Callbacks
