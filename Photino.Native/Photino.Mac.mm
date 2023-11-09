@@ -305,7 +305,7 @@ Photino::~Photino()
     [_webviewConfiguration release];
     [_webview release];
     [_window performClose: _window];
-    //[NSApp release];
+    [NSApp release];
 }
 
 void Photino::Center()
@@ -748,13 +748,7 @@ void Photino::ShowNotification(AutoString title, AutoString body)
 
 void Photino::WaitForExit()
 {
-    while ([NSApp runModalSession:[NSApp beginModalSessionForWindow:_window]] == NSModalResponseContinue)
-    {
-        // The window is still open, so keep running the event loop
-    }
-
-    // The window has been closed, so stop the event loop
-    [NSApp stopModal];
+    [NSApp run];
 }
 
 //Callbacks
