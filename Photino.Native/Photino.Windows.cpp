@@ -748,7 +748,8 @@ void Photino::ShowNotification(AutoString title, AutoString body)
 		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);
 		toast.setTextField(title, WinToastTemplate::FirstLine);
 		toast.setTextField(body, WinToastTemplate::SecondLine);
-		toast.setImagePath(this->_iconFileName);
+		if (this->_iconFileName != NULL)
+			toast.setImagePath(this->_iconFileName);
 		WinToast::instance()->showToast(toast, _toastHandler);
 	}
 }
@@ -1082,7 +1083,7 @@ void Photino::SetWebView2RuntimePath(AutoString pathToWebView2)
 
 void Photino::Show()
 {
-	ShowWindow(_hWnd, SW_SHOWDEFAULT);
+	//ShowWindow(_hWnd, SW_SHOWDEFAULT);	//causes maximized and minimized to not work
 	UpdateWindow(_hWnd);
 
 	// Strangely, it only works to create the webview2 *after* the window has been shown,

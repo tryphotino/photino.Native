@@ -3,8 +3,6 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace PhotinoNET
 {
@@ -36,33 +34,32 @@ namespace PhotinoNET
                 ? "wwwroot/photino-logo.ico"
                 : "wwwroot/photino-logo.png";
 
-            string browserInit = string.Empty;
+            //string browserInit = string.Empty;
 
-            if (PhotinoWindow.IsWindowsPlatform)
-            {
-                //Windows example for WebView2
-                browserInit = "--disable-web-security --hide-scrollbars ";
-            }
-            else if (PhotinoWindow.IsMacOsPlatform)
-            {
-                //Mac example for Webkit on Cocoa
-                browserInit = JsonSerializer.Serialize(new
-                {
-                    standardFontFamily = "Helvetica Neue",
-                    defaultFontSize = 22
-                });
-            }
-            else if (PhotinoWindow.IsLinuxPlatform)
-            {
-                //Linux example for Webkit2Gtk
-                browserInit = JsonSerializer.Serialize(new
-                {
-                    set_enable_encrypted_media = true,
-                    //set_default_font_size = 48,
-                    //set_enable_developer_extras = true,
-                    set_default_font_family = "monospace"
-                });
-            }
+            //if (PhotinoWindow.IsWindowsPlatform)
+            //{
+            //    //Windows example for WebView2
+            //    browserInit = "--disable-web-security --hide-scrollbars ";
+            //}
+            //else if (PhotinoWindow.IsMacOsPlatform)
+            //{
+            //    //Mac example for Webkit on Cocoa
+            //    browserInit = JsonSerializer.Serialize(new
+            //    {
+            //        setLegacyEncryptedMediaAPIEnabled = true
+            //    });
+            //}
+            //else if (PhotinoWindow.IsLinuxPlatform)
+            //{
+            //    //Linux example for Webkit2Gtk
+            //    browserInit = JsonSerializer.Serialize(new
+            //    {
+            //        set_enable_encrypted_media = true,
+            //        //set_default_font_size = 48,
+            //        //set_enable_developer_extras = true,
+            //        set_default_font_family = "monospace"
+            //    });
+            //}
 
             mainWindow = new PhotinoWindow()
                 //.Load(new Uri("https://google.com"))
@@ -72,11 +69,11 @@ namespace PhotinoNET
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
                 //Window settings
-                .SetIconFile(iconFile)
-                .SetTitle($"My Photino Window {_windowNumber++}")
+                //.SetIconFile(iconFile)
+                //.SetTitle($"My Photino Window {_windowNumber++}")
                 //.SetChromeless(true)
                 //.SetFullScreen(true)
-                //.SetMaximized(true)
+                .SetMaximized(true)
                 //.SetMaxSize(640, 480)
                 //.SetMinimized(true)
                 //.SetMinSize(320, 240)
@@ -85,9 +82,9 @@ namespace PhotinoNET
                 //.SetUseOsDefaultLocation(false)
                 .SetUseOsDefaultSize(false)
                 //.Center()
-                //.SetSize(new Size(800, 600))
-                .SetHeight(600)
-                .SetWidth(800)
+                .SetSize(new Size(800, 600))
+                //.SetHeight(600)
+                //.SetWidth(800)
                 //.SetLocation(new Point(50, 50))
                 //.SetTop(50)
                 //.SetLeft(50)
@@ -99,11 +96,11 @@ namespace PhotinoNET
                 //Browser settings
                 //.SetContextMenuEnabled(false)
                 //.SetDevToolsEnabled(false)
-                .SetGrantBrowserPermissions(true)
+                //.SetGrantBrowserPermissions(true)
                 //.SetZoom(150)
 
                 //Browser startup flags
-                .SetBrowserControlInitParameters(browserInit)
+                //.SetBrowserControlInitParameters(browserInit)
                 //.SetUserAgent("Custom Photino User Agent")
                 //.SetMediaAutoplayEnabled(true)
                 //.SetFileSystemAccessEnabled(true)
