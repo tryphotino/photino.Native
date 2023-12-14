@@ -154,7 +154,7 @@ private:
 
 	Photino *_parent;
 	PhotinoDialog *_dialog;
-	void Show();
+	void Show(bool isAlreadyShown);
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
