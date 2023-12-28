@@ -240,7 +240,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 					 G_CALLBACK(on_widget_deleted),
 					 this);
 
-	Photino::Show();
+	Photino::Show(false);
 
 	g_signal_connect(G_OBJECT(_window), "focus-in-event",
 					 G_CALLBACK(on_focus_in_event),
@@ -697,7 +697,7 @@ void HandleWebMessage(WebKitUserContentManager *contentManager, WebKitJavascript
 	webkit_javascript_result_unref(jsResult);
 }
 
-void Photino::Show()
+void Photino::Show(bool isAlreadyShown)
 {
 	if (!_webview)
 	{

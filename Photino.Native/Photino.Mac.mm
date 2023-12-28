@@ -291,7 +291,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
     _dialog = new PhotinoDialog();
 
-    Show();
+    Show(false);
     SetFullScreen(initParams->FullScreen);
 }
 
@@ -897,7 +897,7 @@ void Photino::AttachWebView()
     }
 }
 
-void Photino::Show()
+void Photino::Show(bool isAlreadyShown)
 {
     if (_webview == nil)
         AttachWebView();
