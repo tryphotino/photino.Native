@@ -245,6 +245,11 @@ extern "C"
 	{
 		instance->SetZoom(zoom);
 	}
+
+    EXPORTED void Photino_SetSslCertificateVerificationDisabled(Photino* instance, bool disabled)
+	{
+		instance->SetSslCertificateVerificationDisabled(disabled);
+	}
 	
 	EXPORTED void Photino_ShowNotification(Photino* instance, AutoString title, AutoString body)
 	{
