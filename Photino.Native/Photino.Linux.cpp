@@ -595,7 +595,7 @@ void Photino::SetSslCertificateVerificationDisabled(bool disabled)
     }
     else
     {
-        webkit_website_data_manager_set_tls_errors_policy(WEBKIT_TLS_ERRORS_POLICY_FAIL);
+        webkit_website_data_manager_set_tls_errors_policy(manager,WEBKIT_TLS_ERRORS_POLICY_FAIL);
     }
 }
 
