@@ -133,7 +133,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 		strcpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
 	}
 
-    _disableSslCertificateVerification = initParams->DisableSslCertificateVerification;
+    _ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
 	_contextMenuEnabled = true; //not configurable on mac //initParams->ContextMenuEnabled;
 	// _zoom = initParams->Zoom;
 
@@ -428,9 +428,9 @@ void Photino::GetResizable(bool* resizable)
    *resizable = (([_window styleMask] & NSWindowStyleMaskResizable) == NSWindowStyleMaskResizable);
 }
 
-void Photino::GetSslCertificateVerificationDisabled(bool* enabled)
+void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
 {
-	*enabled = this->_disableSslCertificateVerification;
+	*enabled = this->_ignoreCertificateErrorsEnabled;
 }
 
 unsigned int Photino::GetScreenDpi()
@@ -629,11 +629,6 @@ void Photino::SetMaximized(bool maximized)
         // Restore window to its previous size
         [_window setFrame: NSMakeRect(_preMaximizedXPosition, _preMaximizedYPosition, _preMaximizedWidth, _preMaximizedHeight) display:YES];
     }
-}
-
-void Photino::SetSslCertificateVerificationDisabled(bool disabled)
-{
-	_disableSslCertificateVerification = disabled;
 }
 
 void Photino::SetPosition(int x, int y)

@@ -151,7 +151,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_javascriptClipboardAccessEnabled = initParams->JavascriptClipboardAccessEnabled;
 	_mediaStreamEnabled = initParams->MediaStreamEnabled;
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
-    _disableSslCertificateVerification = initParams->DisableSslCertificateVerification;
+    _ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -511,9 +511,9 @@ void Photino::GetSmoothScrollingEnabled(bool* enabled)
 	*enabled = this->_smoothScrollingEnabled;
 }
 
-void Photino::GetSslCertificateVerificationDisabled(bool* enabled)
+void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
 {
-	*enabled = this->_disableSslCertificateVerification;
+	*enabled = this->_ignoreCertificateErrorsEnabled;
 }
 
 AutoString Photino::GetIconFileName()
@@ -683,11 +683,6 @@ void Photino::SetMaximized(bool maximized)
 		ShowWindow(_hWnd, SW_NORMAL);
 }
 
-void Photino::SetSslCertificateVerificationDisabled(bool disabled)
-{
-	_disableSslCertificateVerification = disabled;
-}
-
 void Photino::SetMaxSize(int width, int height)
 {
 	_maxWidth = width;
@@ -855,10 +850,10 @@ void Photino::AttachWebView()
 		startupString += L"--enable-usermedia-screen-capturing ";
 	if (!_smoothScrollingEnabled)
 		startupString += L"--disable-smooth-scrolling ";
+	if (_ignoreCertificateErrorsEnabled)
+		startupString += L"--ignore-certificate-errors ";
 	if (_browserControlInitParameters != NULL)
 		startupString += _browserControlInitParameters;	//e.g.--hide-scrollbars
-    if(_disableSslCertificateVerification)
-        startupString += L"--ignore-certificate-errors ";
 
 	auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
 	if (startupString.length() > 0)

@@ -1,3 +1,4 @@
+#ifdef __APPLE__
 #import "Photino.Dialog.h"
 
 #if defined(VSTGUI_USE_OBJC_UTTYPE)
@@ -227,3 +228,4 @@ DialogResult PhotinoDialog::ShowMessage(AutoString title, AutoString text, Dialo
 
   return DialogResult::Cancel;
 }
+#endif

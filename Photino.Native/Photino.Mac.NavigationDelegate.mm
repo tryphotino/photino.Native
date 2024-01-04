@@ -6,9 +6,9 @@
     - (void)webView:(WKWebView *)webView 
     didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
     completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
-        bool disableSslCertificateVerification = false;
-        photino->GetSslCertificateVerificationDisabled(&disableSslCertificateVerification);
-        if(disableSslCertificateVerification)
+        bool ignoreCertificateErrorsEnabled = false;
+        photino->GetIgnoreCertificateErrorsEnabled(&ignoreCertificateErrorsEnabled);
+        if(ignoreCertificateErrorsEnabled)
         {
             SecTrustRef serverTrust = challenge.protectionSpace.serverTrust;
             CFDataRef exceptions = SecTrustCopyExceptions(serverTrust);

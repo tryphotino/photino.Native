@@ -64,7 +64,8 @@ namespace PhotinoNET
             mainWindow = new PhotinoWindow()
                 //.Load(new Uri("https://google.com"))
                 //.Load("https://duckduckgo.com/?t=ffab&q=user+agent+&ia=answer")
-                .Load("wwwroot/main.html")
+                .Load("https://localhost:8080/")
+                //.Load("wwwroot/main.html")
                 //.Load("wwwroot/index.html")
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
@@ -100,7 +101,7 @@ namespace PhotinoNET
                 //.SetZoom(150)
 
                 //Browser startup flags
-                //.SetBrowserControlInitParameters(browserInit)
+                //.SetBrowserControlInitParameters("--ignore-certificate-errors ")
                 //.SetUserAgent("Custom Photino User Agent")
                 //.SetMediaAutoplayEnabled(true)
                 //.SetFileSystemAccessEnabled(true)
@@ -109,6 +110,7 @@ namespace PhotinoNET
                 //.SetMediaStreamEnabled(true)
                 //.SetSmoothScrollingEnabled(true)
                 //.SetTemporaryFilesPath(@"C:\Temp")
+                //.SetIgnoreCertificateErrorsEnabled(false)
 
                 .RegisterCustomSchemeHandler("app", AppCustomSchemeUsed)
 

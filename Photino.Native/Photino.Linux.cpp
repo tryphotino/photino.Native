@@ -132,7 +132,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_javascriptClipboardAccessEnabled = initParams->JavascriptClipboardAccessEnabled;
 	_mediaStreamEnabled = initParams->MediaStreamEnabled;
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
-    SetSslCertificateVerificationDisabled(initParams->DisableSslCertificateVerification);
+	_ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -358,9 +358,9 @@ void Photino::GetSmoothScrollingEnabled(bool* enabled)
 	*enabled = this->_smoothScrollingEnabled;
 }
 
-void Photino::GetSslCertificateVerificationDisabled(bool* enabled)
+void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
 {
-	*enabled = this->_disableSslCertificateVerification;
+	*enabled = this->_ignoreCertificateErrorsEnabled;
 }
 
 void Photino::GetMaximized(bool *isMaximized)
@@ -581,22 +581,6 @@ void Photino::SetPosition(int x, int y)
 void Photino::SetResizable(bool resizable)
 {
 	gtk_window_set_resizable(GTK_WINDOW(_window), resizable);
-}
-
-void Photino::SetSslCertificateVerificationDisabled(bool disabled)
-{
-	_disableSslCertificateVerification = disabled;
-    WebKitWebContext* context = webkit_web_context_get_default();
-    WebKitWebsiteDataManager* manager = webkit_web_context_get_website_data_manager(context);
-    
-    if(disabled)
-    {
-        webkit_website_data_manager_set_tls_errors_policy(manager,WEBKIT_TLS_ERRORS_POLICY_IGNORE);
-    }
-    else
-    {
-        webkit_website_data_manager_set_tls_errors_policy(manager,WEBKIT_TLS_ERRORS_POLICY_FAIL);
-    }
 }
 
 void Photino::SetMinSize(int width, int height)
@@ -843,6 +827,13 @@ void Photino::set_webkit_settings()
 
 	if (_browserControlInitParameters != NULL && strlen(_browserControlInitParameters) > 0)
 		Photino::set_webkit_customsettings(settings);		//if any custom init parameters were passed, set them now.
+
+	WebKitWebContext* context = webkit_web_context_get_default();
+	WebKitWebsiteDataManager* manager = webkit_web_context_get_website_data_manager(context);
+	if (_ignoreCertificateErrorsEnabled)
+		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
+	else
+		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_FAIL);
 }
 
 void Photino::set_webkit_customsettings(WebKitSettings* settings)

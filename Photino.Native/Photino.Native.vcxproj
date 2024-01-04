@@ -245,8 +245,11 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net6.0\</Comm
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\wintoastlib.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="Photino.h" />
     <ClInclude Include="Photino.Mac.AppDelegate.h" />
+    <ClInclude Include="Photino.Mac.NavigationDelegate.h" />
+    <ClInclude Include="Photino.Mac.NSWindowBorderless.h" />
     <ClInclude Include="Photino.Mac.UiDelegate.h" />
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h" />
     <ClInclude Include="Photino.Dialog.h" />
@@ -256,7 +259,10 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net6.0\</Comm
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Photino.Mac.AppDelegate.mm" />
+    <None Include="Photino.Mac.Dialog.mm" />
     <None Include="Photino.Mac.mm" />
+    <None Include="Photino.Mac.NavigationDelegate.mm" />
+    <None Include="Photino.Mac.NSWindowBorderless.mm" />
     <None Include="Photino.Mac.UiDelegate.mm" />
     <None Include="Photino.Mac.UrlSchemeHandler.mm" />
     <None Include="Photino.Native.nuspec">
