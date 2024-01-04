@@ -828,8 +828,7 @@ void Photino::set_webkit_settings()
 	if (_browserControlInitParameters != NULL && strlen(_browserControlInitParameters) > 0)
 		Photino::set_webkit_customsettings(settings);		//if any custom init parameters were passed, set them now.
 
-	WebKitWebContext* context = webkit_web_context_get_default();
-	WebKitWebsiteDataManager* manager = webkit_web_context_get_website_data_manager(context);
+	WebKitWebsiteDataManager* manager = webkit_web_view_get_website_data_manager(WEBKIT_WEB_VIEW(_webview));
 	if (_ignoreCertificateErrorsEnabled)
 		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
 	else
