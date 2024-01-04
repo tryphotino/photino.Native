@@ -18,6 +18,7 @@ typedef char *AutoString;
 #include <WebKit/WebKit.h>
 #include <WebKit/WKWebView.h>
 #include <WebKit/WKWebViewConfiguration.h>
+#include <Security/SecTrust.h>
 #endif
 
 #ifdef __linux__
