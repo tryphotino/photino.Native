@@ -121,6 +121,11 @@ extern "C"
 		instance->GetMinimized(isMinimized);
 	}
 
+    EXPORTED void Photino_GetSslCertificateVerificationDisabled(Photino* instance, bool *disabled)
+	{
+		instance->GetSslCertificateVerificationDisabled(disabled);
+	}
+
 	EXPORTED void Photino_GetPosition(Photino* instance, int* x, int* y)
 	{
 		instance->GetPosition(x, y);
@@ -244,6 +249,11 @@ extern "C"
 	EXPORTED void Photino_SetZoom(Photino* instance, int zoom)
 	{
 		instance->SetZoom(zoom);
+	}
+
+    EXPORTED void Photino_SetSslCertificateVerificationDisabled(Photino* instance, bool disabled)
+	{
+		instance->SetSslCertificateVerificationDisabled(disabled);
 	}
 	
 	EXPORTED void Photino_ShowNotification(Photino* instance, AutoString title, AutoString body)

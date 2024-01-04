@@ -18,6 +18,7 @@ typedef char *AutoString;
 #include <WebKit/WebKit.h>
 #include <WebKit/WKWebView.h>
 #include <WebKit/WKWebViewConfiguration.h>
+#include <Security/SecTrust.h>
 #endif
 
 #ifdef __linux__
@@ -114,7 +115,7 @@ struct PhotinoInitParams
 	bool JavascriptClipboardAccessEnabled;
 	bool MediaStreamEnabled;
 	bool SmoothScrollingEnabled;
-
+    bool DisableSslCertificateVerification;
 	int Size;
 };
 
@@ -149,6 +150,7 @@ private:
 	bool _javascriptClipboardAccessEnabled;
 	bool _mediaStreamEnabled;
 	bool _smoothScrollingEnabled;
+    bool _disableSslCertificateVerification;
 
 	int _zoom;
 
@@ -259,6 +261,7 @@ public:
 	AutoString GetTitle();
 	void GetTopmost(bool *topmost);
 	void GetZoom(int *zoom);
+    void GetSslCertificateVerificationDisabled(bool* enabled);
 
 	void NavigateToString(AutoString content);
 	void NavigateToUrl(AutoString url);
@@ -279,6 +282,7 @@ public:
 	void SetTitle(AutoString title);
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
+    void SetSslCertificateVerificationDisabled(bool disabled);
 
 	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();

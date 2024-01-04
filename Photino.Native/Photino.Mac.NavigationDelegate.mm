@@ -1,0 +1,21 @@
+#ifdef __APPLE__
+#import "Photino.Mac.NavigationDelegate.h"
+
+@implementation NavigationDelegate : NSObject
+
+    - (void)webView:(WKWebView *)webView 
+    didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
+    completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
+        bool disableSslCertificateVerification = false;
+        photino->GetSslCertificateVerificationDisabled(&disableSslCertificateVerification);
+        if(disableSslCertificateVerification)
+        {
+            SecTrustRef serverTrust = challenge.protectionSpace.serverTrust;
+            CFDataRef exceptions = SecTrustCopyExceptions(serverTrust);
+            CFRelease(exceptions);
+            completionHandler(NSURLSessionAuthChallengeUseCredential,[NSURLCredential credentialForTrust:serverTrust]);
+        }
+    }
+
+@end
+#endif

@@ -5,6 +5,7 @@
 #include "Photino.Mac.UiDelegate.h"
 #include "Photino.Mac.UrlSchemeHandler.h"
 #include "Photino.Mac.NSWindowBorderless.h"
+#include "Photino.Mac.NavigationDelegate.h"
 #include <vector>
 
 #include "json.hpp"
@@ -132,6 +133,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 		strcpy(_temporaryFilesPath, initParams->TemporaryFilesPath);
 	}
 
+    _disableSslCertificateVerification = initParams->DisableSslCertificateVerification;
 	_contextMenuEnabled = true; //not configurable on mac //initParams->ContextMenuEnabled;
 	// _zoom = initParams->Zoom;
 
@@ -146,6 +148,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
+    
 
 	//copy strings from the fixed size array passed, but only if they have a value.
 	for (int i = 0; i < 16; ++i)
@@ -425,6 +428,11 @@ void Photino::GetResizable(bool* resizable)
    *resizable = (([_window styleMask] & NSWindowStyleMaskResizable) == NSWindowStyleMaskResizable);
 }
 
+void Photino::GetSslCertificateVerificationDisabled(bool* enabled)
+{
+	*enabled = this->_disableSslCertificateVerification;
+}
+
 unsigned int Photino::GetScreenDpi()
 {
     //not supported on macOS - _window's devices collection does have dpi
@@ -621,6 +629,11 @@ void Photino::SetMaximized(bool maximized)
         // Restore window to its previous size
         [_window setFrame: NSMakeRect(_preMaximizedXPosition, _preMaximizedYPosition, _preMaximizedWidth, _preMaximizedHeight) display:YES];
     }
+}
+
+void Photino::SetSslCertificateVerificationDisabled(bool disabled)
+{
+	_disableSslCertificateVerification = disabled;
 }
 
 void Photino::SetPosition(int x, int y)
@@ -866,11 +879,16 @@ void Photino::AttachWebView()
     uiDelegate->window = _window;
     uiDelegate->webMessageReceivedCallback = _webMessageReceivedCallback;
 
+    NavigationDelegate *navDelegate = [[[NavigationDelegate alloc] init] autorelease];
+    navDelegate->photino = this;
+    navDelegate->window = _window;
+
     [userContentController
         addScriptMessageHandler: uiDelegate
         name:@"photinointerop"];
 
     _webview.UIDelegate = uiDelegate;
+    _webview.navigationDelegate = navDelegate;
 
     // TODO: Replace with WindowDelegate
     [[NSNotificationCenter defaultCenter]
