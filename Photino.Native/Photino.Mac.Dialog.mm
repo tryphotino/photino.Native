@@ -70,6 +70,7 @@ AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPa
   [openDlg setTitle:[NSString stringWithUTF8String:title]];
   [openDlg setCanChooseFiles:NO];
   [openDlg setCanChooseDirectories:YES];
+  [openDlg setCanCreateDirectories:YES];
   [openDlg setAllowsMultipleSelection:multiSelect];
   [openDlg setPrompt:[NSString stringWithUTF8String:"Open"]];
   [openDlg setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithUTF8String:defaultPath]]];
