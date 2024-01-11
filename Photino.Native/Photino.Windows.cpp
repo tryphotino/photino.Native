@@ -151,6 +151,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_javascriptClipboardAccessEnabled = initParams->JavascriptClipboardAccessEnabled;
 	_mediaStreamEnabled = initParams->MediaStreamEnabled;
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
+    _ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -266,7 +267,9 @@ Photino::Photino(PhotinoInitParams* initParams)
 	this->_toastHandler = new WinToastHandler(this);
 	WinToast::instance()->initialize();
 	_dialog = new PhotinoDialog(this);
-	Photino::Show();
+
+	bool isAlreadyShown = initParams->Minimized || initParams->Maximized;
+	Photino::Show(isAlreadyShown);
 }
 
 Photino::~Photino()
@@ -506,6 +509,11 @@ void Photino::GetMediaStreamEnabled(bool* enabled)
 void Photino::GetSmoothScrollingEnabled(bool* enabled)
 {
 	*enabled = this->_smoothScrollingEnabled;
+}
+
+void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
+{
+	*enabled = this->_ignoreCertificateErrorsEnabled;
 }
 
 AutoString Photino::GetIconFileName()
@@ -748,7 +756,8 @@ void Photino::ShowNotification(AutoString title, AutoString body)
 		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);
 		toast.setTextField(title, WinToastTemplate::FirstLine);
 		toast.setTextField(body, WinToastTemplate::SecondLine);
-		toast.setImagePath(this->_iconFileName);
+		if (this->_iconFileName != NULL)
+			toast.setImagePath(this->_iconFileName);
 		WinToast::instance()->showToast(toast, _toastHandler);
 	}
 }
@@ -841,6 +850,8 @@ void Photino::AttachWebView()
 		startupString += L"--enable-usermedia-screen-capturing ";
 	if (!_smoothScrollingEnabled)
 		startupString += L"--disable-smooth-scrolling ";
+	if (_ignoreCertificateErrorsEnabled)
+		startupString += L"--ignore-certificate-errors ";
 	if (_browserControlInitParameters != NULL)
 		startupString += _browserControlInitParameters;	//e.g.--hide-scrollbars
 
@@ -1080,9 +1091,11 @@ void Photino::SetWebView2RuntimePath(AutoString pathToWebView2)
 	}
 }
 
-void Photino::Show()
+void Photino::Show(bool isAlreadyShown)
 {
-	ShowWindow(_hWnd, SW_SHOWDEFAULT);
+	if (!isAlreadyShown)
+		ShowWindow(_hWnd, SW_SHOWDEFAULT);	//causes maximized and minimized to not work
+
 	UpdateWindow(_hWnd);
 
 	// Strangely, it only works to create the webview2 *after* the window has been shown,

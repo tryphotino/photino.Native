@@ -257,7 +257,7 @@ jobs:
                 script: "nuget.exe pack Photino.Native.nuspec -Version $(versionprefix)-$(Build.BuildNumber) -NonInteractive -Properties version=$(versionprefix)-$(Build.BuildNumber)"
 
           # Publish NuGet package to Artifacts
-          - task: NuGetAuthenticate@0
+          - task: NuGetAuthenticate@1
             displayName: "NuGet Authenticate"
 
           - task: NuGetCommand@2

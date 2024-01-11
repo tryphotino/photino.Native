@@ -121,6 +121,11 @@ extern "C"
 		instance->GetMinimized(isMinimized);
 	}
 
+    EXPORTED void Photino_GetIgnoreCertificateErrorsEnabled(Photino* instance, bool *disabled)
+	{
+		instance->GetIgnoreCertificateErrorsEnabled(disabled);
+	}
+
 	EXPORTED void Photino_GetPosition(Photino* instance, int* x, int* y)
 	{
 		instance->GetPosition(x, y);

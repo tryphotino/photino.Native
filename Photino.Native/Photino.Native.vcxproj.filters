@@ -52,6 +52,15 @@
     <None Include="Photino.Mac.UrlSchemeHandler.mm">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Photino.Mac.Dialog.mm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Photino.Mac.NavigationDelegate.mm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Photino.Mac.NSWindowBorderless.mm">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Photino.h">
@@ -76,6 +85,15 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Photino.Dialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Mac.NavigationDelegate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Mac.NSWindowBorderless.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

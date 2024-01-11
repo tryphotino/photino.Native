@@ -36,8 +36,10 @@ build-photino-mac-universal:
 		  -framework Cocoa\
 		  -framework WebKit\
 		  -framework UserNotifications\
+		  -framework Security\
 		  $(SRC)/Photino.Mac.AppDelegate.mm\
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
+		  $(SRC)/Photino.Mac.NavigationDelegate.mm\
 		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
 		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
 		  $(SRC)/Photino.Mac.Dialog.mm\

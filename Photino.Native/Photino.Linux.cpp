@@ -132,6 +132,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_javascriptClipboardAccessEnabled = initParams->JavascriptClipboardAccessEnabled;
 	_mediaStreamEnabled = initParams->MediaStreamEnabled;
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
+	_ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -240,7 +241,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 					 G_CALLBACK(on_widget_deleted),
 					 this);
 
-	Photino::Show();
+	Photino::Show(false);
 
 	g_signal_connect(G_OBJECT(_window), "focus-in-event",
 					 G_CALLBACK(on_focus_in_event),
@@ -355,6 +356,11 @@ void Photino::GetMediaStreamEnabled(bool* enabled)
 void Photino::GetSmoothScrollingEnabled(bool* enabled)
 {
 	*enabled = this->_smoothScrollingEnabled;
+}
+
+void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
+{
+	*enabled = this->_ignoreCertificateErrorsEnabled;
 }
 
 void Photino::GetMaximized(bool *isMaximized)
@@ -697,7 +703,7 @@ void HandleWebMessage(WebKitUserContentManager *contentManager, WebKitJavascript
 	webkit_javascript_result_unref(jsResult);
 }
 
-void Photino::Show()
+void Photino::Show(bool isAlreadyShown)
 {
 	if (!_webview)
 	{
@@ -821,6 +827,12 @@ void Photino::set_webkit_settings()
 
 	if (_browserControlInitParameters != NULL && strlen(_browserControlInitParameters) > 0)
 		Photino::set_webkit_customsettings(settings);		//if any custom init parameters were passed, set them now.
+
+	WebKitWebsiteDataManager* manager = webkit_web_view_get_website_data_manager(WEBKIT_WEB_VIEW(_webview));
+	if (_ignoreCertificateErrorsEnabled)
+		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
+	else
+		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_FAIL);
 }
 
 void Photino::set_webkit_customsettings(WebKitSettings* settings)

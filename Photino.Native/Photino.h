@@ -18,6 +18,7 @@ typedef char *AutoString;
 #include <WebKit/WebKit.h>
 #include <WebKit/WKWebView.h>
 #include <WebKit/WKWebViewConfiguration.h>
+#include <Security/SecTrust.h>
 #endif
 
 #ifdef __linux__
@@ -114,7 +115,7 @@ struct PhotinoInitParams
 	bool JavascriptClipboardAccessEnabled;
 	bool MediaStreamEnabled;
 	bool SmoothScrollingEnabled;
-
+    bool IgnoreCertificateErrorsEnabled;
 	int Size;
 };
 
@@ -149,12 +150,13 @@ private:
 	bool _javascriptClipboardAccessEnabled;
 	bool _mediaStreamEnabled;
 	bool _smoothScrollingEnabled;
+    bool _ignoreCertificateErrorsEnabled;
 
 	int _zoom;
 
 	Photino *_parent;
 	PhotinoDialog *_dialog;
-	void Show();
+	void Show(bool isAlreadyShown);
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
@@ -259,6 +261,7 @@ public:
 	AutoString GetTitle();
 	void GetTopmost(bool *topmost);
 	void GetZoom(int *zoom);
+	void GetIgnoreCertificateErrorsEnabled(bool* enabled);
 
 	void NavigateToString(AutoString content);
 	void NavigateToUrl(AutoString url);
