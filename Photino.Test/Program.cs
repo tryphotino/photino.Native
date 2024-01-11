@@ -64,8 +64,8 @@ namespace PhotinoNET
             mainWindow = new PhotinoWindow()
                 //.Load(new Uri("https://google.com"))
                 //.Load("https://duckduckgo.com/?t=ffab&q=user+agent+&ia=answer")
-                .Load("https://localhost:8080/")
-                //.Load("wwwroot/main.html")
+                //.Load("https://localhost:8080/")
+                .Load("wwwroot/main.html")
                 //.Load("wwwroot/index.html")
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
@@ -74,7 +74,7 @@ namespace PhotinoNET
                 //.SetTitle($"My Photino Window {_windowNumber++}")
                 //.SetChromeless(true)
                 //.SetFullScreen(true)
-                .SetMaximized(true)
+                //.SetMaximized(true)
                 //.SetMaxSize(640, 480)
                 //.SetMinimized(true)
                 //.SetMinSize(320, 240)
@@ -190,6 +190,7 @@ namespace PhotinoNET
                 MediaStreamEnabled = true,
                 SmoothScrollingEnabled = true,
                 //TemporaryFilesPath = @"C:\Temp",
+                //IgnoreCertificateErrorsEnabled = false,
 
                 WindowCreatingHandler = WindowCreating,
                 WindowCreatedHandler = WindowCreated,
