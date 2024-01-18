@@ -619,8 +619,7 @@ void Photino::SetTitle(AutoString title)
 
 void Photino::SetTopmost(bool topmost)
 {
-	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
-	gdk_window_set_keep_above(gdk_window, topmost);
+	gtk_window_set_keep_above(GTK_WINDOW(_window), topmost);
 }
 
 void Photino::SetZoom(int zoom)
