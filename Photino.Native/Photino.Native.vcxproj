@@ -41,6 +41,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -54,6 +55,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -99,6 +101,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Repos\Photino\photino.Native\packages\Microsoft.Web.WebView2.1.0.1462.37\build\native\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -130,9 +133,9 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\Win32\Debug\net6.0\  
-COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\Win32\Debug\net6.0\
-COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Win32\Debug\net6.0\</Command>
+      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\Debug\net8.0\  
+COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\Debug\net8.0\
+COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net8.0\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -169,9 +172,9 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Win32\Debug\net6.0\</Comm
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\x64\Debug\net8.0\  
-COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\x64\Debug\net8.0\
-COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\x64\Debug\net8.0\</Command>
+      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\Debug\net8.0\  
+COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\Debug\net8.0\
+COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net8.0\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
