@@ -49,6 +49,9 @@
     <None Include="Photino.Mac.UiDelegate.mm">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Photino.Mac.WindowDelegate.mm">
+      <Filter>Source Files</Filter>
+    </None>
     <None Include="Photino.Mac.UrlSchemeHandler.mm">
       <Filter>Source Files</Filter>
     </None>
@@ -70,6 +73,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Photino.Mac.UiDelegate.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Photino.Mac.WindowDelegate.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h">

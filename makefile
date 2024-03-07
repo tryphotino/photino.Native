@@ -39,6 +39,7 @@ build-photino-mac-universal:
 		  -framework Security\
 		  $(SRC)/Photino.Mac.AppDelegate.mm\
 		  $(SRC)/Photino.Mac.UiDelegate.mm\
+		  $(SRC)/Photino.Mac.WindowDelegate.mm\
 		  $(SRC)/Photino.Mac.NavigationDelegate.mm\
 		  $(SRC)/Photino.Mac.UrlSchemeHandler.mm\
 		  $(SRC)/Photino.Mac.NSWindowBorderless.mm\
