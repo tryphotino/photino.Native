@@ -657,6 +657,7 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
 			Monitor props = {};
 			gdk_monitor_get_geometry(monitor, (GdkRectangle *)&props.monitor);
 			gdk_monitor_get_workarea(monitor, (GdkRectangle *)&props.work);
+			props.scale = gdk_monitor_get_scale_factor(monitor); // TODO: fractional scaling
 			if (!callback(&props))
 				break;
 		}
