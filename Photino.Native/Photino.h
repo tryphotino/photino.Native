@@ -211,6 +211,7 @@ public:
 	HWND getHwnd();
 	void RefitContent();
 	void FocusWebView2();
+	void NotifyWebView2WindowMove();
 	int _minWidth;
 	int _minHeight;
 	int _maxWidth;

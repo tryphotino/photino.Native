@@ -5,10 +5,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ApplicationIcon>wwwroot\photino-logo.ico</ApplicationIcon>
     <StartupObject />
+	<ImplicitUsings>enable</ImplicitUsings>
     <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
     <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
     <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
-    <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+    <Platforms>AnyCPU;x64;ARM64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsWindows)'=='true'">

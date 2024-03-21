@@ -407,11 +407,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Photino* Photino = hwndToPhotino[hwnd];
 		if (Photino)
 		{
+			//Photino->NotifyWebView2WindowMove();
+			//Photino->RefitContent();
+
 			int x, y;
 			Photino->GetPosition(&x, &y);
 			Photino->InvokeMove(x, y);
 		}
 		return 0;
+	}
+	case WM_MOVING:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (Photino)
+		{
+			//Photino->NotifyWebView2WindowMove();
+			//Photino->RefitContent();
+		}
 	}
 	break;
 	}
@@ -1049,6 +1061,15 @@ void Photino::FocusWebView2()
 	if (_webviewController)
 	{
 		_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+	}
+}
+
+void Photino::NotifyWebView2WindowMove()
+{
+	if (_webviewController)
+	{
+		//MessageBox(nullptr, L"NotifyWebView2WindowMove() was called!", L"", MB_OK);
+		_webviewController->NotifyParentWindowPositionChanged();
 	}
 }
 
