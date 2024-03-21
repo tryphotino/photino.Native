@@ -788,6 +788,9 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
             props.work.width = (int)roundf(vframe.size.width);
             props.work.height = (int)roundf(vframe.size.height);
 
+            CGFloat scaleFactor = [screen backingScaleFactor];
+            props.scale = [screen backingScaleFactor];
+
             callback(&props);
         }
     }
@@ -813,9 +816,12 @@ std::vector<Monitor *> Photino::GetMonitors()
         workArea.width = (int)roundf(workFrame.size.width);
         workArea.height = (int)roundf(workFrame.size.height);
 
+        CGFloat scaleFactor = [screen backingScaleFactor];
+
         Monitor *monitor = new Monitor();
         monitor->monitor = monitorArea;
         monitor->work = workArea;
+        monitor->scale = scaleFactor;
 
         monitors.push_back(monitor);
     }
