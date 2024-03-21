@@ -3,6 +3,7 @@
 #include "Photino.Dialog.h"
 #include "Photino.Mac.AppDelegate.h"
 #include "Photino.Mac.UiDelegate.h"
+#include "Photino.Mac.WindowDelegate.h"
 #include "Photino.Mac.UrlSchemeHandler.h"
 #include "Photino.Mac.NSWindowBorderless.h"
 #include "Photino.Mac.NavigationDelegate.h"
@@ -209,6 +210,12 @@ Photino::Photino(PhotinoInitParams* initParams)
             backing: NSBackingStoreBuffered
             defer: true];
     }
+
+    // Set Window Delegate
+    WindowDelegate *windowDelegate = [WindowDelegate new];
+    windowDelegate->photino = this;
+
+    _window.delegate = windowDelegate;
     
     // Set Window options
     SetTitle(_windowTitle);
@@ -781,6 +788,9 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
             props.work.width = (int)roundf(vframe.size.width);
             props.work.height = (int)roundf(vframe.size.height);
 
+            CGFloat scaleFactor = [screen backingScaleFactor];
+            props.scale = [screen backingScaleFactor];
+
             callback(&props);
         }
     }
@@ -806,9 +816,12 @@ std::vector<Monitor *> Photino::GetMonitors()
         workArea.width = (int)roundf(workFrame.size.width);
         workArea.height = (int)roundf(workFrame.size.height);
 
+        CGFloat scaleFactor = [screen backingScaleFactor];
+
         Monitor *monitor = new Monitor();
         monitor->monitor = monitorArea;
         monitor->work = workArea;
+        monitor->scale = scaleFactor;
 
         monitors.push_back(monitor);
     }
@@ -885,19 +898,6 @@ void Photino::AttachWebView()
 
     _webview.UIDelegate = uiDelegate;
     _webview.navigationDelegate = navDelegate;
-
-    // TODO: Replace with WindowDelegate
-    [[NSNotificationCenter defaultCenter]
-        addObserver: uiDelegate
-        selector: @selector(windowDidResize:)
-        name: NSWindowDidResizeNotification
-        object: _window];
-    
-    [[NSNotificationCenter defaultCenter]
-        addObserver: uiDelegate
-        selector: @selector(windowDidMove:)
-        name: NSWindowDidMoveNotification
-        object: _window];
 
     if (_startUrl != NULL)
         NavigateToUrl(_startUrl);

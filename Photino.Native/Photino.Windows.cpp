@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <limits>
 #include <WebView2EnvironmentOptions.h>
+#include <Shellscalingapi.h>
 
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
@@ -796,9 +797,11 @@ void Photino::WaitForExit()
 BOOL MonitorEnum(HMONITOR monitor, HDC, LPRECT, LPARAM arg)
 {
 	auto callback = (GetAllMonitorsCallback)arg;
+	UINT dpiX, dpiY;
 	MONITORINFO info = {};
 	info.cbSize = sizeof(MONITORINFO);
 	GetMonitorInfo(monitor, &info);
+	GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
 	Monitor props = {};
 	props.monitor.x = info.rcMonitor.left;
 	props.monitor.y = info.rcMonitor.top;
@@ -808,6 +811,7 @@ BOOL MonitorEnum(HMONITOR monitor, HDC, LPRECT, LPARAM arg)
 	props.work.y = info.rcWork.top;
 	props.work.width = info.rcWork.right - info.rcWork.left;
 	props.work.height = info.rcWork.bottom - info.rcWork.top;
+	props.scale = dpiY / 96.0;
 	return callback(&props) ? TRUE : FALSE;
 }
 

@@ -2,7 +2,6 @@
 #import "Photino.Mac.UiDelegate.h"
 
 @implementation UiDelegate : NSObject
-
 - (void)userContentController:(WKUserContentController *)userContentController
         didReceiveScriptMessage:(WKScriptMessage *)message
 {
@@ -97,34 +96,6 @@
     photino->GetGrantBrowserPermissions(&grantPermissions);
     decisionHandler(grantPermissions ? WKPermissionDecisionGrant : WKPermissionDecisionPrompt);
 }
-
-- (void)windowDidResize:(NSNotification *)notification {
-    int width, height;
-    photino->GetSize(&width, &height);
-    photino->InvokeResize(width, height);
-}
-
-- (void)windowDidMove:(NSNotification *)notification {
-    int x, y;
-    photino->GetPosition(&x, &y);
-    photino->InvokeMove(x, y);
-}
-
-- (void)windowDidBecomeKey:(NSNotification *)notification {
-    photino->InvokeFocusIn();
-}
-
-- (void)windowDidResignKey:(NSNotification *)notification {
-    photino->InvokeFocusOut();
-}
-
-- (void)windowDidMiniaturize:(NSNotification *)notification {
-    photino->InvokeMinimized();
-}
-
-- (void)windowDidDeminiaturize:(NSNotification *)notification {
-    photino->InvokeRestored();
-}
-
 @end
+
 #endif
