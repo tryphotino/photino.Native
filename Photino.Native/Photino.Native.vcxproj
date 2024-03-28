@@ -247,6 +247,7 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net8.0\</Comm
     <ClCompile Include="Photino.Windows.Dialog.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\ShellScalingApi.h" />
     <ClInclude Include="Dependencies\wintoastlib.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Photino.h" />
