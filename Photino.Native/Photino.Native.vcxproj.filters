@@ -102,9 +102,6 @@
     <ClInclude Include="Photino.Mac.NSWindowBorderless.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\ShellScalingApi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
