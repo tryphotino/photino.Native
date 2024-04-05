@@ -263,7 +263,12 @@ Photino::Photino(PhotinoInitParams* initParams)
 
     SetPreference(@"mediaDevicesEnabled", @YES);
     SetPreference(@"mediaCaptureRequiresSecureConnection", @NO);
-    SetPreference(@"notificationEventEnabled", @YES);
+
+    if ([NSProcessInfo.processInfo isOperatingSystemAtLeastVersion: NSOperatingSystemVersion({13, 3, 0})])
+    {
+        SetPreference(@"notificationEventEnabled", @YES);
+    }
+
     SetPreference(@"notificationsEnabled", @YES);
     SetPreference(@"screenCaptureEnabled", @YES);
 
