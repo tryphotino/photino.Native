@@ -11,6 +11,7 @@ variables:
 jobs:
     - job: "Build_Win_x64"
       pool:
+          name: "SelfHostedPool"
           vmImage: "windows-latest"
 
       steps:
@@ -32,9 +33,4 @@ jobs:
                 msbuildArchitecture: "x64"
                 configuration: "$(buildConfiguration)"
 
-          - task: PublishPipelineArtifact@1
-            displayName: "Publish Windows (x64) libraries to artifacts"
-            inputs:
-                targetPath: "./Photino.Native/x64/$(buildConfiguration)"
-                artifactName: WindowsIntelArtifact
 
