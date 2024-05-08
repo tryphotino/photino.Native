@@ -56,6 +56,11 @@ extern "C"
 		instance->Close();
 	}
 
+	EXPORTED void Photino_GetTransparentEnabled(Photino* instance, bool* enabled)
+	{
+		instance->GetTransparentEnabled(enabled);
+	}
+
 	EXPORTED void Photino_GetContextMenuEnabled(Photino* instance, bool* enabled)
 	{
 		instance->GetContextMenuEnabled(enabled);
@@ -179,6 +184,11 @@ extern "C"
 	EXPORTED void Photino_SendWebMessage(Photino* instance, AutoString message)
 	{
 		instance->SendWebMessage(message);
+	}
+
+	EXPORTED void Photino_SetTransparentEnabled(Photino* instance, bool enabled)
+	{
+		instance->SetTransparentEnabled(enabled);
 	}
 
 	EXPORTED void Photino_SetContextMenuEnabled(Photino* instance, bool enabled)

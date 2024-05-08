@@ -73,6 +73,7 @@ namespace Photino.NET
                 //.SetIconFile(iconFile)
                 //.SetTitle($"My Photino Window {_windowNumber++}")
                 //.SetChromeless(true)
+                //.SetTransparent(true)
                 //.SetFullScreen(true)
                 //.SetMaximized(true)
                 //.SetMaxSize(640, 480)

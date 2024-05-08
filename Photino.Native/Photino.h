@@ -100,6 +100,7 @@ struct PhotinoInitParams
 
 	bool CenterOnInitialize;
 	bool Chromeless;
+	bool Transparent;
 	bool ContextMenuEnabled;
 	bool DevToolsEnabled;
 	bool FullScreen;
@@ -143,6 +144,7 @@ private:
 	AutoString _userAgent;
 	AutoString _browserControlInitParameters;
 
+	bool _transparentEnabled;
 	bool _devToolsEnabled;
 	bool _grantBrowserPermissions;
 	bool _mediaAutoplayEnabled;
@@ -242,6 +244,7 @@ public:
 	void ClearBrowserAutoFill();
 	void Close();
 
+	void GetTransparentEnabled(bool* enabled);
 	void GetContextMenuEnabled(bool *enabled);
 	void GetDevToolsEnabled(bool *enabled);
 	void GetFullScreen(bool *fullScreen);
@@ -270,6 +273,7 @@ public:
 	void Restore(); // required anymore?backward compat?
 	void SendWebMessage(AutoString message);
 
+	void SetTransparentEnabled(bool enabled);
 	void SetContextMenuEnabled(bool enabled);
 	void SetDevToolsEnabled(bool enabled);
 	void SetIconFile(AutoString filename);
