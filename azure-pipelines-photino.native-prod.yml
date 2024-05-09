@@ -37,7 +37,7 @@ jobs:
           - task: VSBuild@1
             displayName: "Build Windows (x64) native assets"
             inputs:
-                solution: "Photino.Native.sln"
+                solution: "./Photino.Native/Photino.Native.vcxproj"
                 platform: "x64"
                 msbuildArchitecture: "x64"
                 configuration: "$(buildConfiguration)"
