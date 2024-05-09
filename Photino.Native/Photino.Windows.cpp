@@ -14,6 +14,7 @@
 #include <WebView2EnvironmentOptions.h>
 #include <Shellscalingapi.h>
 
+#pragma comment(lib, "Shcore.lib")
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
 
