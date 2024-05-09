@@ -32,6 +32,13 @@ jobs:
                 restoreSolution: "Photino.Native.sln"
                 feedsToUse: "select"
 
+          - task: DotNetCoreCLI@2
+            displayName: "Build Windows (x64) native assets"
+            inputs:
+                command: "restore"
+                projects: "Photino.Native.sln"
+                arguments: "--configuration $(buildConfiguration) --platform x64"
+
           - task: VSBuild@1
             displayName: "Build Windows (x64) native assets"
             inputs:
@@ -39,7 +46,6 @@ jobs:
                 platform: "x64"
                 msbuildArchitecture: "x64"
                 configuration: "$(buildConfiguration)"
-                restoreNuGetPackages: true
 
           - task: PublishPipelineArtifact@1
             displayName: "Publish Windows (x64) libraries to artifacts"
