@@ -35,7 +35,7 @@ jobs:
                 restoreSolution: "Photino.Native.sln"
                 feedsToUse: "select"
 
-          - task: VSBuild@1
+          - task: MSBuild@1
             displayName: "Build Windows (x64) native assets"
             inputs:
                 solution: "Photino.Native.sln"
