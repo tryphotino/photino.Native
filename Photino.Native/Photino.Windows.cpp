@@ -234,7 +234,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	//Create the window
 	_hWnd = CreateWindowEx(
-		initParams->Chromeless && initParams->Transparent ? WS_EX_LAYERED : 0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
+		initParams->Transparent ? WS_EX_LAYERED : 0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
 		CLASS_NAME,					//Window class
 		initParams->TitleWide,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
@@ -637,6 +637,7 @@ void Photino::SetTransparentEnabled(bool enabled)
 	controller2->get_DefaultBackgroundColor(&backgroundColor);
 	backgroundColor.A = enabled ? 0 : 255;
 	controller2->put_DefaultBackgroundColor(backgroundColor);
+	_webviewWindow->Reload();
 }
 
 void Photino::SetContextMenuEnabled(bool enabled)
