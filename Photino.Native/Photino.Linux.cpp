@@ -123,6 +123,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 		strcpy(_browserControlInitParameters, initParams->BrowserControlInitParameters);
 	}
 
+	_transparentEnabled = initParams->Transparent;
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
@@ -296,6 +297,14 @@ void Photino::ClearBrowserAutoFill()
 void Photino::Close()
 {
 	gtk_window_close(GTK_WINDOW(_window));
+}
+
+void Photino::GetTransparentEnabled(bool *enabled)
+{
+	//! Not implemented in Linux
+	// if (_transparentEnabled)
+	// 	*enabled = true;
+	*enabled = false;
 }
 
 void Photino::GetContextMenuEnabled(bool *enabled)
@@ -529,6 +538,12 @@ void Photino::SendWebMessage(AutoString message)
 	{
 		g_main_context_iteration(NULL, TRUE);
 	}
+}
+
+void Photino::SetTransparentEnabled(bool enabled)
+{
+	// _transparentEnabled = enabled;
+	//! Not implemented in Linux
 }
 
 void Photino::SetContextMenuEnabled(bool enabled)

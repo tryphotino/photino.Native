@@ -211,6 +211,9 @@ Photino::Photino(PhotinoInitParams* initParams)
             defer: true];
     }
 
+    // Set transparency (not yet implemented)
+    _transparentEnabled = initParams->Transparent;
+
     // Set Window Delegate
     WindowDelegate *windowDelegate = [WindowDelegate new];
     windowDelegate->photino = this;
@@ -353,6 +356,13 @@ void Photino::Close()
         // Simulates user clicking the close button
     	[_window performClose: _window];
     }
+}
+
+void Photino::GetTransparentEnabled(bool* enabled)
+{
+    //! Not implemented (supported?) on macOS
+    // *enabled = _transparentEnabled;
+    *enabled = false;
 }
 
 void Photino::GetContextMenuEnabled(bool* enabled)
@@ -588,6 +598,11 @@ void Photino::SetDevToolsEnabled(bool enabled)
     SetPreference(@"developerExtrasEnabled", enabled ? @YES : @NO);
 }
 
+void Photino::SetTransparentEnabled(bool enabled)
+{
+    //! Not implemented (supported?) on macOS
+}
+
 void Photino::SetContextMenuEnabled(bool enabled)
 {
     //! Not supported on macOS
@@ -793,7 +808,7 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
             props.work.width = (int)roundf(vframe.size.width);
             props.work.height = (int)roundf(vframe.size.height);
 
-            CGFloat scaleFactor = [screen backingScaleFactor];
+            // CGFloat scaleFactor = [screen backingScaleFactor];
             props.scale = [screen backingScaleFactor];
 
             callback(&props);
