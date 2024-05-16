@@ -144,6 +144,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 
+	_transparentEnabled = initParams->Transparent;
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
@@ -233,8 +234,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	//Create the window
 	_hWnd = CreateWindowEx(
-		0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
-		CLASS_NAME,             //Window class
+		initParams->Chromeless && initParams->Transparent ? WS_EX_LAYERED : 0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
+		CLASS_NAME,					//Window class
 		initParams->TitleWide,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
 
@@ -464,6 +465,14 @@ void Photino::Close()
 }
 
 
+void Photino::GetTransparentEnabled(bool* enabled)
+{
+	ICoreWebView2Controller2* controller2;
+	_webviewController->QueryInterface(&controller2);
+	COREWEBVIEW2_COLOR backgroundColor;
+	controller2->get_DefaultBackgroundColor(&backgroundColor);
+	*enabled = backgroundColor.A == 0;
+}
 
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
@@ -619,6 +628,16 @@ void Photino::SendWebMessage(AutoString message)
 	_webviewWindow->PostWebMessageAsString(message);
 }
 
+
+void Photino::SetTransparentEnabled(bool enabled)
+{
+	ICoreWebView2Controller2* controller2;
+	_webviewController->QueryInterface(&controller2);
+	COREWEBVIEW2_COLOR backgroundColor;
+	controller2->get_DefaultBackgroundColor(&backgroundColor);
+	backgroundColor.A = enabled ? 0 : 255;
+	controller2->put_DefaultBackgroundColor(backgroundColor);
+}
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
@@ -976,6 +995,9 @@ void Photino::AttachWebView()
 
 						if (_devToolsEnabled == false)
 							SetDevToolsEnabled(false);
+
+						if (_transparentEnabled == true)
+							SetTransparentEnabled(true);
 
 						if (_zoom != 100)
 							SetZoom(_zoom);
