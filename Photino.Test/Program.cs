@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace PhotinoNET
+namespace Photino.NET
 {
     class Program
     {
@@ -73,6 +73,7 @@ namespace PhotinoNET
                 //.SetIconFile(iconFile)
                 //.SetTitle($"My Photino Window {_windowNumber++}")
                 //.SetChromeless(true)
+                .SetTransparent(true)
                 //.SetFullScreen(true)
                 //.SetMaximized(true)
                 //.SetMaxSize(640, 480)
@@ -153,6 +154,7 @@ namespace PhotinoNET
                 IconFile = iconFile,
                 Title = $"My Photino Window {_windowNumber++}",
                 //Chromeless = true,
+                //Transparent = true,
                 //FullScreen = true,
                 //Maximized = true,
                 MaxWidth = 640,

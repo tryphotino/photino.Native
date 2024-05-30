@@ -5,8 +5,8 @@ trigger:
     - master
 
 variables:
-    major: 2
-    minor: 6
+    major: 3
+    minor: 0
     patch: $[counter(variables['minor'], 0)] #this will reset when we bump minor
     buildConfiguration: "Release"
 
@@ -37,7 +37,7 @@ jobs:
           - task: VSBuild@1
             displayName: "Build Windows (x64) native assets"
             inputs:
-                solution: "Photino.Native.sln"
+                solution: "./Photino.Native/Photino.Native.vcxproj"
                 platform: "x64"
                 msbuildArchitecture: "x64"
                 configuration: "$(buildConfiguration)"

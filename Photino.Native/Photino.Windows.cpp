@@ -12,7 +12,9 @@
 #include <algorithm>
 #include <limits>
 #include <WebView2EnvironmentOptions.h>
+#include <Shellscalingapi.h>
 
+#pragma comment(lib, "Shcore.lib")
 #pragma comment(lib, "Urlmon.lib")
 #pragma warning(disable: 4996)		//disable warning about wcscpy vs. wcscpy_s
 
@@ -142,6 +144,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 
+	_transparentEnabled = initParams->Transparent;
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
 	_devToolsEnabled = initParams->DevToolsEnabled;
 	_grantBrowserPermissions = initParams->GrantBrowserPermissions;
@@ -231,8 +234,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	//Create the window
 	_hWnd = CreateWindowEx(
-		0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
-		CLASS_NAME,             //Window class
+		initParams->Transparent ? WS_EX_LAYERED : 0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
+		CLASS_NAME,					//Window class
 		initParams->TitleWide,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
 
@@ -407,11 +410,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Photino* Photino = hwndToPhotino[hwnd];
 		if (Photino)
 		{
+			//Photino->NotifyWebView2WindowMove();
+			//Photino->RefitContent();
+
 			int x, y;
 			Photino->GetPosition(&x, &y);
 			Photino->InvokeMove(x, y);
 		}
 		return 0;
+	}
+	case WM_MOVING:
+	{
+		Photino* Photino = hwndToPhotino[hwnd];
+		if (Photino)
+		{
+			//Photino->NotifyWebView2WindowMove();
+			//Photino->RefitContent();
+		}
 	}
 	break;
 	}
@@ -450,6 +465,14 @@ void Photino::Close()
 }
 
 
+void Photino::GetTransparentEnabled(bool* enabled)
+{
+	ICoreWebView2Controller2* controller2;
+	_webviewController->QueryInterface(&controller2);
+	COREWEBVIEW2_COLOR backgroundColor;
+	controller2->get_DefaultBackgroundColor(&backgroundColor);
+	*enabled = backgroundColor.A == 0;
+}
 
 void Photino::GetContextMenuEnabled(bool* enabled)
 {
@@ -605,6 +628,17 @@ void Photino::SendWebMessage(AutoString message)
 	_webviewWindow->PostWebMessageAsString(message);
 }
 
+
+void Photino::SetTransparentEnabled(bool enabled)
+{
+	ICoreWebView2Controller2* controller2;
+	_webviewController->QueryInterface(&controller2);
+	COREWEBVIEW2_COLOR backgroundColor;
+	controller2->get_DefaultBackgroundColor(&backgroundColor);
+	backgroundColor.A = enabled ? 0 : 255;
+	controller2->put_DefaultBackgroundColor(backgroundColor);
+	_webviewWindow->Reload();
+}
 
 void Photino::SetContextMenuEnabled(bool enabled)
 {
@@ -784,9 +818,11 @@ void Photino::WaitForExit()
 BOOL MonitorEnum(HMONITOR monitor, HDC, LPRECT, LPARAM arg)
 {
 	auto callback = (GetAllMonitorsCallback)arg;
+	UINT dpiX, dpiY;
 	MONITORINFO info = {};
 	info.cbSize = sizeof(MONITORINFO);
 	GetMonitorInfo(monitor, &info);
+	GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
 	Monitor props = {};
 	props.monitor.x = info.rcMonitor.left;
 	props.monitor.y = info.rcMonitor.top;
@@ -796,6 +832,7 @@ BOOL MonitorEnum(HMONITOR monitor, HDC, LPRECT, LPARAM arg)
 	props.work.y = info.rcWork.top;
 	props.work.width = info.rcWork.right - info.rcWork.left;
 	props.work.height = info.rcWork.bottom - info.rcWork.top;
+	props.scale = dpiY / 96.0;
 	return callback(&props) ? TRUE : FALSE;
 }
 
@@ -960,6 +997,9 @@ void Photino::AttachWebView()
 						if (_devToolsEnabled == false)
 							SetDevToolsEnabled(false);
 
+						if (_transparentEnabled == true)
+							SetTransparentEnabled(true);
+
 						if (_zoom != 100)
 							SetZoom(_zoom);
 
@@ -1049,6 +1089,15 @@ void Photino::FocusWebView2()
 	if (_webviewController)
 	{
 		_webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+	}
+}
+
+void Photino::NotifyWebView2WindowMove()
+{
+	if (_webviewController)
+	{
+		//MessageBox(nullptr, L"NotifyWebView2WindowMove() was called!", L"", MB_OK);
+		_webviewController->NotifyParentWindowPositionChanged();
 	}
 }
 

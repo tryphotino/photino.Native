@@ -3,6 +3,7 @@
 #include "Photino.Dialog.h"
 #include "Photino.Mac.AppDelegate.h"
 #include "Photino.Mac.UiDelegate.h"
+#include "Photino.Mac.WindowDelegate.h"
 #include "Photino.Mac.UrlSchemeHandler.h"
 #include "Photino.Mac.NSWindowBorderless.h"
 #include "Photino.Mac.NavigationDelegate.h"
@@ -209,6 +210,15 @@ Photino::Photino(PhotinoInitParams* initParams)
             backing: NSBackingStoreBuffered
             defer: true];
     }
+
+    // Set transparency (not yet implemented)
+    _transparentEnabled = initParams->Transparent;
+
+    // Set Window Delegate
+    WindowDelegate *windowDelegate = [WindowDelegate new];
+    windowDelegate->photino = this;
+
+    _window.delegate = windowDelegate;
     
     // Set Window options
     SetTitle(_windowTitle);
@@ -256,7 +266,12 @@ Photino::Photino(PhotinoInitParams* initParams)
 
     SetPreference(@"mediaDevicesEnabled", @YES);
     SetPreference(@"mediaCaptureRequiresSecureConnection", @NO);
-    SetPreference(@"notificationEventEnabled", @YES);
+
+    if ([NSProcessInfo.processInfo isOperatingSystemAtLeastVersion: NSOperatingSystemVersion({13, 3, 0})])
+    {
+        SetPreference(@"notificationEventEnabled", @YES);
+    }
+
     SetPreference(@"notificationsEnabled", @YES);
     SetPreference(@"screenCaptureEnabled", @YES);
 
@@ -341,6 +356,13 @@ void Photino::Close()
         // Simulates user clicking the close button
     	[_window performClose: _window];
     }
+}
+
+void Photino::GetTransparentEnabled(bool* enabled)
+{
+    //! Not implemented (supported?) on macOS
+    // *enabled = _transparentEnabled;
+    *enabled = false;
 }
 
 void Photino::GetContextMenuEnabled(bool* enabled)
@@ -576,6 +598,11 @@ void Photino::SetDevToolsEnabled(bool enabled)
     SetPreference(@"developerExtrasEnabled", enabled ? @YES : @NO);
 }
 
+void Photino::SetTransparentEnabled(bool enabled)
+{
+    //! Not implemented (supported?) on macOS
+}
+
 void Photino::SetContextMenuEnabled(bool enabled)
 {
     //! Not supported on macOS
@@ -781,6 +808,9 @@ void Photino::GetAllMonitors(GetAllMonitorsCallback callback)
             props.work.width = (int)roundf(vframe.size.width);
             props.work.height = (int)roundf(vframe.size.height);
 
+            // CGFloat scaleFactor = [screen backingScaleFactor];
+            props.scale = [screen backingScaleFactor];
+
             callback(&props);
         }
     }
@@ -806,9 +836,12 @@ std::vector<Monitor *> Photino::GetMonitors()
         workArea.width = (int)roundf(workFrame.size.width);
         workArea.height = (int)roundf(workFrame.size.height);
 
+        CGFloat scaleFactor = [screen backingScaleFactor];
+
         Monitor *monitor = new Monitor();
         monitor->monitor = monitorArea;
         monitor->work = workArea;
+        monitor->scale = scaleFactor;
 
         monitors.push_back(monitor);
     }
@@ -885,19 +918,6 @@ void Photino::AttachWebView()
 
     _webview.UIDelegate = uiDelegate;
     _webview.navigationDelegate = navDelegate;
-
-    // TODO: Replace with WindowDelegate
-    [[NSNotificationCenter defaultCenter]
-        addObserver: uiDelegate
-        selector: @selector(windowDidResize:)
-        name: NSWindowDidResizeNotification
-        object: _window];
-    
-    [[NSNotificationCenter defaultCenter]
-        addObserver: uiDelegate
-        selector: @selector(windowDidMove:)
-        name: NSWindowDidMoveNotification
-        object: _window];
 
     if (_startUrl != NULL)
         NavigateToUrl(_startUrl);

@@ -41,6 +41,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -54,6 +55,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -99,6 +101,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Repos\Photino\photino.Native\packages\Microsoft.Web.WebView2.1.0.1462.37\build\native\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -130,9 +133,9 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\Win32\Debug\net6.0\  
-COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\Win32\Debug\net6.0\
-COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Win32\Debug\net6.0\</Command>
+      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\Debug\net8.0\  
+COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\Debug\net8.0\
+COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net8.0\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -164,14 +167,14 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Win32\Debug\net6.0\</Comm
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\x64\Debug\net8.0\  
-COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\x64\Debug\net8.0\
-COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\x64\Debug\net8.0\</Command>
+      <Command>COPY .\$(OutDir)Photino.Native.dll ..\Photino.Test\bin\Debug\net8.0\  
+COPY .\$(OutDir)Photino.Native.pdb ..\Photino.Test\bin\Debug\net8.0\
+COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\Debug\net8.0\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -251,10 +254,12 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net8.0\</Comm
     <ClInclude Include="Photino.Mac.NavigationDelegate.h" />
     <ClInclude Include="Photino.Mac.NSWindowBorderless.h" />
     <ClInclude Include="Photino.Mac.UiDelegate.h" />
+    <ClInclude Include="Photino.Mac.WindowDelegate.h" />
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h" />
     <ClInclude Include="Photino.Dialog.h" />
     <ClInclude Include="Photino.Windows.ToastHandler.h" />
     <ClInclude Include="Photino.Windows.DarkMode.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -264,10 +269,14 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net8.0\</Comm
     <None Include="Photino.Mac.NavigationDelegate.mm" />
     <None Include="Photino.Mac.NSWindowBorderless.mm" />
     <None Include="Photino.Mac.UiDelegate.mm" />
+    <None Include="Photino.Mac.WindowDelegate.mm" />
     <None Include="Photino.Mac.UrlSchemeHandler.mm" />
     <None Include="Photino.Native.nuspec">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64' or '$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Photino.Native.rc" />
   </ItemGroup>
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\..\packages\Microsoft.Web.WebView2.1.0.664.37\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\..\packages\Microsoft.Web.WebView2.1.0.664.37\build\native\Microsoft.Web.WebView2.targets')" />
