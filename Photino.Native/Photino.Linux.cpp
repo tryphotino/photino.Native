@@ -200,7 +200,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 		gtk_window_set_decorated(GTK_WINDOW(_window), false);
 
 	if (initParams->Transparent)
-		gtk_window_set_decorated(GTK_WINDOW(_window), false);
+		Photino::SetTransparentEnabled(true);
 
 	if (initParams->WindowIconFile != NULL && strlen(initParams->WindowIconFile) > 0)
 		Photino::SetIconFile(initParams->WindowIconFile);
