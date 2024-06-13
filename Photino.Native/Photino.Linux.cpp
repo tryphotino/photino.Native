@@ -200,6 +200,9 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	if (initParams->Chromeless)
 		gtk_window_set_decorated(GTK_WINDOW(_window), false);
 
+	if (initParams->Transparent)
+		Photino::SetTransparentEnabled(true);
+
 	if (initParams->WindowIconFile != NULL && strlen(initParams->WindowIconFile) > 0)
 		Photino::SetIconFile(initParams->WindowIconFile);
 
@@ -457,6 +460,11 @@ void Photino::GetZoom(int *zoom)
 	*zoom = (int)rawValue;
 }
 
+void Photino::GetTransparentEnabled(bool *enabled)
+{
+	*enabled = true; // TODO
+}
+
 void Photino::NavigateToString(AutoString content)
 {
 	webkit_web_view_load_html(WEBKIT_WEB_VIEW(_webview), content, NULL);
@@ -643,6 +651,22 @@ void Photino::SetZoom(int zoom)
 {
 	double newZoom = zoom / 100.0;
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(_webview), newZoom);
+}
+
+void Photino::SetTransparentEnabled(bool enabled)
+{
+	GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(_window));
+	GdkVisual *rgba_visual = gdk_screen_get_rgba_visual(screen);
+
+	if (rgba_visual)
+	{
+		gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
+		gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
+
+		GdkRGBA color = { 0, 0, 0, 0 };
+		//GdkRGBA color = { 1, 1, 0, 1 }; // opaque color won't work too
+		webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(_webview), &color);
+	}
 }
 
 void Photino::ShowNotification(AutoString title, AutoString message)
