@@ -73,7 +73,7 @@ namespace Photino.NET
                 //.SetIconFile(iconFile)
                 //.SetTitle($"My Photino Window {_windowNumber++}")
                 //.SetChromeless(true)
-                .SetTransparent(true)
+                //.SetTransparent(true)
                 //.SetFullScreen(true)
                 //.SetMaximized(true)
                 //.SetMaxSize(640, 480)
@@ -82,9 +82,9 @@ namespace Photino.NET
                 //.SetResizable(false)
                 //.SetTopMost(true)
                 //.SetUseOsDefaultLocation(false)
-                .SetUseOsDefaultSize(false)
+                //.SetUseOsDefaultSize(false)
                 //.Center()
-                .SetSize(new Size(800, 600))
+                //.SetSize(new Size(800, 600))
                 //.SetHeight(600)
                 //.SetWidth(800)
                 //.SetLocation(new Point(50, 50))
@@ -98,7 +98,7 @@ namespace Photino.NET
                 //Browser settings
                 //.SetContextMenuEnabled(false)
                 //.SetDevToolsEnabled(false)
-                //.SetGrantBrowserPermissions(true)
+                .SetGrantBrowserPermissions(false)
                 //.SetZoom(150)
 
                 //Browser startup flags
@@ -272,9 +272,9 @@ namespace Photino.NET
                     //.SetIconFile(iconFile)
                     .Load("wwwroot/main.html")
 
-                    .SetUseOsDefaultLocation(true)
-                    .SetHeight(600)
-                    .SetWidth(800)
+                    //.SetUseOsDefaultLocation(true)
+                    //.SetHeight(600)
+                    //.SetWidth(800)
 
                     .SetGrantBrowserPermissions(false)
 
@@ -350,6 +350,12 @@ namespace Photino.NET
             {
                 currentWindow.SetLeft(currentWindow.Left + 5);
                 currentWindow.SetTop(currentWindow.Top + 5);
+            }
+            else if (string.Compare(message, "settransparent", true) == 0)
+            {
+                var t = currentWindow.Transparent;
+                Log(sender, $"Transparent: {t}");
+                currentWindow.SetTransparent(!t);
             }
             else if (string.Compare(message, "setresizable", true) == 0)
             {

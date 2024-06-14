@@ -86,6 +86,10 @@
             window.external.sendMessage('settopmost');
         }
 
+        function SetTransparent() {
+            window.external.sendMessage('settransparent');
+        }
+
         function ShowState() {
             window.external.sendMessage('showproperties');
         }
@@ -259,6 +263,7 @@
     <button onclick="Center()">Center</button>
     <button onclick="SetPosition()">Position</button>
     <button onclick="SetTopmost()">Topmost</button>
+    <button onclick="SetTransparent()">Transparent</button>
     <button onclick="SetFullScreen()">Kiosk</button>
     <button onclick="Close()">Close</button>
     <br>

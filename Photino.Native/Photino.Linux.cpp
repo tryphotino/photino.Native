@@ -200,9 +200,6 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	if (initParams->Chromeless)
 		gtk_window_set_decorated(GTK_WINDOW(_window), false);
 
-	if (initParams->Transparent)
-		Photino::SetTransparentEnabled(true);
-
 	if (initParams->WindowIconFile != NULL && strlen(initParams->WindowIconFile) > 0)
 		Photino::SetIconFile(initParams->WindowIconFile);
 
@@ -245,6 +242,18 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 					 G_CALLBACK(on_widget_deleted),
 					 this);
 
+	//if (initParams->Transparent)
+	//{
+	//	GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(_window));
+	//	GdkVisual *rgba_visual = gdk_screen_get_rgba_visual(screen);
+
+	//	if (rgba_visual)
+	//	{
+	//		gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
+	//		gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
+	//	}
+	//}
+
 	Photino::Show(false);
 
 	g_signal_connect(G_OBJECT(_window), "focus-in-event",
@@ -266,6 +275,9 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 
 	Photino::AddCustomSchemeHandlers();
 
+	if (initParams->Transparent)
+		Photino::SetTransparentEnabled(true);
+
 	if (_zoom != 100.0)
 		SetZoom(_zoom);
 
@@ -285,6 +297,24 @@ void Photino::Center()
 	gtk_window_get_size(GTK_WINDOW(_window), &windowWidth, &windowHeight);
 
 	GdkRectangle screen = {0};
+
+	GdkDisplay *d = gdk_display_get_default();
+	if (d == NULL)
+	{
+		GtkWidget *dialog = gtk_message_dialog_new(
+			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_default() returned NULL");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+	}	
+	GdkMonitor *m = gdk_display_get_primary_monitor(d);
+	if (m == NULL)
+	{
+		GtkWidget *dialog = gtk_message_dialog_new(
+			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_primary_monitor() returned NULL");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+	}
+
 	gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &screen);
 
 	gtk_window_move(GTK_WINDOW(_window),
@@ -304,10 +334,25 @@ void Photino::Close()
 
 void Photino::GetTransparentEnabled(bool *enabled)
 {
-	//! Not implemented in Linux
-	// if (_transparentEnabled)
-	// 	*enabled = true;
-	*enabled = false;
+	if (*enabled)
+		Photino::SendWebMessage((AutoString)"get enabled true");
+	else
+		Photino::SendWebMessage((AutoString)"get enabled false");
+
+	if (_transparentEnabled)
+		Photino::SendWebMessage((AutoString)"get _transparentEnabled enabled true");
+	else
+		Photino::SendWebMessage((AutoString)"get _transparentEnabled enabled false");
+
+	if (_transparentEnabled)
+		*enabled = true;
+	else
+		*enabled = false;
+
+	if (*enabled)
+		Photino::SendWebMessage((AutoString)"get enabled true");
+	else
+		Photino::SendWebMessage((AutoString)"get enabled false");
 }
 
 void Photino::GetContextMenuEnabled(bool *enabled)
@@ -460,11 +505,6 @@ void Photino::GetZoom(int *zoom)
 	*zoom = (int)rawValue;
 }
 
-void Photino::GetTransparentEnabled(bool *enabled)
-{
-	*enabled = true; // TODO
-}
-
 void Photino::NavigateToString(AutoString content)
 {
 	webkit_web_view_load_html(WEBKIT_WEB_VIEW(_webview), content, NULL);
@@ -546,12 +586,6 @@ void Photino::SendWebMessage(AutoString message)
 	{
 		g_main_context_iteration(NULL, TRUE);
 	}
-}
-
-void Photino::SetTransparentEnabled(bool enabled)
-{
-	// _transparentEnabled = enabled;
-	//! Not implemented in Linux
 }
 
 void Photino::SetContextMenuEnabled(bool enabled)
@@ -655,18 +689,37 @@ void Photino::SetZoom(int zoom)
 
 void Photino::SetTransparentEnabled(bool enabled)
 {
-	GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(_window));
-	GdkVisual *rgba_visual = gdk_screen_get_rgba_visual(screen);
+	//if (enabled)
+	//	Photino::SendWebMessage((AutoString)"set enabled true");
+	//else
+	//	Photino::SendWebMessage((AutoString)"set enabled false");
 
-	if (rgba_visual)
-	{
-		gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
-		gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
+	//if (_transparentEnabled)
+	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled true");
+	//else
+	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled false");
 
-		GdkRGBA color = { 0, 0, 0, 0 };
-		//GdkRGBA color = { 1, 1, 0, 1 }; // opaque color won't work too
-		webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(_webview), &color);
-	}
+	_transparentEnabled = enabled;
+
+	//if (_transparentEnabled)
+	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled true");
+	//else
+	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled false");
+
+	//gtk_window_set_decorated(GTK_WINDOW(_window), !enabled);	//hide/show window chrome
+
+	//GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
+	//GdkVisual* rgba_visual = gdk_screen_get_rgba_visual(screen);
+
+	//if (rgba_visual)
+	//{
+	//	gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
+	//	gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
+
+	//	GdkRGBA color = { 0, 0, 0, 0 };
+	//	if (!enabled) color = { 1, 1, 1, 1 };
+	//	webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(_webview), &color);
+	//}
 }
 
 void Photino::ShowNotification(AutoString title, AutoString message)
@@ -1037,4 +1090,5 @@ void Photino::AddCustomSchemeHandlers()
 			context, value, (WebKitURISchemeRequestCallback)HandleCustomSchemeRequest, (void *)_customSchemeCallback, NULL);
 	}
 }
+
 #endif

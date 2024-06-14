@@ -228,9 +228,9 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 	if (initParams->Height > initParams->MaxHeight) initParams->Height = initParams->MaxHeight;
-	if (initParams->Height < initParams->MinHeight) initParams->Height = initParams->MinHeight;
+	if (initParams->Height < initParams->MinHeight && initParams->MinHeight > 0) initParams->Height = initParams->MinHeight;
 	if (initParams->Width > initParams->MaxWidth) initParams->Width = initParams->MaxWidth;
-	if (initParams->Width < initParams->MinWidth) initParams->Width = initParams->MinWidth;
+	if (initParams->Width < initParams->MinWidth && initParams->MinWidth > 0) initParams->Width = initParams->MinWidth;
 
 	//Create the window
 	_hWnd = CreateWindowEx(
@@ -492,6 +492,7 @@ void Photino::GetFullScreen(bool* fullScreen)
 {
 	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
 	if (lStyles & WS_POPUP) *fullScreen = true;
+	else *fullScreen = false;
 }
 
 void Photino::GetGrantBrowserPermissions(bool* grant)
@@ -596,6 +597,7 @@ void Photino::GetTopmost(bool* topmost)
 {
 	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
 	if (lStyles & WS_EX_TOPMOST) *topmost = true;
+	else *topmost = false;
 }
 
 void Photino::GetZoom(int* zoom)
