@@ -98,7 +98,7 @@ namespace Photino.NET
                 //Browser settings
                 //.SetContextMenuEnabled(false)
                 //.SetDevToolsEnabled(false)
-                .SetGrantBrowserPermissions(false)
+                //.SetGrantBrowserPermissions(false)
                 //.SetZoom(150)
 
                 //Browser startup flags
@@ -363,13 +363,15 @@ namespace Photino.NET
             }
             else if (string.Compare(message, "setsize-up", true) == 0)
             {
-                currentWindow.SetHeight(currentWindow.Height + 5);
-                currentWindow.SetWidth(currentWindow.Width + 5);
+                currentWindow.SetSize(new Size(currentWindow.Width + 5, currentWindow.Height + 5));
+                //currentWindow.SetHeight(currentWindow.Height + 5);
+                //currentWindow.SetWidth(currentWindow.Width + 5);
             }
             else if (string.Compare(message, "setsize-down", true) == 0)
             {
-                currentWindow.SetHeight(currentWindow.Height - 5);
-                currentWindow.SetWidth(currentWindow.Width - 5);
+                currentWindow.SetSize(new Size(currentWindow.Width - 5, currentWindow.Height - 5));
+                //currentWindow.SetHeight(currentWindow.Height - 5);
+                //currentWindow.SetWidth(currentWindow.Width - 5);
             }
             else if (string.Compare(message, "settitle", true) == 0)
             {

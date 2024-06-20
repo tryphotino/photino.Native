@@ -134,6 +134,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_mediaStreamEnabled = initParams->MediaStreamEnabled;
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
 	_ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
+	_isFullScreen = initParams->FullScreen;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -334,39 +335,19 @@ void Photino::Close()
 
 void Photino::GetTransparentEnabled(bool *enabled)
 {
-	if (*enabled)
-		Photino::SendWebMessage((AutoString)"get enabled true");
-	else
-		Photino::SendWebMessage((AutoString)"get enabled false");
-
-	if (_transparentEnabled)
-		Photino::SendWebMessage((AutoString)"get _transparentEnabled enabled true");
-	else
-		Photino::SendWebMessage((AutoString)"get _transparentEnabled enabled false");
-
-	if (_transparentEnabled)
-		*enabled = true;
-	else
-		*enabled = false;
-
-	if (*enabled)
-		Photino::SendWebMessage((AutoString)"get enabled true");
-	else
-		Photino::SendWebMessage((AutoString)"get enabled false");
+	*enabled = _transparentEnabled;
 }
 
 void Photino::GetContextMenuEnabled(bool *enabled)
 {
-	if (_contextMenuEnabled)
-		*enabled = true;
+	*enabled = _contextMenuEnabled;
 }
 
 void Photino::GetDevToolsEnabled(bool *enabled)
 {
 	WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
 	_devToolsEnabled = webkit_settings_get_enable_developer_extras(settings);
-	if (_devToolsEnabled)
-		*enabled = true;
+	*enabled = _devToolsEnabled;
 }
 
 void Photino::GetFullScreen(bool *fullScreen)
@@ -376,8 +357,7 @@ void Photino::GetFullScreen(bool *fullScreen)
 
 void Photino::GetGrantBrowserPermissions(bool *grant)
 {
-	if (_grantBrowserPermissions)
-		*grant = true;
+	*grant = _grantBrowserPermissions;
 }
 
 AutoString Photino::GetUserAgent()
@@ -422,7 +402,11 @@ void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
 
 void Photino::GetMaximized(bool *isMaximized)
 {
-	*isMaximized = gtk_window_is_maximized(GTK_WINDOW(_window));
+	//gboolean maximized = gtk_window_is_maximized(GTK_WINDOW(_window));  //this method doesn't work
+	//*isMaximized = maximized;
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	GdkWindowState flags = gdk_window_get_state(gdk_window);
+	*isMaximized = flags & GDK_WINDOW_STATE_MAXIMIZED;
 }
 
 void Photino::GetMinimized(bool *isMinimized)
@@ -456,14 +440,16 @@ void Photino::GetSize(int *width, int *height)
 {
 	gtk_window_get_size(GTK_WINDOW(_window), width, height);
 
-	// TODO: Uncomment this and it works properly. Commented, it only changes width.
+	// TODO: When calling set height, then set width...
+	// calling set size works fine.
+	// Uncomment this and it works properly. Commented, it only changes width.
 	// GtkWidget* dialog = gtk_message_dialog_new(
-	//	nullptr
-	//	, GTK_DIALOG_DESTROY_WITH_PARENT
-	//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
-	//	, "width: %i bytes, height %i"
-	//	, *width
-	//	, *height);
+	// 	nullptr
+	// 	, GTK_DIALOG_DESTROY_WITH_PARENT
+	// 	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+	// 	, "width: %i bytes, height %i"
+	// 	, *width
+	// 	, *height);
 	// gtk_dialog_run(GTK_DIALOG(dialog));
 	// gtk_widget_destroy(dialog);
 }
@@ -689,37 +675,26 @@ void Photino::SetZoom(int zoom)
 
 void Photino::SetTransparentEnabled(bool enabled)
 {
-	//if (enabled)
-	//	Photino::SendWebMessage((AutoString)"set enabled true");
-	//else
-	//	Photino::SendWebMessage((AutoString)"set enabled false");
-
-	//if (_transparentEnabled)
-	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled true");
-	//else
-	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled false");
-
 	_transparentEnabled = enabled;
 
-	//if (_transparentEnabled)
-	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled true");
-	//else
-	//	Photino::SendWebMessage((AutoString)"set _transparentEnabled false");
+	gtk_window_set_decorated(GTK_WINDOW(_window), !enabled);	//hide/show window chrome
 
-	//gtk_window_set_decorated(GTK_WINDOW(_window), !enabled);	//hide/show window chrome
+	GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
+	GdkVisual* rgba_visual = gdk_screen_get_rgba_visual(screen);
+	if (rgba_visual)
+	{
+		gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
+		gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
 
-	//GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
-	//GdkVisual* rgba_visual = gdk_screen_get_rgba_visual(screen);
+		GdkRGBA color;
+		webkit_web_view_get_background_color(WEBKIT_WEB_VIEW(_webview), &color);
+		if (enabled)
+			color.alpha = 0;
+		else
+			color.alpha = 1;
 
-	//if (rgba_visual)
-	//{
-	//	gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
-	//	gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
-
-	//	GdkRGBA color = { 0, 0, 0, 0 };
-	//	if (!enabled) color = { 1, 1, 1, 1 };
-	//	webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(_webview), &color);
-	//}
+		webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(_webview), &color);
+	}
 }
 
 void Photino::ShowNotification(AutoString title, AutoString message)
