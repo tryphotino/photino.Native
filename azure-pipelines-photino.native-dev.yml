@@ -50,27 +50,27 @@ jobs:
       pool:
         vmImage: 'windows-latest'
 
-    steps:
-    - task: NuGetCommand@2
-      displayName: 'NuGet package restore for Windows (ARM64)'
-      inputs:
-        command: 'restore'
-        restoreSolution: 'Photino.Native.sln'
-        feedsToUse: 'select'
+      steps:
+          - task: NuGetCommand@2
+            displayName: 'NuGet package restore for Windows (ARM64)'
+            inputs:
+                command: 'restore'
+                restoreSolution: 'Photino.Native.sln'
+                feedsToUse: 'select'
 
-    - task: VSBuild@1
-      displayName: 'Build Windows (ARM64) native assets'
-      inputs:
-        solution: 'Photino.Native.sln'
-        platform: 'x64'
-        msbuildArchitecture: 'ARM64'
-        configuration: '$(buildConfiguration)'
+          - task: VSBuild@1
+            displayName: 'Build Windows (ARM64) native assets'
+            inputs:
+                solution: 'Photino.Native.sln'
+                platform: 'x64'
+                msbuildArchitecture: 'ARM64'
+                configuration: '$(buildConfiguration)'
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Windows (ARM64) libraries to artifacts'
-      inputs:
-         targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-         artifactName: WindowsArm64Artifact
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Windows (ARM64) libraries to artifacts'
+            inputs:
+               targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+               artifactName: WindowsArm64Artifact
 
     - job: "Build_Linux_x64"
       pool:
