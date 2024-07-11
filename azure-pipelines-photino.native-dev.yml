@@ -61,8 +61,8 @@ jobs:
           - task: VSBuild@1
             displayName: 'Build Windows (ARM64) native assets'
             inputs:
-                solution: 'Photino.Native.sln'
-                platform: 'x64'
+                solution: './Photino.Native/Photino.Native.vcxproj'
+                platform: 'ARM64'
                 msbuildArchitecture: 'ARM64'
                 configuration: '$(buildConfiguration)'
 
