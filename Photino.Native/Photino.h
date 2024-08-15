@@ -244,7 +244,7 @@ public:
 	void ClearBrowserAutoFill();
 	void Close();
 
-	void GetTransparentEnabled(bool* enabled);
+	void GetTransparentEnabled(bool *enabled);
 	void GetContextMenuEnabled(bool *enabled);
 	void GetDevToolsEnabled(bool *enabled);
 	void GetFullScreen(bool *fullScreen);

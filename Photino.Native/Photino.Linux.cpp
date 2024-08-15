@@ -134,6 +134,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_mediaStreamEnabled = initParams->MediaStreamEnabled;
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
 	_ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
+	_isFullScreen = initParams->FullScreen;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -242,6 +243,18 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 					 G_CALLBACK(on_widget_deleted),
 					 this);
 
+	//if (initParams->Transparent)
+	//{
+	//	GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(_window));
+	//	GdkVisual *rgba_visual = gdk_screen_get_rgba_visual(screen);
+
+	//	if (rgba_visual)
+	//	{
+	//		gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
+	//		gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
+	//	}
+	//}
+
 	Photino::Show(false);
 
 	g_signal_connect(G_OBJECT(_window), "focus-in-event",
@@ -263,6 +276,9 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 
 	Photino::AddCustomSchemeHandlers();
 
+	if (initParams->Transparent)
+		Photino::SetTransparentEnabled(true);
+
 	if (_zoom != 100.0)
 		SetZoom(_zoom);
 
@@ -282,6 +298,24 @@ void Photino::Center()
 	gtk_window_get_size(GTK_WINDOW(_window), &windowWidth, &windowHeight);
 
 	GdkRectangle screen = {0};
+
+	GdkDisplay *d = gdk_display_get_default();
+	if (d == NULL)
+	{
+		GtkWidget *dialog = gtk_message_dialog_new(
+			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_default() returned NULL");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+	}	
+	GdkMonitor *m = gdk_display_get_primary_monitor(d);
+	if (m == NULL)
+	{
+		GtkWidget *dialog = gtk_message_dialog_new(
+			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_primary_monitor() returned NULL");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+	}
+
 	gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &screen);
 
 	gtk_window_move(GTK_WINDOW(_window),
@@ -301,24 +335,19 @@ void Photino::Close()
 
 void Photino::GetTransparentEnabled(bool *enabled)
 {
-	//! Not implemented in Linux
-	// if (_transparentEnabled)
-	// 	*enabled = true;
-	*enabled = false;
+	*enabled = _transparentEnabled;
 }
 
 void Photino::GetContextMenuEnabled(bool *enabled)
 {
-	if (_contextMenuEnabled)
-		*enabled = true;
+	*enabled = _contextMenuEnabled;
 }
 
 void Photino::GetDevToolsEnabled(bool *enabled)
 {
 	WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
 	_devToolsEnabled = webkit_settings_get_enable_developer_extras(settings);
-	if (_devToolsEnabled)
-		*enabled = true;
+	*enabled = _devToolsEnabled;
 }
 
 void Photino::GetFullScreen(bool *fullScreen)
@@ -328,8 +357,7 @@ void Photino::GetFullScreen(bool *fullScreen)
 
 void Photino::GetGrantBrowserPermissions(bool *grant)
 {
-	if (_grantBrowserPermissions)
-		*grant = true;
+	*grant = _grantBrowserPermissions;
 }
 
 AutoString Photino::GetUserAgent()
@@ -374,7 +402,11 @@ void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
 
 void Photino::GetMaximized(bool *isMaximized)
 {
-	*isMaximized = gtk_window_is_maximized(GTK_WINDOW(_window));
+	//gboolean maximized = gtk_window_is_maximized(GTK_WINDOW(_window));  //this method doesn't work
+	//*isMaximized = maximized;
+	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	GdkWindowState flags = gdk_window_get_state(gdk_window);
+	*isMaximized = flags & GDK_WINDOW_STATE_MAXIMIZED;
 }
 
 void Photino::GetMinimized(bool *isMinimized)
@@ -408,14 +440,16 @@ void Photino::GetSize(int *width, int *height)
 {
 	gtk_window_get_size(GTK_WINDOW(_window), width, height);
 
-	// TODO: Uncomment this and it works properly. Commented, it only changes width.
+	// TODO: When calling set height, then set width...
+	// calling set size works fine.
+	// Uncomment this and it works properly. Commented, it only changes width.
 	// GtkWidget* dialog = gtk_message_dialog_new(
-	//	nullptr
-	//	, GTK_DIALOG_DESTROY_WITH_PARENT
-	//	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
-	//	, "width: %i bytes, height %i"
-	//	, *width
-	//	, *height);
+	// 	nullptr
+	// 	, GTK_DIALOG_DESTROY_WITH_PARENT
+	// 	, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE
+	// 	, "width: %i bytes, height %i"
+	// 	, *width
+	// 	, *height);
 	// gtk_dialog_run(GTK_DIALOG(dialog));
 	// gtk_widget_destroy(dialog);
 }
@@ -540,12 +574,6 @@ void Photino::SendWebMessage(AutoString message)
 	}
 }
 
-void Photino::SetTransparentEnabled(bool enabled)
-{
-	// _transparentEnabled = enabled;
-	//! Not implemented in Linux
-}
-
 void Photino::SetContextMenuEnabled(bool enabled)
 {
 	_contextMenuEnabled = enabled;
@@ -643,6 +671,30 @@ void Photino::SetZoom(int zoom)
 {
 	double newZoom = zoom / 100.0;
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(_webview), newZoom);
+}
+
+void Photino::SetTransparentEnabled(bool enabled)
+{
+	_transparentEnabled = enabled;
+
+	gtk_window_set_decorated(GTK_WINDOW(_window), !enabled);	//hide/show window chrome
+
+	GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
+	GdkVisual* rgba_visual = gdk_screen_get_rgba_visual(screen);
+	if (rgba_visual)
+	{
+		gtk_widget_set_visual(GTK_WIDGET(_window), rgba_visual);
+		gtk_widget_set_app_paintable(GTK_WIDGET(_window), true);
+
+		GdkRGBA color;
+		webkit_web_view_get_background_color(WEBKIT_WEB_VIEW(_webview), &color);
+		if (enabled)
+			color.alpha = 0;
+		else
+			color.alpha = 1;
+
+		webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(_webview), &color);
+	}
 }
 
 void Photino::ShowNotification(AutoString title, AutoString message)
@@ -1013,4 +1065,5 @@ void Photino::AddCustomSchemeHandlers()
 			context, value, (WebKitURISchemeRequestCallback)HandleCustomSchemeRequest, (void *)_customSchemeCallback, NULL);
 	}
 }
+
 #endif

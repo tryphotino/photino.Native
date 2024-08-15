@@ -48,31 +48,31 @@ jobs:
                 targetPath: "./Photino.Native/x64/$(buildConfiguration)"
                 artifactName: WindowsIntelArtifact
 
-    #- job: 'Build_Win_Arm64'
-    #  pool:
-    #    vmImage: 'windows-latest'
+    - job: 'Build_Win_Arm64'
+      pool:
+        vmImage: 'windows-latest'
 
-    #steps:
-    #- task: NuGetCommand@2
-    #  displayName: 'NuGet package restore for Windows (ARM64)'
-    #  inputs:
-    #    command: 'restore'
-    #    restoreSolution: 'Photino.Native.sln'
-    #    feedsToUse: 'select'
+      steps:
+          - task: NuGetCommand@2
+            displayName: 'NuGet package restore for Windows (ARM64)'
+            inputs:
+                cmmand: 'restore'
+                restoreSolution: 'Photino.Native.sln'
+                feedsToUse: 'select'
 
-    #- task: VSBuild@1
-    #  displayName: 'Build Windows (ARM64) native assets'
-    #  inputs:
-    #    solution: 'Photino.Native.sln'
-    #    platform: 'ARM64'
-    #    msbuildArchitecture: 'ARM64'
-    #    configuration: '$(buildConfiguration)'
+          - task: VSBuild@1
+            displayName: 'Build Windows (ARM64) native assets'
+            input:
+                solution: './Photino.Native/Photino.Native.vcxproj'
+                platform: 'ARM64'
+                msbuildArchitecture: 'ARM64'
+                configuration: '$(buildConfiguration)'
 
-    #- task: PublishPipelineArtifact@1
-    #  displayName: 'Publish Windows (ARM64) libraries to artifacts'
-    #  inputs:
-    #    targetPath: './Photino.Native/arm64/$(buildConfiguration)'
-    #    artifactName: WindowsArm64Artifact
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Windows (ARM64) libraries to artifacts'
+            inputs:
+                targetPath: './Photino.Native/arm64/$(buildConfiguration)'
+                artifactName: WindowsArm64Artifact
 
     - job: "Build_Linux_x64"
       pool:
@@ -154,14 +154,14 @@ jobs:
                 script: |
                     mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
                     mv ./manual-arm-release/linux-arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
-                    mv ./manual-arm-release/win-arm64/Photino.Native.dll ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll
-                    mv ./manual-arm-release/win-arm64/WebView2Loader.dll ./Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll
+                    #mv ./manual-arm-release/win-arm64/Photino.Native.dll ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll
+                    #mv ./manual-arm-release/win-arm64/WebView2Loader.dll ./Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll
 
-          - task: PublishPipelineArtifact@1
-            displayName: "Publish Windows (ARM64) libraries to artifacts"
-            inputs:
-                targetPath: "./Photino.Native/arm64/$(buildConfiguration)"
-                artifactName: WindowsArm64Artifact
+          #- task: PublishPipelineArtifact@1
+          #  displayName: "Publish Windows (ARM64) libraries to artifacts"
+          #  inputs:
+          #      targetPath: "./Photino.Native/arm64/$(buildConfiguration)"
+          #      artifactName: WindowsArm64Artifact
 
           - task: PublishPipelineArtifact@1
             displayName: "Publish Linux (ARM64) libraries to artifacts"
@@ -174,7 +174,7 @@ jobs:
       dependsOn:
           - "Publish_Nuspec"
           - "Build_Win_x64"
-          #- 'Build_Win_Arm64'
+          - 'Build_Win_Arm64'
           - "Build_Linux_x64"
           #- 'Build_Linux_Arm64'
           - "Build_Mac_Universal"
