@@ -863,6 +863,43 @@ void Photino::Invoke(ACTION callback)
 
 //private methods
 
+AutoString Photino::ToUTF8String(AutoString source)
+{
+	AutoString response;
+	std::string* stringBuffer = new std::string();
+	int inLen = (int)wcslen(source);
+	int result = WideCharToMultiByte(CP_UTF8, 0, (LPCWCH)source, inLen, NULL, 0, NULL, 0);
+	if (result < 0)
+	{
+		response = (AutoString)"UTF8 to UTF16 convert failed";
+	}
+	else
+	{
+		stringBuffer->resize(result, 0);
+		result = WideCharToMultiByte(CP_UTF8, 0, (LPCWCH)source, inLen, &(*stringBuffer)[0], result, NULL, 0);
+		response = (AutoString)stringBuffer->c_str();
+	}
+	return response;
+}
+AutoString Photino::ToUTF16String(AutoString source)
+{
+	AutoString response;
+	std::wstring* wideBuffer = new std::wstring();
+	int inLen = (int)strlen((char*)source);	
+	int result = MultiByteToWideChar(CP_UTF8, 0, (char*)source, inLen, NULL, 0);
+	if (result < 0)
+	{
+		response = (AutoString)"UTF8 to UTF16 convert failed";
+	}
+	else
+	{
+		wideBuffer->resize(result, 0);
+		result = MultiByteToWideChar(CP_UTF8, 0, (char*)source, inLen, &(*wideBuffer)[0], result);
+		response = (AutoString)wideBuffer->c_str();
+	}
+	return response;
+}
+
 void Photino::AttachWebView()
 {
 	size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));

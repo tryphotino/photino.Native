@@ -202,7 +202,10 @@ AutoString* PhotinoDialog::ShowOpenFile(AutoString title, AutoString defaultPath
 
 AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPath, bool multiSelect, int* resultCount)
 {
-	HRESULT hr;
+	HRESULT hr;	
+	title = _window->ToUTF16String(title);
+	defaultPath = _window->ToUTF16String(defaultPath);
+
 	auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
 
 	if (SUCCEEDED(hr)) {
@@ -264,6 +267,8 @@ AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath,
 
 DialogResult PhotinoDialog::ShowMessage(AutoString title, AutoString text, DialogButtons buttons, DialogIcon icon)
 {
+	title = _window->ToUTF16String(title);
+	text = _window->ToUTF16String(text);
 	NewStyleContext ctx;
 
 	UINT flags = {};

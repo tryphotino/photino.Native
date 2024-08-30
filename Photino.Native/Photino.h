@@ -170,6 +170,7 @@ private:
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
 	void AttachWebView();
+	
 #elif __linux__
 	// GtkWidget* _window;
 	GtkWidget *_webview;
@@ -215,6 +216,8 @@ public:
 	void RefitContent();
 	void FocusWebView2();
 	void NotifyWebView2WindowMove();
+	AutoString ToUTF16String(AutoString source);
+	AutoString ToUTF8String(AutoString source);
 	int _minWidth;
 	int _minHeight;
 	int _maxWidth;
