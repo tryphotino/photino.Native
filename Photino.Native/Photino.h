@@ -58,19 +58,12 @@ class Photino;
 
 struct PhotinoInitParams
 {
-	wchar_t *StartStringWide;
 	char *StartString;
-	wchar_t *StartUrlWide;
 	char *StartUrl;
-	wchar_t *TitleWide;
 	char *Title;
-	wchar_t *WindowIconFileWide;
 	char *WindowIconFile;
-	wchar_t *TemporaryFilesPathWide;
 	char *TemporaryFilesPath;
-	wchar_t* UserAgentWide;
 	char * UserAgent;
-	wchar_t* BrowserControlInitParametersWide;
 	char* BrowserControlInitParameters;
 
 	Photino *ParentInstance;
@@ -84,7 +77,6 @@ struct PhotinoInitParams
 	MinimizedCallback *MinimizedHandler;
 	MovedCallback *MovedHandler;
 	WebMessageReceivedCallback *WebMessageReceivedHandler;
-	wchar_t *CustomSchemeNamesWide[16];
 	char *CustomSchemeNames[16];
 	WebResourceRequestedCallback *CustomSchemeHandler;
 
@@ -170,6 +162,7 @@ private:
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
 	void AttachWebView();
+	bool ToWide(PhotinoInitParams* params);
 	
 #elif __linux__
 	// GtkWidget* _window;

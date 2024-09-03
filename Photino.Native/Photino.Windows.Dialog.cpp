@@ -119,12 +119,13 @@ T* Create(HRESULT* hResult, AutoString title, AutoString defaultPath)
 	return nullptr;
 }
 
-void AddFilters(IFileDialog* pfd, wchar_t** filters, const int filterCount)
+void AddFilters(IFileDialog* pfd, wchar_t** filters, const int filterCount, Photino* wndInstance)
 {
 	std::vector<COMDLG_FILTERSPEC> specs;
 	for (int i = 0; i < filterCount; i++) {
 		auto* filter = new wchar_t[MAX_PATH];
-		wcscpy_s(filter, MAX_PATH, filters[i]);
+		AutoString wFilter = wndInstance->ToUTF16String(filters[i]);
+		wcscpy_s(filter, MAX_PATH, wFilter);
 
 		const wchar_t* filterName = wcstok_s(filter, L"|", &filter);
 		const wchar_t* filterPattern = filter;
@@ -177,8 +178,11 @@ AutoString* PhotinoDialog::ShowOpenFile(AutoString title, AutoString defaultPath
 	HRESULT hr;
 	auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
 
+	title = _window->ToUTF16String(title);
+	defaultPath = _window->ToUTF16String(defaultPath);
+
 	if (SUCCEEDED(hr)) {
-		AddFilters(pfd, filters, filterCount);
+		AddFilters(pfd, filters, filterCount, _window);
 
 		DWORD dwOptions;
 		pfd->GetOptions(&dwOptions);
@@ -232,9 +236,11 @@ AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPa
 AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString* filters, int filterCount)
 {
 	HRESULT hr;
+	title = _window->ToUTF16String(title);
+	defaultPath = _window->ToUTF16String(defaultPath);
 	auto* pfd = Create<IFileSaveDialog>(&hr, title, defaultPath);
 	if (SUCCEEDED(hr)) {
-		AddFilters(pfd, filters, filterCount);
+		AddFilters(pfd, filters, filterCount, _window);
 
 		DWORD dwOptions;
 		pfd->GetOptions(&dwOptions);
