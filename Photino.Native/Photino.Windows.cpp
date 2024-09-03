@@ -798,8 +798,8 @@ void Photino::SetZoom(int zoom)
 
 void Photino::ShowNotification(AutoString title, AutoString body)
 {
-	title = ToUTF16String((AutoString)title);
-	body = ToUTF16String((AutoString)body);
+	title = ToUTF16String(title);
+	body = ToUTF16String(body);
 	if (WinToast::isCompatible())
 	{
 		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);

@@ -176,10 +176,10 @@ AutoString* GetResults(IFileOpenDialog* pfd, HRESULT* hr, int* resultCount)
 AutoString* PhotinoDialog::ShowOpenFile(AutoString title, AutoString defaultPath, bool multiSelect, AutoString* filters, int filterCount, int* resultCount)
 {
 	HRESULT hr;
-	auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
-
 	title = _window->ToUTF16String(title);
 	defaultPath = _window->ToUTF16String(defaultPath);
+	
+	auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
 
 	if (SUCCEEDED(hr)) {
 		AddFilters(pfd, filters, filterCount, _window);
