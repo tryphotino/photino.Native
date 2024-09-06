@@ -72,7 +72,6 @@ void Photino::Register(HINSTANCE hInstance)
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
-
 Photino::Photino(PhotinoInitParams* initParams)
 {
 	//wchar_t msg[50];
@@ -92,55 +91,60 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 	_windowTitle = new wchar_t[256];
-
-	if (initParams->TitleWide != NULL)
+	if (initParams->Title != NULL)
 	{
-		WinToast::instance()->setAppName(initParams->TitleWide);
-		WinToast::instance()->setAppUserModelId(initParams->TitleWide);
-		wcscpy(_windowTitle, initParams->TitleWide);
+		AutoString wTitle = ToUTF16String((AutoString)initParams->Title);
+		WinToast::instance()->setAppName(wTitle);
+		WinToast::instance()->setAppUserModelId(wTitle);
+		wcscpy(_windowTitle, wTitle);
 	}
 	else
 		_windowTitle[0] = 0;
 
 	_startUrl = NULL;
-	if (initParams->StartUrlWide != NULL)
+	if (initParams->StartUrl != NULL)
 	{
 		_startUrl = new wchar_t[2048];
 		if (_startUrl == NULL) exit(0);
-		wcscpy(_startUrl, initParams->StartUrlWide);
+		AutoString wStartUrl = ToUTF16String((AutoString)initParams->StartUrl);
+		wcscpy(_startUrl, wStartUrl);
 	}
 
 	_startString = NULL;
-	if (initParams->StartStringWide != NULL)
+	if (initParams->StartString != NULL)
 	{
-		_startString = new wchar_t[wcslen(initParams->StartStringWide) + 1];
+		AutoString wStartString = ToUTF16String((AutoString)initParams->StartString);
+		_startString = new wchar_t[wcslen(wStartString) + 1];
 		if (_startString == NULL) exit(0);
-		wcscpy(_startString, initParams->StartStringWide);
+		wcscpy(_startString, wStartString);
 	}
 
 	_temporaryFilesPath = NULL;
-	if (initParams->TemporaryFilesPathWide != NULL)
+	if (initParams->TemporaryFilesPath != NULL)
 	{
 		_temporaryFilesPath = new wchar_t[256];
 		if (_temporaryFilesPath == NULL) exit(0);
-		wcscpy(_temporaryFilesPath, initParams->TemporaryFilesPathWide);
+		AutoString wTemporaryFilesPath = ToUTF16String((AutoString)initParams->TemporaryFilesPath);
+		wcscpy(_temporaryFilesPath, wTemporaryFilesPath);
 
 	}
 
 	_userAgent = NULL;
-	if (initParams->UserAgentWide != NULL)
+	if (initParams->UserAgent != NULL)
 	{
-		_userAgent = new wchar_t[wcslen(initParams->UserAgentWide) + 1];
+		AutoString wUserAgent = ToUTF16String((AutoString)initParams->UserAgent);
+		_userAgent = new wchar_t[wcslen(wUserAgent) + 1];
 		if (_userAgent == NULL) exit(0);
-		wcscpy(_userAgent, initParams->UserAgentWide);
+		wcscpy(_userAgent, wUserAgent);
 	}
 
 	_browserControlInitParameters = NULL;
-	if (initParams->BrowserControlInitParametersWide != NULL)
+	if (initParams->BrowserControlInitParameters != NULL)
 	{
-		_browserControlInitParameters = new wchar_t[wcslen(initParams->BrowserControlInitParametersWide) + 1];
+		AutoString wBrowserControlInitParameters = ToUTF16String((AutoString)initParams->BrowserControlInitParameters);
+		_browserControlInitParameters = new wchar_t[wcslen(wBrowserControlInitParameters) + 1];
 		if (_browserControlInitParameters == NULL) exit(0);
-		wcscpy(_browserControlInitParameters, initParams->BrowserControlInitParametersWide);
+		wcscpy(_browserControlInitParameters, wBrowserControlInitParameters);
 	}
 
 
@@ -177,10 +181,11 @@ Photino::Photino(PhotinoInitParams* initParams)
 	//copy strings from the fixed size array passed, but only if they have a value.
 	for (int i = 0; i < 16; ++i)
 	{
-		if (initParams->CustomSchemeNamesWide[i] != NULL)
+		if (initParams->CustomSchemeNames[i] != NULL)
 		{
 			wchar_t* name = new wchar_t[50];
-			wcscpy(name, initParams->CustomSchemeNamesWide[i]);
+			AutoString wCustomSchemeNames = ToUTF16String((AutoString)initParams->CustomSchemeNames[i]);
+			wcscpy(name, wCustomSchemeNames);
 			_customSchemeNames.push_back(name);
 		}
 	}
@@ -236,7 +241,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_hWnd = CreateWindowEx(
 		initParams->Transparent ? WS_EX_LAYERED : 0, //WS_EX_OVERLAPPEDWINDOW, //An optional extended window style.
 		CLASS_NAME,					//Window class
-		initParams->TitleWide,		//Window text
+		_windowTitle,		//Window text
 		initParams->Chromeless || initParams->FullScreen ? WS_POPUP : WS_OVERLAPPEDWINDOW,	//Window style
 
 		// Size and position
@@ -249,8 +254,12 @@ Photino::Photino(PhotinoInitParams* initParams)
 	);
 	hwndToPhotino[_hWnd] = this;
 
-	if (initParams->WindowIconFileWide != NULL && initParams->WindowIconFileWide != L"")
-		Photino::SetIconFile(initParams->WindowIconFileWide);
+	if (initParams->WindowIconFile != NULL)
+	{
+		AutoString wWindowIconFile = ToUTF16String((AutoString)initParams->WindowIconFile);
+		Photino::SetIconFile(wWindowIconFile);
+	}
+		
 
 	if (initParams->CenterOnInitialize)
 		Photino::Center();
@@ -627,6 +636,7 @@ void Photino::Restore()
 
 void Photino::SendWebMessage(AutoString message)
 {
+	message = ToUTF16String(message);
 	_webviewWindow->PostWebMessageAsString(message);
 }
 
@@ -752,6 +762,7 @@ void Photino::SetSize(int width, int height)
 
 void Photino::SetTitle(AutoString title)
 {
+	title = ToUTF16String((AutoString)title);
 	if (wcslen(title) > 255)
 	{
 		for (int i = 0; i < 256; i++)
@@ -787,6 +798,8 @@ void Photino::SetZoom(int zoom)
 
 void Photino::ShowNotification(AutoString title, AutoString body)
 {
+	title = ToUTF16String(title);
+	body = ToUTF16String(body);
 	if (WinToast::isCompatible())
 	{
 		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);
@@ -862,6 +875,43 @@ void Photino::Invoke(ACTION callback)
 
 
 //private methods
+
+AutoString Photino::ToUTF8String(AutoString source)
+{
+	AutoString response;
+	std::string* stringBuffer = new std::string();
+	int inLen = (int)wcslen(source);
+	int result = WideCharToMultiByte(CP_UTF8, 0, (LPCWCH)source, inLen, NULL, 0, NULL, 0);
+	if (result < 0)
+	{
+		response = (AutoString)"UTF8 to UTF16 convert failed";
+	}
+	else
+	{
+		stringBuffer->resize(result, 0);
+		result = WideCharToMultiByte(CP_UTF8, 0, (LPCWCH)source, inLen, &(*stringBuffer)[0], result, NULL, 0);
+		response = (AutoString)stringBuffer->c_str();
+	}
+	return response;
+}
+AutoString Photino::ToUTF16String(AutoString source)
+{
+	AutoString response;
+	std::wstring* wideBuffer = new std::wstring();
+	int inLen = (int)strlen((char*)source);	
+	int result = MultiByteToWideChar(CP_UTF8, 0, (char*)source, inLen, NULL, 0);
+	if (result < 0)
+	{
+		response = (AutoString)"UTF8 to UTF16 convert failed";
+	}
+	else
+	{
+		wideBuffer->resize(result, 0);
+		result = MultiByteToWideChar(CP_UTF8, 0, (char*)source, inLen, &(*wideBuffer)[0], result);
+		response = (AutoString)wideBuffer->c_str();
+	}
+	return response;
+}
 
 void Photino::AttachWebView()
 {
