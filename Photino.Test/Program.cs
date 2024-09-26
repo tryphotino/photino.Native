@@ -392,7 +392,7 @@ namespace Photino.NET
             }
             else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
-                currentWindow.SendWebMessage("web message");
+                currentWindow.SendWebMessage("web message 🤖");
             }
             else if (string.Compare(message, "setMinSize", true) == 0)
             {
@@ -404,7 +404,7 @@ namespace Photino.NET
             }
             else if (string.Compare(message, "toastNotification", true) == 0)
             {
-                currentWindow.SendNotification("Toast Title", " Toast message!");
+                currentWindow.SendNotification("Toast Title", " Toast message! 🤖");
             }
             else if (string.Compare(message, "showOpenFile", true) == 0)
             {
@@ -438,7 +438,7 @@ namespace Photino.NET
             }
             else if (string.Compare(message, "showMessage", true) == 0)
             {
-                var result = currentWindow.ShowMessage("Title", "Testing...");
+                var result = currentWindow.ShowMessage("Title", "Testing... 🤖");
             }
             else
                 throw new Exception($"Unknown message '{message}'");
