@@ -83,7 +83,7 @@ namespace Photino.NET
                 //.SetTopMost(true)
                 //.SetUseOsDefaultLocation(false)
                 //.SetUseOsDefaultSize(false)
-                //.Center()
+                .Center()
                 //.SetSize(new Size(800, 600))
                 //.SetHeight(600)
                 //.SetWidth(800)
@@ -97,13 +97,13 @@ namespace Photino.NET
 
                 //Browser settings
                 //.SetContextMenuEnabled(false)
-                //.SetDevToolsEnabled(false)
+                .SetDevToolsEnabled(true)
                 //.SetGrantBrowserPermissions(false)
                 //.SetZoom(150)
 
                 //Browser startup flags
                 //.SetBrowserControlInitParameters("--ignore-certificate-errors ")
-                //.SetUserAgent("Custom Photino User Agent")
+                .SetUserAgent("Custom Photino User Agent")
                 //.SetMediaAutoplayEnabled(true)
                 //.SetFileSystemAccessEnabled(true)
                 //.SetWebSecurityEnabled(true)

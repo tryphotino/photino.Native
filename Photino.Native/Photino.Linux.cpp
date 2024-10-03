@@ -316,7 +316,7 @@ void Photino::Center()
 		gtk_widget_destroy(dialog);
 	}
 
-	gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &screen);
+	gdk_monitor_get_geometry(m, &screen);
 
 	gtk_window_move(GTK_WINDOW(_window),
 					(screen.width - windowWidth) / 2,
@@ -847,7 +847,7 @@ void Photino::set_webkit_settings()
 		// Set user-defined settings
 		"allow_file_access_from_file_urls", _fileSystemAccessEnabled,			// default: FALSE
 		"disable_web_security", !_webSecurityEnabled,							// default: FALSE
-		"enable_developer_extras", _devToolsEnabled,							// default: FALSE
+		"enable-developer-extras", _devToolsEnabled,							// default: FALSE
 		"enable_media_stream", _mediaStreamEnabled,								// default: FALSE
 		"enable_smooth_scrolling", _smoothScrollingEnabled, 					// default: TRUE
 		"javascript_can_access_clipboard", _javascriptClipboardAccessEnabled,	// default: FALSE
@@ -908,6 +908,8 @@ void Photino::set_webkit_settings()
 		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
 	else
 		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_FAIL);
+
+	webkit_web_view_set_settings(WEBKIT_WEB_VIEW(_webview), settings);			//apply the settings to the webview
 }
 
 void Photino::set_webkit_customsettings(WebKitSettings* settings)
