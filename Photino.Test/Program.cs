@@ -128,7 +128,7 @@ namespace Photino.NET
 
             mainWindow.WaitForClose();
 
-            mainWindow.Center(); //will never happen - this is blocking.
+            Console.WriteLine("Done Blocking!");
         }
 
         private static void PropertyInitStyle()
