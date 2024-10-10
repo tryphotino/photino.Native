@@ -306,14 +306,21 @@ void Photino::Center()
 			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_default() returned NULL");
 		gtk_dialog_run(GTK_DIALOG(dialog));
 		gtk_widget_destroy(dialog);
-	}	
+		return;
+	}
+
 	GdkMonitor *m = gdk_display_get_primary_monitor(d);
 	if (m == NULL)
 	{
-		GtkWidget *dialog = gtk_message_dialog_new(
-			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_primary_monitor() returned NULL");
-		gtk_dialog_run(GTK_DIALOG(dialog));
-		gtk_widget_destroy(dialog);
+		m = gdk_display_get_monitor(d, 0); // Attempt to get the first monitor
+        if (m == NULL)
+        {
+			GtkWidget *dialog = gtk_message_dialog_new(
+				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_primary_monitor() returned NULL");
+			gtk_dialog_run(GTK_DIALOG(dialog));
+			gtk_widget_destroy(dialog);
+			return;
+		}
 	}
 
 	gdk_monitor_get_geometry(m, &screen);
@@ -847,7 +854,7 @@ void Photino::set_webkit_settings()
 		// Set user-defined settings
 		"allow_file_access_from_file_urls", _fileSystemAccessEnabled,			// default: FALSE
 		"disable_web_security", !_webSecurityEnabled,							// default: FALSE
-		"enable-developer-extras", _devToolsEnabled,							// default: FALSE
+		"enable_developer_extras", _devToolsEnabled,							// default: FALSE
 		"enable_media_stream", _mediaStreamEnabled,								// default: FALSE
 		"enable_smooth_scrolling", _smoothScrollingEnabled, 					// default: TRUE
 		"javascript_can_access_clipboard", _javascriptClipboardAccessEnabled,	// default: FALSE
