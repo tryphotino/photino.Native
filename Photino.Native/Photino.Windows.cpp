@@ -93,7 +93,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_windowTitle = new wchar_t[256];
 	if (initParams->Title != NULL)
 	{
-		AutoString wTitle = ToUTF16String((AutoString)initParams->Title);
+		AutoString wTitle = ToUTF16String(initParams->Title);
 		WinToast::instance()->setAppName(wTitle);
 		WinToast::instance()->setAppUserModelId(wTitle);
 		wcscpy(_windowTitle, wTitle);
@@ -106,14 +106,14 @@ Photino::Photino(PhotinoInitParams* initParams)
 	{
 		_startUrl = new wchar_t[2048];
 		if (_startUrl == NULL) exit(0);
-		AutoString wStartUrl = ToUTF16String((AutoString)initParams->StartUrl);
+		AutoString wStartUrl = ToUTF16String(initParams->StartUrl);
 		wcscpy(_startUrl, wStartUrl);
 	}
 
 	_startString = NULL;
 	if (initParams->StartString != NULL)
 	{
-		AutoString wStartString = ToUTF16String((AutoString)initParams->StartString);
+		AutoString wStartString = ToUTF16String(initParams->StartString);
 		_startString = new wchar_t[wcslen(wStartString) + 1];
 		if (_startString == NULL) exit(0);
 		wcscpy(_startString, wStartString);
@@ -124,7 +124,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	{
 		_temporaryFilesPath = new wchar_t[256];
 		if (_temporaryFilesPath == NULL) exit(0);
-		AutoString wTemporaryFilesPath = ToUTF16String((AutoString)initParams->TemporaryFilesPath);
+		AutoString wTemporaryFilesPath = ToUTF16String(initParams->TemporaryFilesPath);
 		wcscpy(_temporaryFilesPath, wTemporaryFilesPath);
 
 	}
@@ -132,7 +132,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_userAgent = NULL;
 	if (initParams->UserAgent != NULL)
 	{
-		AutoString wUserAgent = ToUTF16String((AutoString)initParams->UserAgent);
+		AutoString wUserAgent = ToUTF16String(initParams->UserAgent);
 		_userAgent = new wchar_t[wcslen(wUserAgent) + 1];
 		if (_userAgent == NULL) exit(0);
 		wcscpy(_userAgent, wUserAgent);
@@ -141,7 +141,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_browserControlInitParameters = NULL;
 	if (initParams->BrowserControlInitParameters != NULL)
 	{
-		AutoString wBrowserControlInitParameters = ToUTF16String((AutoString)initParams->BrowserControlInitParameters);
+		AutoString wBrowserControlInitParameters = ToUTF16String(initParams->BrowserControlInitParameters);
 		_browserControlInitParameters = new wchar_t[wcslen(wBrowserControlInitParameters) + 1];
 		if (_browserControlInitParameters == NULL) exit(0);
 		wcscpy(_browserControlInitParameters, wBrowserControlInitParameters);
@@ -184,7 +184,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 		if (initParams->CustomSchemeNames[i] != NULL)
 		{
 			wchar_t* name = new wchar_t[50];
-			AutoString wCustomSchemeNames = ToUTF16String((AutoString)initParams->CustomSchemeNames[i]);
+			AutoString wCustomSchemeNames = ToUTF16String(initParams->CustomSchemeNames[i]);
 			wcscpy(name, wCustomSchemeNames);
 			_customSchemeNames.push_back(name);
 		}
@@ -256,7 +256,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	if (initParams->WindowIconFile != NULL)
 	{
-		AutoString wWindowIconFile = ToUTF16String((AutoString)initParams->WindowIconFile);
+		AutoString wWindowIconFile = ToUTF16String(initParams->WindowIconFile);
 		Photino::SetIconFile(wWindowIconFile);
 	}
 		
@@ -762,7 +762,7 @@ void Photino::SetSize(int width, int height)
 
 void Photino::SetTitle(AutoString title)
 {
-	title = ToUTF16String((AutoString)title);
+	title = ToUTF16String(title);
 	if (wcslen(title) > 255)
 	{
 		for (int i = 0; i < 256; i++)

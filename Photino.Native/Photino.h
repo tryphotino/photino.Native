@@ -1,6 +1,8 @@
 #pragma once
 
 #ifdef _WIN32
+#define UNICODE
+#define _UNICODE
 #include <Windows.h>
 #include <wil/com.h>
 #include <WebView2.h>
@@ -58,13 +60,13 @@ class Photino;
 
 struct PhotinoInitParams
 {
-	char *StartString;
-	char *StartUrl;
-	char *Title;
-	char *WindowIconFile;
-	char *TemporaryFilesPath;
-	char * UserAgent;
-	char* BrowserControlInitParameters;
+	AutoString StartString;
+	AutoString StartUrl;
+	AutoString Title;
+	AutoString WindowIconFile;
+	AutoString TemporaryFilesPath;
+	AutoString UserAgent;
+	AutoString BrowserControlInitParameters;
 
 	Photino *ParentInstance;
 
@@ -77,7 +79,7 @@ struct PhotinoInitParams
 	MinimizedCallback *MinimizedHandler;
 	MovedCallback *MovedHandler;
 	WebMessageReceivedCallback *WebMessageReceivedHandler;
-	char *CustomSchemeNames[16];
+	AutoString CustomSchemeNames[16];
 	WebResourceRequestedCallback *CustomSchemeHandler;
 
 	int Left;
