@@ -22,7 +22,7 @@ void AddFilters(GtkWidget* dialog, AutoString* filters, int filterCount)
     }
 }
 
-AutoString* ShowDialog(DialogType type, AutoString title, AutoString defaultPath, bool multiSelect, AutoString* filters, int filterCount, int* resultCount) {
+AutoString* ShowDialog(DialogType type, AutoString title, AutoString defaultPath, AutoString defaultFileName, bool multiSelect, AutoString* filters, int filterCount, int* resultCount) {
     GtkFileChooserAction action;
     const char* buttonText;
     switch (type) {
@@ -54,6 +54,7 @@ AutoString* ShowDialog(DialogType type, AutoString title, AutoString defaultPath
     }
     if (type == SaveFile) {
         gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), defaultFileName);
     }
     if (type == OpenFile || type == SaveFile) {
         AddFilters(dialog, filters, filterCount);
