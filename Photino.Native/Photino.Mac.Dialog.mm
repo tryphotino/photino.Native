@@ -88,12 +88,13 @@ AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPa
   return nullptr;
 }
 
-AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString* filters, int filterCount) {
+AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString defaultFileName, AutoString* filters, int filterCount) {
   NSSavePanel* saveDlg = [NSSavePanel savePanel];
 
   [saveDlg setTitle:[NSString stringWithUTF8String:title]];
   [saveDlg setPrompt:[NSString stringWithUTF8String:"Save"]];
   [saveDlg setDirectoryURL:[NSURL fileURLWithPath:[NSString stringWithUTF8String:defaultPath]]];
+  [saveDlg setNameFieldStringValue:[NSString stringWithUTF8String:defaultFileName]];
   [saveDlg setAllowsOtherFileTypes:NO];
   [saveDlg setCanSelectHiddenExtension:YES];
 

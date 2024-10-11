@@ -233,13 +233,18 @@ AutoString* PhotinoDialog::ShowOpenFolder(AutoString title, AutoString defaultPa
 	return nullptr;
 }
 
-AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString* filters, int filterCount)
+AutoString PhotinoDialog::ShowSaveFile(AutoString title, AutoString defaultPath, AutoString defaultFileName, AutoString* filters, int filterCount)
 {
 	HRESULT hr;
 	title = _window->ToUTF16String(title);
 	defaultPath = _window->ToUTF16String(defaultPath);
+	defaultFileName = _window->ToUTF16String(defaultFileName);
 	auto* pfd = Create<IFileSaveDialog>(&hr, title, defaultPath);
 	if (SUCCEEDED(hr)) {
+		if (defaultFileName) {
+			pfd->SetFileName(defaultFileName);
+		}
+
 		AddFilters(pfd, filters, filterCount, _window);
 
 		DWORD dwOptions;
