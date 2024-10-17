@@ -67,6 +67,7 @@ struct PhotinoInitParams
 	AutoString TemporaryFilesPath;
 	AutoString UserAgent;
 	AutoString BrowserControlInitParameters;
+	AutoString NotificationRegistrationId;
 
 	Photino *ParentInstance;
 
@@ -112,6 +113,8 @@ struct PhotinoInitParams
 	bool MediaStreamEnabled;
 	bool SmoothScrollingEnabled;
     bool IgnoreCertificateErrorsEnabled;
+	bool NotificationsEnabled;
+
 	int Size;
 };
 
@@ -137,6 +140,7 @@ private:
 	AutoString _iconFileName;
 	AutoString _userAgent;
 	AutoString _browserControlInitParameters;
+	AutoString _notificationRegistrationId;
 
 	bool _transparentEnabled;
 	bool _devToolsEnabled;
@@ -148,6 +152,7 @@ private:
 	bool _mediaStreamEnabled;
 	bool _smoothScrollingEnabled;
     bool _ignoreCertificateErrorsEnabled;
+	bool _notificationsEnabled;
 
 	int _zoom;
 
@@ -211,6 +216,7 @@ public:
 	void RefitContent();
 	void FocusWebView2();
 	void NotifyWebView2WindowMove();
+	void GetNotificationsEnabled(bool* enabled);
 	AutoString ToUTF16String(AutoString source);
 	AutoString ToUTF8String(AutoString source);
 	int _minWidth;

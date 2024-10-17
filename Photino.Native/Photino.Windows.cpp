@@ -94,8 +94,12 @@ Photino::Photino(PhotinoInitParams* initParams)
 	if (initParams->Title != NULL)
 	{
 		AutoString wTitle = ToUTF16String(initParams->Title);
-		WinToast::instance()->setAppName(wTitle);
-		WinToast::instance()->setAppUserModelId(wTitle);
+		if (initParams->NotificationsEnabled)
+		{
+			WinToast::instance()->setAppName(wTitle);
+			if (_notificationRegistrationId == NULL)
+				WinToast::instance()->setAppUserModelId(wTitle);
+		}
 		wcscpy(_windowTitle, wTitle);
 	}
 	else
@@ -147,6 +151,15 @@ Photino::Photino(PhotinoInitParams* initParams)
 		wcscpy(_browserControlInitParameters, wBrowserControlInitParameters);
 	}
 
+	_notificationRegistrationId = NULL;
+	if (initParams->NotificationRegistrationId != NULL)
+	{
+		AutoString wNotificationRegistrationId = ToUTF16String(initParams->NotificationRegistrationId);
+		_notificationRegistrationId = new wchar_t[wcslen(wNotificationRegistrationId) + 1];
+		if (_notificationRegistrationId == NULL) exit(0);
+		wcscpy(_notificationRegistrationId, wNotificationRegistrationId);
+	}
+
 
 	_transparentEnabled = initParams->Transparent;
 	_contextMenuEnabled = initParams->ContextMenuEnabled;
@@ -159,6 +172,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_mediaStreamEnabled = initParams->MediaStreamEnabled;
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
     _ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
+	_notificationsEnabled = initParams->NotificationsEnabled;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -276,8 +290,16 @@ Photino::Photino(PhotinoInitParams* initParams)
 	if (initParams->Topmost)
 		SetTopmost(true);
 
-	this->_toastHandler = new WinToastHandler(this);
-	WinToast::instance()->initialize();
+	if (initParams->NotificationsEnabled)
+	{
+		if (_notificationRegistrationId != NULL)
+			WinToast::instance()->setAppUserModelId(_notificationRegistrationId);
+
+		this->_toastHandler = new WinToastHandler(this);
+		WinToast::instance()->initialize();
+
+	}
+
 	_dialog = new PhotinoDialog(this);
 
 	bool isAlreadyShown = initParams->Minimized || initParams->Maximized;
@@ -290,7 +312,7 @@ Photino::~Photino()
 	if (_startString != NULL) delete[]_startString;
 	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
 	if (_windowTitle != NULL) delete[]_windowTitle;
-	if (_toastHandler != NULL) delete _toastHandler;
+	if (_notificationsEnabled && _toastHandler != NULL) delete _toastHandler;
 }
 
 HWND Photino::getHwnd()
@@ -549,6 +571,11 @@ void Photino::GetIgnoreCertificateErrorsEnabled(bool* enabled)
 	*enabled = this->_ignoreCertificateErrorsEnabled;
 }
 
+void Photino::GetNotificationsEnabled(bool* enabled)
+{
+	*enabled = this->_notificationsEnabled;
+}
+
 AutoString Photino::GetIconFileName()
 {
 	return this->_iconFileName;
@@ -772,8 +799,12 @@ void Photino::SetTitle(AutoString title)
 	else
 		wcscpy(_windowTitle, title);
 	SetWindowText(_hWnd, title);
-	WinToast::instance()->setAppName(title);
-	WinToast::instance()->setAppUserModelId(title);
+	if (_notificationsEnabled)
+	{
+		WinToast::instance()->setAppName(title);
+		if (_notificationRegistrationId == NULL)
+			WinToast::instance()->setAppUserModelId(title);
+	}
 }
 
 void Photino::SetTopmost(bool topmost)
@@ -800,7 +831,7 @@ void Photino::ShowNotification(AutoString title, AutoString body)
 {
 	title = ToUTF16String(title);
 	body = ToUTF16String(body);
-	if (WinToast::isCompatible())
+	if (_notificationsEnabled && WinToast::isCompatible())
 	{
 		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);
 		toast.setTextField(title, WinToastTemplate::FirstLine);

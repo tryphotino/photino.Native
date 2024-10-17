@@ -94,6 +94,8 @@ namespace Photino.NET
                 //.MoveTo(20, 20)
                 //.Offset(new Point(150, 150))
                 //.Offset(250, 250)
+                .SetNotificationRegistrationId("8FDF1B15-3408-47A6-8EF5-2B0676B76277")  //Replaces the window title when registering toast notifications
+                .SetNotificationsEnabled(false)
 
                 //Browser settings
                 //.SetContextMenuEnabled(false)
@@ -175,6 +177,8 @@ namespace Photino.NET
                 Location = new Point(50, 50),
                 Top = 50,
                 Left = 50,
+                NotificationRegistrationId = "8FDF1B15-3408-47A6-8EF5-2B0676B76277",  //Replaces the window title when registering toast notifications
+                NotificationsEnabled = false,
 
                 //Browser settings
                 ContextMenuEnabled = false,
@@ -256,7 +260,7 @@ namespace Photino.NET
             return new MemoryStream(Encoding.UTF8.GetBytes(js));
         }
 
-        private static void MessageReceivedFromWindow(object sender, string message)
+        private static async void MessageReceivedFromWindow(object sender, string message)
         {
             Log(sender, $"MessageReceivedFromWindow Callback Fired.");
 
@@ -420,6 +424,20 @@ namespace Photino.NET
                 else
                     currentWindow.ShowMessage("Open File", "No file chosen", icon: PhotinoDialogIcon.Error);
             }
+            else if (string.Compare(message, "showOpenFileAsync", true) == 0)
+            {
+                var results = await currentWindow.ShowOpenFileAsync(filters: new[]{
+                    ("All files", new [] {"*.*"}),
+                    ("Text files", new [] {"*.txt"}),
+                    ("Image files", new [] {"*.png", "*.jpg", "*.jpeg"}),
+                    ("PDF files", new [] {"*.pdf"}),
+                    ("CSharp files", new [] { "*.cs" })
+                });
+                if (results.Length > 0)
+                    currentWindow.ShowMessage("Open File Async", string.Join(Environment.NewLine, results));
+                else
+                    currentWindow.ShowMessage("Open File Async", "No file chosen", icon: PhotinoDialogIcon.Error);
+            }
             else if (string.Compare(message, "showOpenFolder", true) == 0)
             {
                 var results = currentWindow.ShowOpenFolder(multiSelect: true);
@@ -428,6 +446,14 @@ namespace Photino.NET
                 else
                     currentWindow.ShowMessage("Open Folder", "No folder chosen", icon: PhotinoDialogIcon.Error);
             }
+            else if (string.Compare(message, "showOpenFolderAsync", true) == 0)
+            {
+                var results = await currentWindow.ShowOpenFolderAsync(multiSelect: true);
+                if (results.Length > 0)
+                    currentWindow.ShowMessage("Open Folder Async", string.Join(Environment.NewLine, results));
+                else
+                    currentWindow.ShowMessage("Open Folder Async", "No folder chosen", icon: PhotinoDialogIcon.Error);
+            }
             else if (string.Compare(message, "showSaveFile", true) == 0)
             {
                 var result = currentWindow.ShowSaveFile();
@@ -435,6 +461,14 @@ namespace Photino.NET
                     currentWindow.ShowMessage("Save File", result);
                 else
                     currentWindow.ShowMessage("Save File", "File not saved", icon: PhotinoDialogIcon.Error);
+            }
+            else if (string.Compare(message, "showSaveFileAsync", true) == 0)
+            {
+                var result = await currentWindow.ShowSaveFileAsync();
+                if (result != null)
+                    currentWindow.ShowMessage("Save File Async", result);
+                else
+                    currentWindow.ShowMessage("Save File Async", "File not saved", icon: PhotinoDialogIcon.Error);
             }
             else if (string.Compare(message, "showMessage", true) == 0)
             {
