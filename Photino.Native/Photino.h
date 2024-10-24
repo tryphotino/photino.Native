@@ -1,6 +1,8 @@
 #pragma once
 
 #ifdef _WIN32
+#define UNICODE
+#define _UNICODE
 #include <Windows.h>
 #include <wil/com.h>
 #include <WebView2.h>
@@ -58,13 +60,14 @@ class Photino;
 
 struct PhotinoInitParams
 {
-	char *StartString;
-	char *StartUrl;
-	char *Title;
-	char *WindowIconFile;
-	char *TemporaryFilesPath;
-	char * UserAgent;
-	char* BrowserControlInitParameters;
+	AutoString StartString;
+	AutoString StartUrl;
+	AutoString Title;
+	AutoString WindowIconFile;
+	AutoString TemporaryFilesPath;
+	AutoString UserAgent;
+	AutoString BrowserControlInitParameters;
+	AutoString NotificationRegistrationId;
 
 	Photino *ParentInstance;
 
@@ -77,7 +80,7 @@ struct PhotinoInitParams
 	MinimizedCallback *MinimizedHandler;
 	MovedCallback *MovedHandler;
 	WebMessageReceivedCallback *WebMessageReceivedHandler;
-	char *CustomSchemeNames[16];
+	AutoString CustomSchemeNames[16];
 	WebResourceRequestedCallback *CustomSchemeHandler;
 
 	int Left;
@@ -110,6 +113,8 @@ struct PhotinoInitParams
 	bool MediaStreamEnabled;
 	bool SmoothScrollingEnabled;
     bool IgnoreCertificateErrorsEnabled;
+	bool NotificationsEnabled;
+
 	int Size;
 };
 
@@ -135,6 +140,7 @@ private:
 	AutoString _iconFileName;
 	AutoString _userAgent;
 	AutoString _browserControlInitParameters;
+	AutoString _notificationRegistrationId;
 
 	bool _transparentEnabled;
 	bool _devToolsEnabled;
@@ -146,6 +152,7 @@ private:
 	bool _mediaStreamEnabled;
 	bool _smoothScrollingEnabled;
     bool _ignoreCertificateErrorsEnabled;
+	bool _notificationsEnabled;
 
 	int _zoom;
 
@@ -209,6 +216,7 @@ public:
 	void RefitContent();
 	void FocusWebView2();
 	void NotifyWebView2WindowMove();
+	void GetNotificationsEnabled(bool* enabled);
 	AutoString ToUTF16String(AutoString source);
 	AutoString ToUTF8String(AutoString source);
 	int _minWidth;

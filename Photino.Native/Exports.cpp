@@ -24,6 +24,11 @@ extern "C"
 	{
 		Photino::SetWebView2RuntimePath(webView2RuntimePath);
 	}
+
+	EXPORTED void Photino_GetNotificationsEnabled(Photino* instance, bool* disabled)
+	{
+		instance->GetNotificationsEnabled(disabled);
+	}
 #elif __APPLE__
 	EXPORTED void Photino_register_mac()
 	{

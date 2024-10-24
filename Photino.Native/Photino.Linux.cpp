@@ -306,17 +306,24 @@ void Photino::Center()
 			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_default() returned NULL");
 		gtk_dialog_run(GTK_DIALOG(dialog));
 		gtk_widget_destroy(dialog);
-	}	
+		return;
+	}
+
 	GdkMonitor *m = gdk_display_get_primary_monitor(d);
 	if (m == NULL)
 	{
-		GtkWidget *dialog = gtk_message_dialog_new(
-			nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_primary_monitor() returned NULL");
-		gtk_dialog_run(GTK_DIALOG(dialog));
-		gtk_widget_destroy(dialog);
+		m = gdk_display_get_monitor(d, 0); // Attempt to get the first monitor
+        if (m == NULL)
+        {
+			GtkWidget *dialog = gtk_message_dialog_new(
+				nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "gdk_display_get_primary_monitor() returned NULL");
+			gtk_dialog_run(GTK_DIALOG(dialog));
+			gtk_widget_destroy(dialog);
+			return;
+		}
 	}
 
-	gdk_monitor_get_geometry(gdk_display_get_primary_monitor(gdk_display_get_default()), &screen);
+	gdk_monitor_get_geometry(m, &screen);
 
 	gtk_window_move(GTK_WINDOW(_window),
 					(screen.width - windowWidth) / 2,
@@ -908,6 +915,8 @@ void Photino::set_webkit_settings()
 		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
 	else
 		webkit_website_data_manager_set_tls_errors_policy(manager, WEBKIT_TLS_ERRORS_POLICY_FAIL);
+
+	webkit_web_view_set_settings(WEBKIT_WEB_VIEW(_webview), settings);			//apply the settings to the webview
 }
 
 void Photino::set_webkit_customsettings(WebKitSettings* settings)

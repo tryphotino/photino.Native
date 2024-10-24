@@ -78,12 +78,14 @@ namespace Photino.NET
                 //.SetMaximized(true)
                 //.SetMaxSize(640, 480)
                 //.SetMinimized(true)
+                .SetMinHeight(240)
+                .SetMinWidth(320)
                 //.SetMinSize(320, 240)
                 //.SetResizable(false)
                 //.SetTopMost(true)
                 //.SetUseOsDefaultLocation(false)
                 //.SetUseOsDefaultSize(false)
-                //.Center()
+                .Center()
                 //.SetSize(new Size(800, 600))
                 //.SetHeight(600)
                 //.SetWidth(800)
@@ -94,16 +96,18 @@ namespace Photino.NET
                 //.MoveTo(20, 20)
                 //.Offset(new Point(150, 150))
                 //.Offset(250, 250)
+                .SetNotificationRegistrationId("8FDF1B15-3408-47A6-8EF5-2B0676B76277")  //Replaces the window title when registering toast notifications
+                .SetNotificationsEnabled(false)
 
                 //Browser settings
                 //.SetContextMenuEnabled(false)
-                //.SetDevToolsEnabled(false)
+                .SetDevToolsEnabled(true)
                 //.SetGrantBrowserPermissions(false)
                 //.SetZoom(150)
 
                 //Browser startup flags
                 //.SetBrowserControlInitParameters("--ignore-certificate-errors ")
-                //.SetUserAgent("Custom Photino User Agent")
+                .SetUserAgent("Custom Photino User Agent")
                 //.SetMediaAutoplayEnabled(true)
                 //.SetFileSystemAccessEnabled(true)
                 //.SetWebSecurityEnabled(true)
@@ -128,7 +132,7 @@ namespace Photino.NET
 
             mainWindow.WaitForClose();
 
-            mainWindow.Center(); //will never happen - this is blocking.
+            Console.WriteLine("Done Blocking!");
         }
 
         private static void PropertyInitStyle()
@@ -175,6 +179,8 @@ namespace Photino.NET
                 Location = new Point(50, 50),
                 Top = 50,
                 Left = 50,
+                NotificationRegistrationId = "8FDF1B15-3408-47A6-8EF5-2B0676B76277",  //Replaces the window title when registering toast notifications
+                NotificationsEnabled = false,
 
                 //Browser settings
                 ContextMenuEnabled = false,
@@ -256,7 +262,7 @@ namespace Photino.NET
             return new MemoryStream(Encoding.UTF8.GetBytes(js));
         }
 
-        private static void MessageReceivedFromWindow(object sender, string message)
+        private static async void MessageReceivedFromWindow(object sender, string message)
         {
             Log(sender, $"MessageReceivedFromWindow Callback Fired.");
 
@@ -392,7 +398,7 @@ namespace Photino.NET
             }
             else if (string.Compare(message, "sendWebMessage", true) == 0)
             {
-                currentWindow.SendWebMessage("web message");
+                currentWindow.SendWebMessage("web message 🤖");
             }
             else if (string.Compare(message, "setMinSize", true) == 0)
             {
@@ -404,7 +410,7 @@ namespace Photino.NET
             }
             else if (string.Compare(message, "toastNotification", true) == 0)
             {
-                currentWindow.SendNotification("Toast Title", " Toast message!");
+                currentWindow.SendNotification("Toast Title", " Toast message! 🤖");
             }
             else if (string.Compare(message, "showOpenFile", true) == 0)
             {
@@ -420,6 +426,20 @@ namespace Photino.NET
                 else
                     currentWindow.ShowMessage("Open File", "No file chosen", icon: PhotinoDialogIcon.Error);
             }
+            else if (string.Compare(message, "showOpenFileAsync", true) == 0)
+            {
+                var results = await currentWindow.ShowOpenFileAsync(filters: new[]{
+                    ("All files", new [] {"*.*"}),
+                    ("Text files", new [] {"*.txt"}),
+                    ("Image files", new [] {"*.png", "*.jpg", "*.jpeg"}),
+                    ("PDF files", new [] {"*.pdf"}),
+                    ("CSharp files", new [] { "*.cs" })
+                });
+                if (results.Length > 0)
+                    currentWindow.ShowMessage("Open File Async", string.Join(Environment.NewLine, results));
+                else
+                    currentWindow.ShowMessage("Open File Async", "No file chosen", icon: PhotinoDialogIcon.Error);
+            }
             else if (string.Compare(message, "showOpenFolder", true) == 0)
             {
                 var results = currentWindow.ShowOpenFolder(multiSelect: true);
@@ -427,6 +447,14 @@ namespace Photino.NET
                     currentWindow.ShowMessage("Open Folder", string.Join(Environment.NewLine, results));
                 else
                     currentWindow.ShowMessage("Open Folder", "No folder chosen", icon: PhotinoDialogIcon.Error);
+            }
+            else if (string.Compare(message, "showOpenFolderAsync", true) == 0)
+            {
+                var results = await currentWindow.ShowOpenFolderAsync(multiSelect: true);
+                if (results.Length > 0)
+                    currentWindow.ShowMessage("Open Folder Async", string.Join(Environment.NewLine, results));
+                else
+                    currentWindow.ShowMessage("Open Folder Async", "No folder chosen", icon: PhotinoDialogIcon.Error);
             }
             else if (string.Compare(message, "showSaveFile", true) == 0)
             {
@@ -436,9 +464,17 @@ namespace Photino.NET
                 else
                     currentWindow.ShowMessage("Save File", "File not saved", icon: PhotinoDialogIcon.Error);
             }
+            else if (string.Compare(message, "showSaveFileAsync", true) == 0)
+            {
+                var result = await currentWindow.ShowSaveFileAsync();
+                if (result != null)
+                    currentWindow.ShowMessage("Save File Async", result);
+                else
+                    currentWindow.ShowMessage("Save File Async", "File not saved", icon: PhotinoDialogIcon.Error);
+            }
             else if (string.Compare(message, "showMessage", true) == 0)
             {
-                var result = currentWindow.ShowMessage("Title", "Testing...");
+                var result = currentWindow.ShowMessage("Title", "Testing... 🤖");
             }
             else
                 throw new Exception($"Unknown message '{message}'");
