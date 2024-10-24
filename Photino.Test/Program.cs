@@ -78,6 +78,8 @@ namespace Photino.NET
                 //.SetMaximized(true)
                 //.SetMaxSize(640, 480)
                 //.SetMinimized(true)
+                .SetMinHeight(240)
+                .SetMinWidth(320)
                 //.SetMinSize(320, 240)
                 //.SetResizable(false)
                 //.SetTopMost(true)
