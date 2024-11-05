@@ -69,7 +69,7 @@ void Photino::Register(HINSTANCE hInstance)
 
 	RegisterClassEx(&wcx);
 
-	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 }
 
 Photino::Photino(PhotinoInitParams* initParams)
@@ -332,6 +332,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			RefreshNonClientArea(hwnd);
 		}
 		break;
+	}
+	case WM_DPICHANGED:
+	{
+		UINT dpiX = HIWORD(wParam);
+		UINT dpiY = LOWORD(wParam);
+
+		RECT* newWindowRect = (RECT*)lParam;
+
+		SetWindowPos(
+			hwnd,
+			NULL,
+			newWindowRect->left,
+			newWindowRect->top,
+			newWindowRect->right - newWindowRect->left,
+			newWindowRect->bottom - newWindowRect->top,
+			SWP_NOZORDER | SWP_NOACTIVATE
+		);
+
+		return 0;
 	}
 	case WM_SETTINGCHANGE: 
 	{
