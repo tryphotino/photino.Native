@@ -46,6 +46,9 @@ struct ShowMessageParams
 };
 
 
+const HBRUSH darkBrush = CreateSolidBrush(RGB(0, 0, 0));
+const HBRUSH lightBrush = CreateSolidBrush(RGB(255, 255, 255));
+
 void Photino::Register(HINSTANCE hInstance)
 {
 	InitDarkModeSupport();
@@ -62,7 +65,7 @@ void Photino::Register(HINSTANCE hInstance)
 	wcx.hInstance = hInstance;
 	wcx.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
 	wcx.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcx.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcx.hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush;
 	wcx.lpszMenuName = nullptr;
 	wcx.lpszClassName = CLASS_NAME;
 	wcx.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
@@ -320,6 +323,7 @@ HWND Photino::getHwnd()
 	return _hWnd;
 }
 
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -328,21 +332,45 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		EnableDarkMode(hwnd, true);
 		if (IsDarkModeEnabled()) 
-		{
 			RefreshNonClientArea(hwnd);
-		}
 		break;
 	}
 	case WM_SETTINGCHANGE: 
 	{
 		if (IsColorSchemeChange(lParam))
 			SendMessageW(hwnd, WM_THEMECHANGED, 0, 0);
+
 		break;
 	}
 	case WM_THEMECHANGED:
 	{
 		EnableDarkMode(hwnd, IsDarkModeEnabled());
 		RefreshNonClientArea(hwnd);
+		InvalidateRect(hwnd, NULL, TRUE);
+		break;
+	}
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		// Fill the background with the current theme color
+		if (IsDarkModeEnabled())
+		{
+			FillRect(hdc, &ps.rcPaint, darkBrush);
+			//SetTextColor(hdc, RGB(255,255,255));
+		}
+		else
+		{
+			FillRect(hdc, &ps.rcPaint, lightBrush);
+			//SetTextColor(hdc, RGB(0, 0, 0));
+		}
+
+		// Draw some text
+		//SetBkMode(hdc, TRANSPARENT);
+		//TextOut(hdc, 10, 10, L"Hello, World! (Dynamic Theme)", 31);
+
+		EndPaint(hwnd, &ps);
 		break;
 	}
 	case WM_ACTIVATE:
