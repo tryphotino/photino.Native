@@ -136,7 +136,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 		if (_temporaryFilesPath == NULL) exit(0);
 		AutoString wTemporaryFilesPath = ToUTF16String(initParams->TemporaryFilesPath);
 		wcscpy(_temporaryFilesPath, wTemporaryFilesPath);
-
 	}
 
 	_userAgent = NULL;
