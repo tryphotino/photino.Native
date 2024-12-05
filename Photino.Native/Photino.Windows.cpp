@@ -113,17 +113,20 @@ Photino::Photino(PhotinoInitParams* initParams)
 	{
 		_startUrl = new wchar_t[2048];
 		if (_startUrl == NULL) exit(0);
-		AutoString wStartUrl = ToUTF16String(initParams->StartUrl);
-		wcscpy(_startUrl, wStartUrl);
+		//AutoString wStartUrl = ToUTF16String(initParams->StartUrl);	//Conversion is done in Navigate method. Don't do it twice
+		//wcscpy(_startUrl, wStartUrl);
+		wcscpy(_startUrl, initParams->StartUrl);
 	}
 
 	_startString = NULL;
 	if (initParams->StartString != NULL)
 	{
-		AutoString wStartString = ToUTF16String(initParams->StartString);
-		_startString = new wchar_t[wcslen(wStartString) + 1];
+		//AutoString wStartString = ToUTF16String(initParams->StartString);	//Conversion is done in Navigate method. Don't do it twice
+		//_startString = new wchar_t[wcslen(wStartString) + 1];
+		_startString = new wchar_t[wcslen(initParams->StartString) + 1];
 		if (_startString == NULL) exit(0);
-		wcscpy(_startString, wStartString);
+		//wcscpy(_startString, wStartString);
+		wcscpy(_startString, initParams->StartString);
 	}
 
 	_temporaryFilesPath = NULL;
@@ -676,11 +679,13 @@ void Photino::GetZoom(int* zoom)
 
 void Photino::NavigateToString(AutoString content)
 {
+	content = ToUTF16String(content);
 	_webviewWindow->NavigateToString(content);
 }
 
 void Photino::NavigateToUrl(AutoString url)
 {
+	url = ToUTF16String(url);
 	_webviewWindow->Navigate(url);
 }
 
