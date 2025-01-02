@@ -1,5 +1,8 @@
 #include "Photino.Dialog.h"
+#include "Photino.Errors.h"
+#include "Photino.Menu.h"
 #include "Photino.h"
+#include <exception>
 
 #ifdef _WIN32
 #define EXPORTED __declspec(dllexport)
@@ -292,7 +295,232 @@ extern "C"
 		return inst->GetDialog()->ShowMessage(title, text, buttons, icon);
 	}
 
+	//Error
+	EXPORTED void Photino_ClearErrorMessage()
+	{
+		ClearErrorMessage();
+	}
 
+	EXPORTED void Photino_GetErrorMessage(int length, char* buffer)
+	{
+		GetErrorMessage(length, buffer);
+	}
+
+	EXPORTED void Photino_GetErrorMessageLength(int* length)
+	{
+		*length = GetErrorMessageLength();
+	}
+
+	//Menu
+	EXPORTED PhotinoErrorKind Photino_Menu_Create(Menu** menu)
+	{
+		try
+		{
+			*menu = new Menu();
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_Menu_Destroy(Menu* menu)
+	{
+		try
+		{
+			menuRenderer.Destroy(menu);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_Menu_AddMenuItem(Menu* menu, MenuItem* menuItem)
+	{
+		try
+		{
+			menu->Add(menuItem);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_Menu_AddMenuSeparator(Menu* menu, MenuSeparator* menuSeparator)
+	{
+		try
+		{
+			menu->Add(menuSeparator);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_Menu_AddOnClicked(Menu* menu, OnClickedCallback onClicked)
+	{
+		try
+		{
+			menu->AddOnClicked(onClicked);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_Menu_Hide(Menu* menu)
+	{
+		try
+		{
+			menu->Hide();
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_Menu_RemoveOnClicked(Menu* menu, OnClickedCallback onClicked)
+	{
+		try
+		{
+			menu->RemoveOnClicked(onClicked);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_Menu_Show(Menu* menu, Photino* window, int x, int y)
+	{
+		try
+		{
+			menu->Show(window, x, y);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_MenuItem_Create(MenuItemOptions options, MenuItem** menuItem)
+	{
+		try
+		{
+			*menuItem = new MenuItem(options);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_MenuItem_AddMenuItem(MenuItem* menuItem, MenuItem* newMenuItem)
+	{
+		try
+		{
+			menuItem->Add(newMenuItem);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_MenuItem_AddMenuSeparator(MenuItem* menuItem, MenuSeparator* menuSeparator)
+	{
+		try
+		{
+			menuItem->Add(menuSeparator);
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_MenuItem_Destroy(MenuItem* menuItem)
+	{
+		try
+		{
+			delete menuItem;
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_MenuSeparator_Create(MenuSeparator** menuSeparator)
+	{
+		try
+		{
+			*menuSeparator = new MenuSeparator();
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
+
+	EXPORTED PhotinoErrorKind Photino_MenuSeparator_Destroy(MenuSeparator* menuSeparator)
+	{
+		try
+		{
+			delete menuSeparator;
+		}
+		catch (std::exception exception)
+		{
+			SetErrorMessage(exception.what());
+			return PhotinoErrorKind::GenericError;
+		}
+
+		return PhotinoErrorKind::NoError;
+	}
 
 	//Callbacks
 	EXPORTED void Photino_AddCustomSchemeName(Photino* instance, AutoString scheme)

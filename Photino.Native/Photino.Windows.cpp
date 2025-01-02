@@ -51,6 +51,11 @@ const HBRUSH lightBrush = CreateSolidBrush(RGB(255, 255, 255));
 
 void Photino::Register(HINSTANCE hInstance)
 {
+	if (!SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)))
+	{
+		// TODO: Handle failure to initialize COM.
+	}
+
 	InitDarkModeSupport();
 
 	_hInstance = hInstance;
@@ -318,7 +323,7 @@ Photino::~Photino()
 	if (_notificationsEnabled && _toastHandler != NULL) delete _toastHandler;
 }
 
-HWND Photino::getHwnd()
+HWND Photino::getHwnd() const
 {
 	return _hWnd;
 }

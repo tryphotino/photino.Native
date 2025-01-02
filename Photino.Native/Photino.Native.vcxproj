@@ -243,15 +243,18 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net8.0\</Comm
   <ItemGroup>
     <ClCompile Include="Exports.cpp" />
     <ClCompile Include="Dependencies\wintoastlib.cpp" />
+    <ClCompile Include="Photino.Errors.cpp" />
     <ClCompile Include="Photino.Linux.cpp" />
     <ClCompile Include="Photino.Linux.Dialog.cpp" />
     <ClCompile Include="Photino.Windows.cpp" />
     <ClCompile Include="Photino.Windows.DarkMode.cpp" />
     <ClCompile Include="Photino.Windows.Dialog.cpp" />
+    <ClCompile Include="Photino.Windows.Menu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\wintoastlib.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="Photino.Errors.h" />
     <ClInclude Include="Photino.h" />
     <ClInclude Include="Photino.Mac.AppDelegate.h" />
     <ClInclude Include="Photino.Mac.NavigationDelegate.h" />
@@ -260,6 +263,8 @@ COPY .\$(OutDir)WebView2Loader.dll ..\Photino.Test\bin\ARM64\Debug\net8.0\</Comm
     <ClInclude Include="Photino.Mac.WindowDelegate.h" />
     <ClInclude Include="Photino.Mac.UrlSchemeHandler.h" />
     <ClInclude Include="Photino.Dialog.h" />
+    <ClInclude Include="Photino.Menu.h" />
+    <ClInclude Include="Photino.Windows.Menu.h" />
     <ClInclude Include="Photino.Windows.ToastHandler.h" />
     <ClInclude Include="Photino.Windows.DarkMode.h" />
     <ClInclude Include="resource.h" />

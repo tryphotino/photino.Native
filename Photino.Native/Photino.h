@@ -173,13 +173,10 @@ private:
 	
 #elif __linux__
 	// GtkWidget* _window;
-	GtkWidget *_webview;
 	GdkGeometry _hints;
 	void AddCustomSchemeHandlers();
 	bool _isFullScreen;
 #elif __APPLE__
-	NSWindow *_window;
-	WKWebView *_webview;
 	WKWebViewConfiguration *_webviewConfiguration;
 	std::vector<Monitor *> GetMonitors();
 	
@@ -212,7 +209,7 @@ public:
 #ifdef _WIN32
 	static void Register(HINSTANCE hInstance);
 	static void SetWebView2RuntimePath(AutoString pathToWebView2);
-	HWND getHwnd();
+	HWND getHwnd() const;
 	void RefitContent();
 	void FocusWebView2();
 	void NotifyWebView2WindowMove();
@@ -226,6 +223,7 @@ public:
 #elif __linux__
 	void set_webkit_settings();
 	void set_webkit_customsettings(WebKitSettings* settings);
+	GtkWidget *_webview;
 	GtkWidget *_window;
 	int _lastHeight;
 	int _lastWidth;
@@ -236,6 +234,8 @@ public:
 	int _maxWidth;
 	int _maxHeight;
 #elif __APPLE__
+	NSWindow *_window;
+	WKWebView *_webview;
 	static void Register();
 #endif
 
