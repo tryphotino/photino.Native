@@ -50,7 +50,7 @@ build-photino-mac-universal:
 
 install-linux-dependencies:
 	sudo apt-get update\
-	&& sudo apt-get install libgtk-3-dev libwebkit2gtk-4.0-dev libnotify4 libnotify-dev
+	&& sudo apt-get install libgtk-3-dev libwebkit2gtk-4.1-dev libnotify4 libnotify-dev
 
 build-photino-linux-x64:
 	$(CC) -o $(DEST_PATH_X64)/$(DEST_FILE).so\
@@ -58,7 +58,7 @@ build-photino-linux-x64:
 		  $(SRC)/Photino.Linux.Dialog.cpp\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
-		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
+		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.1 libnotify`
 
 build-photino-linux-arm64:
 	$(CC) -o $(DEST_PATH_ARM64)/$(DEST_FILE).so\
@@ -66,7 +66,7 @@ build-photino-linux-arm64:
 		  $(SRC)/Photino.Linux.Dialog.cpp\
 		  $(SRC)/Photino.Linux.cpp\
 		  $(SRC)/Exports.cpp\
-		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0 libnotify`
+		  `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.1 libnotify`
 
 clean-x64:
 	rm -rf $(DEST_PATH_X64)/* & mkdir -p $(DEST_PATH_X64)
