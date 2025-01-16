@@ -116,7 +116,7 @@ jobs:
 
     - job: "Build_Mac_Universal"
       pool:
-          vmImage: "macos-12"
+          vmImage: "macos-latest"
 
       steps:
           - task: CmdLine@2
