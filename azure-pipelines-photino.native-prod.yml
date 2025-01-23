@@ -5,8 +5,8 @@ trigger:
     - master
 
 variables:
-    major: 3
-    minor: 2
+    major: 4
+    minor: 0
     patch: $[counter(variables['minor'], 0)] #this will reset when we bump minor
     buildConfiguration: "Release"
 
@@ -76,7 +76,7 @@ jobs:
 
     - job: "Build_Linux_x64"
       pool:
-          vmImage: "ubuntu-latest"
+          vmImage: "ubuntu-24.04"
 
       steps:
           - task: CmdLine@2
@@ -116,7 +116,7 @@ jobs:
 
     - job: "Build_Mac_Universal"
       pool:
-          vmImage: "macos-12"
+          vmImage: "macos-latest"
 
       steps:
           - task: CmdLine@2
@@ -144,7 +144,7 @@ jobs:
 
     - job: "Copy_Manual_Arm64_Releases"
       pool:
-          vmImage: "ubuntu-latest"
+          vmImage: "ubuntu-24.04"
 
       steps:
           - task: CmdLine@2
@@ -154,14 +154,6 @@ jobs:
                 script: |
                     mkdir -p ./Photino.Native/arm64/$(buildConfiguration)
                     mv ./manual-arm-release/linux-arm64/Photino.Native.so ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.so
-                    #mv ./manual-arm-release/win-arm64/Photino.Native.dll ./Photino.Native/arm64/$(buildConfiguration)/Photino.Native.dll
-                    #mv ./manual-arm-release/win-arm64/WebView2Loader.dll ./Photino.Native/arm64/$(buildConfiguration)/WebView2Loader.dll
-
-          #- task: PublishPipelineArtifact@1
-          #  displayName: "Publish Windows (ARM64) libraries to artifacts"
-          #  inputs:
-          #      targetPath: "./Photino.Native/arm64/$(buildConfiguration)"
-          #      artifactName: WindowsArm64Artifact
 
           - task: PublishPipelineArtifact@1
             displayName: "Publish Linux (ARM64) libraries to artifacts"

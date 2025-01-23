@@ -46,6 +46,9 @@ struct ShowMessageParams
 };
 
 
+const HBRUSH darkBrush = CreateSolidBrush(RGB(0, 0, 0));
+const HBRUSH lightBrush = CreateSolidBrush(RGB(255, 255, 255));
+
 void Photino::Register(HINSTANCE hInstance)
 {
 	InitDarkModeSupport();
@@ -62,7 +65,7 @@ void Photino::Register(HINSTANCE hInstance)
 	wcx.hInstance = hInstance;
 	wcx.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
 	wcx.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcx.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcx.hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush;
 	wcx.lpszMenuName = nullptr;
 	wcx.lpszClassName = CLASS_NAME;
 	wcx.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
@@ -110,17 +113,20 @@ Photino::Photino(PhotinoInitParams* initParams)
 	{
 		_startUrl = new wchar_t[2048];
 		if (_startUrl == NULL) exit(0);
-		AutoString wStartUrl = ToUTF16String(initParams->StartUrl);
-		wcscpy(_startUrl, wStartUrl);
+		//AutoString wStartUrl = ToUTF16String(initParams->StartUrl);	//Conversion is done in Navigate method. Don't do it twice
+		//wcscpy(_startUrl, wStartUrl);
+		wcscpy(_startUrl, initParams->StartUrl);
 	}
 
 	_startString = NULL;
 	if (initParams->StartString != NULL)
 	{
-		AutoString wStartString = ToUTF16String(initParams->StartString);
-		_startString = new wchar_t[wcslen(wStartString) + 1];
+		//AutoString wStartString = ToUTF16String(initParams->StartString);	//Conversion is done in Navigate method. Don't do it twice
+		//_startString = new wchar_t[wcslen(wStartString) + 1];
+		_startString = new wchar_t[wcslen(initParams->StartString) + 1];
 		if (_startString == NULL) exit(0);
-		wcscpy(_startString, wStartString);
+		//wcscpy(_startString, wStartString);
+		wcscpy(_startString, initParams->StartString);
 	}
 
 	_temporaryFilesPath = NULL;
@@ -130,7 +136,6 @@ Photino::Photino(PhotinoInitParams* initParams)
 		if (_temporaryFilesPath == NULL) exit(0);
 		AutoString wTemporaryFilesPath = ToUTF16String(initParams->TemporaryFilesPath);
 		wcscpy(_temporaryFilesPath, wTemporaryFilesPath);
-
 	}
 
 	_userAgent = NULL;
@@ -320,6 +325,7 @@ HWND Photino::getHwnd()
 	return _hWnd;
 }
 
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -328,21 +334,45 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		EnableDarkMode(hwnd, true);
 		if (IsDarkModeEnabled()) 
-		{
 			RefreshNonClientArea(hwnd);
-		}
 		break;
 	}
 	case WM_SETTINGCHANGE: 
 	{
 		if (IsColorSchemeChange(lParam))
 			SendMessageW(hwnd, WM_THEMECHANGED, 0, 0);
+
 		break;
 	}
 	case WM_THEMECHANGED:
 	{
 		EnableDarkMode(hwnd, IsDarkModeEnabled());
 		RefreshNonClientArea(hwnd);
+		InvalidateRect(hwnd, NULL, TRUE);
+		break;
+	}
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		// Fill the background with the current theme color
+		if (IsDarkModeEnabled())
+		{
+			FillRect(hdc, &ps.rcPaint, darkBrush);
+			//SetTextColor(hdc, RGB(255,255,255));
+		}
+		else
+		{
+			FillRect(hdc, &ps.rcPaint, lightBrush);
+			//SetTextColor(hdc, RGB(0, 0, 0));
+		}
+
+		// Draw some text
+		//SetBkMode(hdc, TRANSPARENT);
+		//TextOut(hdc, 10, 10, L"Hello, World! (Dynamic Theme)", 31);
+
+		EndPaint(hwnd, &ps);
 		break;
 	}
 	case WM_ACTIVATE:
@@ -648,11 +678,13 @@ void Photino::GetZoom(int* zoom)
 
 void Photino::NavigateToString(AutoString content)
 {
+	content = ToUTF16String(content);
 	_webviewWindow->NavigateToString(content);
 }
 
 void Photino::NavigateToUrl(AutoString url)
 {
+	url = ToUTF16String(url);
 	_webviewWindow->Navigate(url);
 }
 

@@ -1,8 +1,6 @@
 #pragma once
 
 #ifdef _WIN32
-#define UNICODE
-#define _UNICODE
 #include <Windows.h>
 #include <wil/com.h>
 #include <WebView2.h>
