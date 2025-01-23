@@ -76,7 +76,7 @@ jobs:
 
     - job: "Build_Linux_x64"
       pool:
-          vmImage: "ubuntu-latest"
+          vmImage: "ubuntu-24.04"
 
       steps:
           - task: CmdLine@2
