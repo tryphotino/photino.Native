@@ -293,6 +293,7 @@ public:
 
 	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();
+	void CloseWebView();
 
 	// Callbacks
 	void AddCustomSchemeName(AutoString scheme) { _customSchemeNames.push_back((AutoString)scheme); };
