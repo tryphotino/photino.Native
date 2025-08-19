@@ -22,7 +22,7 @@ extern "C"
 
 	EXPORTED void Photino_setWebView2RuntimePath_win32(Photino* instance, AutoString webView2RuntimePath)
 	{
-		Photino::SetWebView2RuntimePath(webView2RuntimePath);
+		instance->SetWebView2RuntimePath(webView2RuntimePath);
 	}
 
 	EXPORTED void Photino_GetNotificationsEnabled(Photino* instance, bool* disabled)
