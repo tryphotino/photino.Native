@@ -344,4 +344,14 @@ extern "C"
 	{
 		instance->Invoke(callback);
 	}
+
+	EXPORTED void Photino_SetMenu(Photino* instance, AutoString menuJson)
+	{
+		instance->SetMenu(menuJson);
+	}
+
+	EXPORTED void Photino_SetMenuCommandCallback(Photino* instance, MenuCommandCallback callback)
+	{
+		instance->SetMenuCommandCallback(callback);
+	}
 }

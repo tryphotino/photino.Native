@@ -152,6 +152,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
+	_menuCommandCallback = (MenuCommandCallback)initParams->MenuCommandHandler;
 
 	// copy strings from the fixed size array passed, but only if they have a value.
 	for (int i = 0; i < 16; ++i)
@@ -274,6 +275,11 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 					 this);
 
 	Photino::AddCustomSchemeHandlers();
+
+	if (initParams->MenuDefinition != NULL && strlen(initParams->MenuDefinition) > 0)
+	{
+		SetMenu(initParams->MenuDefinition);
+	}
 
 	if (initParams->Transparent)
 		Photino::SetTransparentEnabled(true);
@@ -1081,6 +1087,162 @@ void Photino::AddCustomSchemeHandlers()
 	{
 		webkit_web_context_register_uri_scheme(
 			context, value, (WebKitURISchemeRequestCallback)HandleCustomSchemeRequest, (void *)_customSchemeCallback, NULL);
+	}
+}
+
+struct MenuItemData
+{
+	Photino *photino;
+	std::string *command;
+
+	~MenuItemData()
+	{
+		delete command;
+	}
+};
+
+static void menu_item_data_destroy(gpointer userData)
+{
+	MenuItemData *data = (MenuItemData *)userData;
+	delete data;
+}
+
+static void on_menu_item_activate(GtkMenuItem *menuItem, gpointer userData)
+{
+	MenuItemData *data = (MenuItemData *)userData;
+	if (data && data->command)
+		data->photino->InvokeMenuCommand((AutoString)data->command->c_str());
+}
+
+static void BuildMenuItems(GtkWidget *parentMenu, const json &items, Photino *photino)
+{
+	for (const auto &item : items)
+	{
+		if (item.contains("type") && item["type"] == "separator")
+		{
+			gtk_menu_shell_append(GTK_MENU_SHELL(parentMenu), gtk_separator_menu_item_new());
+			continue;
+		}
+
+		if (!item.contains("label") || !item["label"].is_string())
+			continue;
+
+		std::string itemLabelStr = item["label"].get<std::string>();
+
+		if (item.contains("items") && item["items"].is_array())
+		{
+			GtkWidget *subMenuItem = gtk_menu_item_new_with_label(itemLabelStr.c_str());
+			GtkWidget *subMenu = gtk_menu_new();
+			gtk_menu_item_set_submenu(GTK_MENU_ITEM(subMenuItem), subMenu);
+
+			BuildMenuItems(subMenu, item["items"], photino);
+
+			gtk_menu_shell_append(GTK_MENU_SHELL(parentMenu), subMenuItem);
+			continue;
+		}
+
+		if (item.contains("accelerator"))
+		{
+			std::string accel = item["accelerator"].get<std::string>();
+			size_t pos;
+			while ((pos = accel.find("Cmd+")) != std::string::npos)
+				accel.replace(pos, 4, "Ctrl+");
+			itemLabelStr += "\t" + accel;
+		}
+
+		bool isChecked = item.contains("checked") && item["checked"].is_boolean() && item["checked"].get<bool>();
+		GtkWidget *menuItemWidget;
+		if (isChecked || (item.contains("checked") && item["checked"].is_boolean()))
+		{
+			menuItemWidget = gtk_check_menu_item_new_with_label(itemLabelStr.c_str());
+			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menuItemWidget), isChecked);
+		}
+		else
+		{
+			menuItemWidget = gtk_menu_item_new_with_label(itemLabelStr.c_str());
+		}
+
+		bool isEnabled = !item.contains("enabled") || !item["enabled"].is_boolean() || item["enabled"].get<bool>();
+		gtk_widget_set_sensitive(menuItemWidget, isEnabled);
+
+		MenuItemData *data = new MenuItemData();
+		data->photino = photino;
+		if (item.contains("command") && item["command"].is_string())
+			data->command = new std::string(item["command"].get<std::string>());
+		else
+			data->command = new std::string("");
+
+		g_object_set_data_full(G_OBJECT(menuItemWidget), "menu-item-data", data, menu_item_data_destroy);
+		g_signal_connect(G_OBJECT(menuItemWidget), "activate",
+						 G_CALLBACK(on_menu_item_activate), data);
+
+		gtk_menu_shell_append(GTK_MENU_SHELL(parentMenu), menuItemWidget);
+	}
+}
+
+void Photino::SetMenu(AutoString menuJson)
+{
+	if (menuJson == NULL || strlen(menuJson) == 0)
+		return;
+
+	try
+	{
+		json menuData = json::parse(menuJson);
+
+		if (!menuData.contains("menus") || !menuData["menus"].is_array())
+			return;
+
+		GtkWidget *menuBar = gtk_menu_bar_new();
+
+		for (auto &menu : menuData["menus"])
+		{
+			if (!menu.contains("label") || !menu["label"].is_string())
+				continue;
+
+			std::string labelStr = menu["label"].get<std::string>();
+			GtkWidget *menuItem = gtk_menu_item_new_with_label(labelStr.c_str());
+			GtkWidget *subMenu = gtk_menu_new();
+			gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuItem), subMenu);
+
+			if (menu.contains("items") && menu["items"].is_array())
+			{
+				BuildMenuItems(subMenu, menu["items"], this);
+			}
+
+			gtk_menu_shell_append(GTK_MENU_SHELL(menuBar), menuItem);
+		}
+
+		GtkWidget *currentChild = gtk_bin_get_child(GTK_BIN(_window));
+
+		if (currentChild == _webview)
+		{
+			g_object_ref(_webview); 
+			gtk_container_remove(GTK_CONTAINER(_window), _webview);
+
+			GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+			gtk_box_pack_start(GTK_BOX(vbox), menuBar, FALSE, FALSE, 0);
+			gtk_box_pack_start(GTK_BOX(vbox), _webview, TRUE, TRUE, 0);
+			g_object_unref(_webview);
+
+			gtk_container_add(GTK_CONTAINER(_window), vbox);
+			gtk_widget_show_all(vbox);
+		}
+		else if (GTK_IS_BOX(currentChild))
+		{
+			gtk_box_pack_start(GTK_BOX(currentChild), menuBar, FALSE, FALSE, 0);
+			gtk_box_reorder_child(GTK_BOX(currentChild), menuBar, 0);
+			gtk_widget_show_all(menuBar);
+		}
+		else if (currentChild == NULL && _webview == NULL)
+		{
+			GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+			gtk_box_pack_start(GTK_BOX(vbox), menuBar, FALSE, FALSE, 0);
+			gtk_container_add(GTK_CONTAINER(_window), vbox);
+		}
+	}
+	catch (const std::exception &e)
+	{
+		g_warning("Photino: Failed to parse menu JSON: %s", e.what());
 	}
 }
 

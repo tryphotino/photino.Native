@@ -52,6 +52,7 @@ typedef void (*MovedCallback)(int x, int y);
 typedef bool (*ClosingCallback)();
 typedef void (*FocusInCallback)();
 typedef void (*FocusOutCallback)();
+typedef void (*MenuCommandCallback)(AutoString command);
 
 class PhotinoDialog;
 class Photino;
@@ -80,6 +81,9 @@ struct PhotinoInitParams
 	WebMessageReceivedCallback *WebMessageReceivedHandler;
 	AutoString CustomSchemeNames[16];
 	WebResourceRequestedCallback *CustomSchemeHandler;
+
+	AutoString MenuDefinition;
+	MenuCommandCallback *MenuCommandHandler;
 
 	int Left;
 	int Top;
@@ -131,6 +135,7 @@ private:
 	FocusOutCallback _focusOutCallback;
 	std::vector<AutoString> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
+	MenuCommandCallback _menuCommandCallback;
 
 	AutoString _startUrl;
 	AutoString _startString;
@@ -161,6 +166,9 @@ private:
 #ifdef _WIN32
 	static HINSTANCE _hInstance;
 	HWND _hWnd;
+	HMENU _hMenu;
+	std::map<UINT, std::string> _menuCommands;
+	UINT _nextMenuId;
 	WinToastHandler *_toastHandler;
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
@@ -180,6 +188,7 @@ private:
 	NSWindow *_window;
 	WKWebView *_webview;
 	WKWebViewConfiguration *_webviewConfiguration;
+	NSMutableArray *_menuHandlers;
 	std::vector<Monitor *> GetMonitors();
 	
 	bool _chromeless;
@@ -310,6 +319,14 @@ public:
 	void SetMaximizedCallback(MaximizedCallback callback) { _maximizedCallback = callback; }
 	void SetRestoredCallback(RestoredCallback callback) { _restoredCallback = callback; }
 	void SetMinimizedCallback(MinimizedCallback callback) { _minimizedCallback = callback; }
+
+	void SetMenu(AutoString menuJson);
+	void SetMenuCommandCallback(MenuCommandCallback callback) { _menuCommandCallback = callback; }
+	void InvokeMenuCommand(AutoString command)
+	{
+		if (_menuCommandCallback)
+			_menuCommandCallback(command);
+	}
 
 	void Invoke(ACTION callback);
 	bool InvokeClose()

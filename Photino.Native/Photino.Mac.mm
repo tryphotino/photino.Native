@@ -7,7 +7,9 @@
 #include "Photino.Mac.UrlSchemeHandler.h"
 #include "Photino.Mac.NSWindowBorderless.h"
 #include "Photino.Mac.NavigationDelegate.h"
+#include "Photino.Mac.MenuHandler.h"
 #include <vector>
+#include <algorithm>
 
 #include "json.hpp"
 
@@ -151,7 +153,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
-    
+    _menuCommandCallback = (MenuCommandCallback)initParams->MenuCommandHandler;
+    _menuHandlers = [[NSMutableArray alloc] init];
 
 	//copy strings from the fixed size array passed, but only if they have a value.
 	for (int i = 0; i < 16; ++i)
@@ -310,6 +313,11 @@ Photino::Photino(PhotinoInitParams* initParams)
     }
 
     _dialog = new PhotinoDialog();
+
+    if (initParams->MenuDefinition != NULL && strlen(initParams->MenuDefinition) > 0)
+    {
+        SetMenu(initParams->MenuDefinition);
+    }
 
     Show(false);
     SetFullScreen(initParams->FullScreen);
@@ -950,4 +958,246 @@ void Photino::Show(bool isAlreadyShown)
     [_window makeKeyAndOrderFront: _window];
     [_window orderFrontRegardless];
 }
+
+@implementation MenuActionHandler
+
+- (void)menuItemClicked:(id)sender
+{
+    if (photino && command)
+    {
+        photino->InvokeMenuCommand(command);
+    }
+}
+
+- (void)dealloc
+{
+    if (command)
+    {
+        free(command);
+        command = NULL;
+    }
+    [super dealloc];
+}
+
+@end
+
+static void ParseAccelerator(const std::string& accelerator, NSString** keyEquivalent, NSEventModifierFlags* modifierMask)
+{
+    *keyEquivalent = @"";
+    *modifierMask = 0;
+
+    if (accelerator.empty())
+        return;
+
+    std::string accel = accelerator;
+
+    if (accel.find("Cmd+") != std::string::npos || accel.find("Command+") != std::string::npos)
+    {
+        *modifierMask |= NSEventModifierFlagCommand;
+        size_t pos = accel.find("Cmd+");
+        if (pos != std::string::npos)
+            accel.erase(pos, 4);
+        pos = accel.find("Command+");
+        if (pos != std::string::npos)
+            accel.erase(pos, 8);
+    }
+
+    if (accel.find("Ctrl+") != std::string::npos || accel.find("Control+") != std::string::npos)
+    {
+        *modifierMask |= NSEventModifierFlagControl;
+        size_t pos = accel.find("Ctrl+");
+        if (pos != std::string::npos)
+            accel.erase(pos, 5);
+        pos = accel.find("Control+");
+        if (pos != std::string::npos)
+            accel.erase(pos, 8);
+    }
+
+    if (accel.find("Alt+") != std::string::npos || accel.find("Option+") != std::string::npos)
+    {
+        *modifierMask |= NSEventModifierFlagOption;
+        size_t pos = accel.find("Alt+");
+        if (pos != std::string::npos)
+            accel.erase(pos, 4);
+        pos = accel.find("Option+");
+        if (pos != std::string::npos)
+            accel.erase(pos, 7);
+    }
+
+    if (accel.find("Shift+") != std::string::npos)
+    {
+        *modifierMask |= NSEventModifierFlagShift;
+        size_t pos = accel.find("Shift+");
+        if (pos != std::string::npos)
+            accel.erase(pos, 6);
+    }
+
+    if (!accel.empty())
+    {
+        std::transform(accel.begin(), accel.end(), accel.begin(), ::tolower);
+        *keyEquivalent = [NSString stringWithUTF8String:accel.c_str()];
+    }
+}
+
+static void BuildMenuItemsMac(NSMenu *parentMenu, const json &items, Photino *photino, NSMutableArray *menuHandlers)
+{
+    for (const auto& item : items)
+    {
+        if (item.contains("type") && item["type"].is_string() && item["type"] == "separator")
+        {
+            [parentMenu addItem:[NSMenuItem separatorItem]];
+            continue;
+        }
+
+        if (!item.contains("label") || !item["label"].is_string())
+            continue;
+
+        NSString *itemLabel = [NSString stringWithUTF8String:item["label"].get<std::string>().c_str()];
+
+        if (item.contains("items") && item["items"].is_array())
+        {
+            NSMenuItem *subMenuItem = [[[NSMenuItem alloc] init] autorelease];
+            [subMenuItem setTitle:itemLabel];
+
+            NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:itemLabel] autorelease];
+
+            BuildMenuItemsMac(subMenu, item["items"], photino, menuHandlers);
+
+            [subMenuItem setSubmenu:subMenu];
+            [parentMenu addItem:subMenuItem];
+            continue;
+        }
+
+        // Regular menu item
+        NSString *keyEquivalent = @"";
+        NSEventModifierFlags modifierMask = 0;
+        if (item.contains("accelerator") && item["accelerator"].is_string())
+        {
+            ParseAccelerator(item["accelerator"].get<std::string>(), &keyEquivalent, &modifierMask);
+        }
+
+        MenuActionHandler *handler = [[MenuActionHandler alloc] init];
+        handler->photino = photino;
+
+        if (item.contains("command") && item["command"].is_string())
+        {
+            char *cmd = strdup(item["command"].get<std::string>().c_str());
+            handler->command = cmd;
+        }
+        else
+        {
+            handler->command = NULL;
+        }
+
+        [menuHandlers addObject:handler];
+
+        NSMenuItem *subItem = [[[NSMenuItem alloc]
+            initWithTitle:itemLabel
+            action:@selector(menuItemClicked:)
+            keyEquivalent:keyEquivalent] autorelease];
+
+        [subItem setTarget:handler];
+        [subItem setKeyEquivalentModifierMask:modifierMask];
+
+        if (item.contains("enabled") && item["enabled"].is_boolean())
+        {
+            [subItem setEnabled:item["enabled"].get<bool>()];
+        }
+
+        if (item.contains("checked") && item["checked"].is_boolean() && item["checked"].get<bool>())
+        {
+            [subItem setState:NSControlStateValueOn];
+        }
+
+        [parentMenu addItem:subItem];
+    }
+}
+
+void Photino::SetMenu(AutoString menuJson)
+{
+    if (menuJson == NULL || strlen(menuJson) == 0)
+        return;
+
+    try
+    {
+        json menuData = json::parse(menuJson);
+
+        if (!menuData.contains("menus") || !menuData["menus"].is_array())
+            return;
+
+        for (id handler in _menuHandlers)
+        {
+            [handler release];
+        }
+        [_menuHandlers removeAllObjects];
+
+        NSMenu *mainMenu = [[[NSMenu alloc] init] autorelease];
+
+        NSString *appName = [[NSProcessInfo processInfo] processName];
+        NSMenuItem *appMenuItem = [[[NSMenuItem alloc] init] autorelease];
+        NSMenu *appMenu = [[[NSMenu alloc] init] autorelease];
+
+        NSMenuItem *selectAllItem = [[[NSMenuItem alloc]
+            initWithTitle:@"Select All"
+            action:@selector(selectAll:)
+            keyEquivalent:@"a"] autorelease];
+        [appMenu addItem:selectAllItem];
+
+        NSMenuItem *cutItem = [[[NSMenuItem alloc]
+            initWithTitle:@"Cut"
+            action:@selector(cut:)
+            keyEquivalent:@"x"] autorelease];
+        [appMenu addItem:cutItem];
+
+        NSMenuItem *copyItem = [[[NSMenuItem alloc]
+            initWithTitle:@"Copy"
+            action:@selector(copy:)
+            keyEquivalent:@"c"] autorelease];
+        [appMenu addItem:copyItem];
+
+        NSMenuItem *pasteItem = [[[NSMenuItem alloc]
+            initWithTitle:@"Paste"
+            action:@selector(paste:)
+            keyEquivalent:@"v"] autorelease];
+        [appMenu addItem:pasteItem];
+
+        [appMenu addItem:[NSMenuItem separatorItem]];
+
+        NSMenuItem *quitItem = [[[NSMenuItem alloc]
+            initWithTitle:[NSString stringWithFormat:@"Quit %@", appName]
+            action:@selector(terminate:)
+            keyEquivalent:@"q"] autorelease];
+        [appMenu addItem:quitItem];
+
+        [appMenuItem setSubmenu:appMenu];
+        [mainMenu addItem:appMenuItem];
+
+        for (auto& menu : menuData["menus"])
+        {
+            if (!menu.contains("label") || !menu["label"].is_string())
+                continue;
+
+            NSString *menuLabel = [NSString stringWithUTF8String:menu["label"].get<std::string>().c_str()];
+            NSMenuItem *menuItem = [[[NSMenuItem alloc] init] autorelease];
+            [menuItem setTitle:menuLabel];
+
+            NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:menuLabel] autorelease];
+
+            if (menu.contains("items") && menu["items"].is_array())
+            {
+                BuildMenuItemsMac(subMenu, menu["items"], this, _menuHandlers);
+            }
+
+            [menuItem setSubmenu:subMenu];
+            [mainMenu addItem:menuItem];
+        }
+
+        [NSApp setMainMenu:mainMenu];
+    }
+    catch (const std::exception& e)
+    {
+        NSLog(@"Photino: Failed to parse menu JSON: %s", e.what());
+    }
+}
+
 #endif

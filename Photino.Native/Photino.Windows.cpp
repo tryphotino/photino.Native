@@ -2,6 +2,7 @@
 #include "Photino.Dialog.h"
 #include "Photino.Windows.DarkMode.h"
 #include "Photino.Windows.ToastHandler.h"
+#include "json.hpp"
 
 #include <mutex>
 #include <condition_variable>
@@ -13,6 +14,8 @@
 #include <limits>
 #include <WebView2EnvironmentOptions.h>
 #include <Shellscalingapi.h>
+
+using json = nlohmann::json;
 
 #pragma comment(lib, "Shcore.lib")
 #pragma comment(lib, "Urlmon.lib")
@@ -197,6 +200,10 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_focusInCallback = (FocusInCallback)initParams->FocusInHandler;
 	_focusOutCallback = (FocusOutCallback)initParams->FocusOutHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
+	_menuCommandCallback = (MenuCommandCallback)initParams->MenuCommandHandler;
+
+	_hMenu = NULL;
+	_nextMenuId = 1000;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
 	for (int i = 0; i < 16; ++i)
@@ -308,6 +315,11 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 	_dialog = new PhotinoDialog(this);
 
+	if (initParams->MenuDefinition != NULL && wcslen(initParams->MenuDefinition) > 0)
+	{
+		SetMenu(initParams->MenuDefinition);
+	}
+
 	bool isAlreadyShown = initParams->Minimized || initParams->Maximized;
 	Photino::Show(isAlreadyShown);
 }
@@ -319,6 +331,7 @@ Photino::~Photino()
 	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
 	if (_windowTitle != NULL) delete[]_windowTitle;
 	if (_notificationsEnabled && _toastHandler != NULL) delete _toastHandler;
+	if (_hMenu != NULL) DestroyMenu(_hMenu);
 }
 
 HWND Photino::getHwnd()
@@ -452,6 +465,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		waitInfo->completionNotifier.notify_one();
 		//delete waitInfo; ?
+		return 0;
+	}
+	case WM_COMMAND:
+	{
+		UINT menuId = LOWORD(wParam);
+		Photino* photino = hwndToPhotino[hwnd];
+		if (photino && photino->_menuCommands.count(menuId))
+		{
+			std::string command = photino->_menuCommands[menuId];
+			photino->InvokeMenuCommand(photino->ToUTF16String((AutoString)command.c_str()));
+		}
 		return 0;
 	}
 	case WM_GETMINMAXINFO:
@@ -1352,5 +1376,119 @@ void Photino::Show(bool isAlreadyShown)
 			Photino::AttachWebView();
 		else
 			exit(0);
+	}
+}
+
+static void BuildMenuItemsWin(HMENU parentMenu, const json &items, Photino *photino,
+                              std::map<UINT, std::string> &menuCommands, UINT &nextMenuId)
+{
+	for (const auto& item : items)
+	{
+		if (item.contains("type") && item["type"] == "separator")
+		{
+			AppendMenuW(parentMenu, MF_SEPARATOR, 0, NULL);
+			continue;
+		}
+
+		if (!item.contains("label") || !item["label"].is_string())
+			continue;
+
+		std::string itemLabelStr = item["label"].get<std::string>();
+		std::wstring itemText = (wchar_t*)photino->ToUTF16String((AutoString)itemLabelStr.c_str());
+
+		if (item.contains("items") && item["items"].is_array())
+		{
+			HMENU hSubMenu = CreatePopupMenu();
+
+			BuildMenuItemsWin(hSubMenu, item["items"], photino, menuCommands, nextMenuId);
+
+			AppendMenuW(parentMenu, MF_POPUP, (UINT_PTR)hSubMenu, itemText.c_str());
+			continue;
+		}
+
+		if (item.contains("accelerator"))
+		{
+			std::string accel = item["accelerator"].get<std::string>();
+			std::string displayAccel = accel;
+			size_t pos;
+			while ((pos = displayAccel.find("Cmd+")) != std::string::npos)
+				displayAccel.replace(pos, 4, "Ctrl+");
+
+			itemText += L"\t";
+			itemText += (wchar_t*)photino->ToUTF16String((AutoString)displayAccel.c_str());
+		}
+
+		std::string command = "";
+		if (item.contains("command") && item["command"].is_string())
+			command = item["command"].get<std::string>();
+
+		UINT menuId = nextMenuId++;
+		menuCommands[menuId] = command;
+
+		UINT menuFlags = MF_STRING;
+
+		if (item.contains("enabled") && item["enabled"].is_boolean() && !item["enabled"].get<bool>())
+		{
+			menuFlags |= MF_GRAYED;
+		}
+
+		if (item.contains("checked") && item["checked"].is_boolean() && item["checked"].get<bool>())
+		{
+			menuFlags |= MF_CHECKED;
+		}
+
+		AppendMenuW(parentMenu, menuFlags, menuId, itemText.c_str());
+	}
+}
+
+void Photino::SetMenu(AutoString menuJson)
+{
+	if (menuJson == NULL || wcslen(menuJson) == 0)
+		return;
+
+	try
+	{
+		std::string jsonStr = ToUTF8String(menuJson);
+		json menuData = json::parse(jsonStr);
+
+		if (!menuData.contains("menus") || !menuData["menus"].is_array())
+			return;
+
+		if (_hMenu != NULL)
+		{
+			DestroyMenu(_hMenu);
+			_hMenu = NULL;
+		}
+
+		_hMenu = CreateMenu();
+		_menuCommands.clear();
+		_nextMenuId = 1000;
+
+		for (auto& menu : menuData["menus"])
+		{
+			if (!menu.contains("label") || !menu["label"].is_string())
+				continue;
+
+			std::string labelStr = menu["label"].get<std::string>();
+			std::wstring label = (wchar_t*)ToUTF16String((AutoString)labelStr.c_str());
+
+			HMENU hSubMenu = CreatePopupMenu();
+
+			if (menu.contains("items") && menu["items"].is_array())
+			{
+				BuildMenuItemsWin(hSubMenu, menu["items"], this, _menuCommands, _nextMenuId);
+			}
+
+			AppendMenuW(_hMenu, MF_POPUP, (UINT_PTR)hSubMenu, label.c_str());
+		}
+
+		::SetMenu(_hWnd, _hMenu);
+		DrawMenuBar(_hWnd);
+	}
+	catch (const std::exception& e)
+	{
+		OutputDebugStringA("Photino: Failed to parse menu JSON: ");
+		OutputDebugStringA(e.what());
+		OutputDebugStringA("\n");
 	}
 }
