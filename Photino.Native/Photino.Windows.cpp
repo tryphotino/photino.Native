@@ -661,7 +661,7 @@ AutoString Photino::GetTitle()
 
 void Photino::GetTopmost(bool* topmost)
 {
-	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
+	LONG lStyles = GetWindowLong(_hWnd, GWL_EXSTYLE);
 	if (lStyles & WS_EX_TOPMOST) *topmost = true;
 	else *topmost = false;
 }
@@ -841,10 +841,10 @@ void Photino::SetTitle(AutoString title)
 
 void Photino::SetTopmost(bool topmost)
 {
-	LONG_PTR style = GetWindowLongPtr(_hWnd, GWL_STYLE);
+	LONG_PTR style = GetWindowLongPtr(_hWnd, GWL_EXSTYLE);
 	if (topmost) style |= WS_EX_TOPMOST;
 	else style &= (~WS_EX_TOPMOST);
-	SetWindowLongPtr(_hWnd, GWL_STYLE, style);
+	SetWindowLongPtr(_hWnd, GWL_EXSTYLE, style);
 	SetWindowPos(_hWnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
