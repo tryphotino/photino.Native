@@ -56,6 +56,11 @@ extern "C"
 		instance->ClearBrowserAutoFill();
 	}
 
+	EXPORTED void Photino_Focus(Photino* instance)
+	{
+		instance->Focus();
+	}
+
 	EXPORTED void Photino_Close(Photino* instance)
 	{
 		instance->Close();

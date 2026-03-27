@@ -244,6 +244,7 @@ public:
 
 	void Center();
 	void ClearBrowserAutoFill();
+	void Focus();
 	void Close();
 
 	void GetTransparentEnabled(bool *enabled);

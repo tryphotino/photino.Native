@@ -344,6 +344,12 @@ void Photino::ClearBrowserAutoFill()
     //TODO
 }
 
+void Photino::Focus()
+{
+    [NSApp activateIgnoringOtherApps:YES];
+    [_window makeKeyAndOrderFront:nil];
+}
+
 void Photino::Close()
 {
     if (_chromeless)

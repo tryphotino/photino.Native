@@ -333,6 +333,11 @@ void Photino::ClearBrowserAutoFill()
 	// TODO
 }
 
+void Photino::Focus()
+{
+	gtk_window_present(GTK_WINDOW(_window));
+}
+
 void Photino::Close()
 {
 	gtk_window_close(GTK_WINDOW(_window));
