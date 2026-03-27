@@ -410,6 +410,11 @@ void Photino::GetMaximized(bool *isMaximized)
 	//gboolean maximized = gtk_window_is_maximized(GTK_WINDOW(_window));  //this method doesn't work
 	//*isMaximized = maximized;
 	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	if (gdk_window == NULL)
+	{
+		*isMaximized = false;
+		return;
+	}
 	GdkWindowState flags = gdk_window_get_state(gdk_window);
 	*isMaximized = flags & GDK_WINDOW_STATE_MAXIMIZED;
 }
@@ -417,6 +422,11 @@ void Photino::GetMaximized(bool *isMaximized)
 void Photino::GetMinimized(bool *isMinimized)
 {
 	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	if (gdk_window == NULL)
+	{
+		*isMinimized = false;
+		return;
+	}
 	GdkWindowState flags = gdk_window_get_state(gdk_window);
 	*isMinimized = flags & GDK_WINDOW_STATE_ICONIFIED;
 }
@@ -468,6 +478,11 @@ void Photino::GetTopmost(bool *topmost)
 {
 	// TODO: This flag is not set in GDK3. WebKit does not support GTK5 yet.
 	GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(_window));
+	if (gdk_window == NULL)
+	{
+		*topmost = false;
+		return;
+	}
 	GdkWindowState flags = gdk_window_get_state(gdk_window);
 	*topmost = flags & GDK_WINDOW_STATE_ABOVE;
 
