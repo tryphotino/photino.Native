@@ -1011,6 +1011,35 @@ void Photino::AttachWebView()
 	if (startupString.length() > 0)
 		options->put_AdditionalBrowserArguments(startupString.c_str());
 
+	// Register custom schemes with WebView2 via ICoreWebView2EnvironmentOptions4.
+	// Without this registration, WebView2 does not recognise custom URI schemes (e.g. "app://")
+	// as web-like and silently ignores them — the WebResourceRequested event never fires,
+	// so the managed callback that is supposed to serve content for those URIs is never invoked.
+	// Registration must happen *before* the environment is created.	
+	if (!_customSchemeNames.empty())
+	{
+		Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions4> options4;
+		if (SUCCEEDED(options.As(&options4)))
+		{
+			std::vector<Microsoft::WRL::ComPtr<ICoreWebView2CustomSchemeRegistration>> registrations;
+			std::vector<ICoreWebView2CustomSchemeRegistration*> rawPtrs;
+
+			for (const auto& schemeName : _customSchemeNames)
+			{
+				auto reg = Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(schemeName);
+				reg->put_TreatAsSecure(TRUE);
+				reg->put_HasAuthorityComponent(TRUE);
+				LPCWSTR allowedOrigins[] = { L"*" };
+				reg->SetAllowedOrigins(1, allowedOrigins);
+				rawPtrs.push_back(reg.Get());
+				registrations.push_back(std::move(reg));
+			}
+
+			options4->SetCustomSchemeRegistrations(
+				static_cast<UINT32>(rawPtrs.size()), rawPtrs.data());
+		}
+	}
+
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[&](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
@@ -1058,8 +1087,10 @@ void Photino::AttachWebView()
 								size_t colonPos = uriString.find(L':', 0);
 								if (colonPos > 0)
 								{
-									std::wstring scheme = uriString.substr(0, colonPos);
-									std::vector<wchar_t*>::iterator it = std::find(_customSchemeNames.begin(), _customSchemeNames.end(), scheme);
+							        std::wstring scheme = uriString.substr(0, colonPos);
+
+							        // Use std::find_if with a lambda that compares string *content*.							
+							        auto it = std::find_if(_customSchemeNames.begin(), _customSchemeNames.end(), [&scheme](const wchar_t* name) { return scheme == name; });
 
 									if (it != _customSchemeNames.end() && _customSchemeCallback != NULL)
 									{
