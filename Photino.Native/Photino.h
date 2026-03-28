@@ -6,6 +6,7 @@
 #include <WebView2.h>
 typedef wchar_t *AutoString;
 class WinToastHandler;
+class PhotinoNotification;
 #else
 // AutoString for macOS/Linux
 typedef char *AutoString;
@@ -53,6 +54,7 @@ typedef bool (*ClosingCallback)();
 typedef void (*FocusInCallback)();
 typedef void (*FocusOutCallback)();
 
+class PhotinoNotification;
 class PhotinoDialog;
 class Photino;
 
@@ -79,7 +81,7 @@ struct PhotinoInitParams
 	MovedCallback *MovedHandler;
 	WebMessageReceivedCallback *WebMessageReceivedHandler;
 	AutoString CustomSchemeNames[16];
-	WebResourceRequestedCallback *CustomSchemeHandler;
+	WebResourceRequestedCallback* CustomSchemeHandler;
 
 	int Left;
 	int Top;
@@ -95,6 +97,7 @@ struct PhotinoInitParams
 	bool Chromeless;
 	bool Transparent;
 	bool ContextMenuEnabled;
+	bool ZoomEnabled;
 	bool DevToolsEnabled;
 	bool FullScreen;
 	bool Maximized;
@@ -291,7 +294,6 @@ public:
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
 
-	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();
 
 	// Callbacks

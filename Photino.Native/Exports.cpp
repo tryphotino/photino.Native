@@ -1,4 +1,5 @@
 #include "Photino.Dialog.h"
+#include "Photino.Notification.h"
 #include "Photino.h"
 
 #ifdef _WIN32
@@ -265,11 +266,6 @@ extern "C"
 	{
 		instance->SetZoom(zoom);
 	}
-	
-	EXPORTED void Photino_ShowNotification(Photino* instance, AutoString title, AutoString body)
-	{
-		instance->ShowNotification(title, body);
-	}
 
 	EXPORTED void Photino_WaitForExit(Photino* instance)
 	{
@@ -333,5 +329,55 @@ extern "C"
 	EXPORTED void Photino_Invoke(Photino* instance, ACTION callback)
 	{
 		instance->Invoke(callback);
+	}
+
+	EXPORTED PhotinoNotification* PhotinoNotification_ctor(Photino* window) 
+	{
+		return new PhotinoNotification(window);
+	}
+
+	EXPORTED void PhotinoNotification_dtor(PhotinoNotification* instance)
+	{
+		delete instance;
+	}
+
+	EXPORTED void PhotinoNotification_AddText(PhotinoNotification* instance, AutoString text)
+	{
+		instance->AddText(text);
+	}
+
+	EXPORTED void PhotinoNotification_AddAction(PhotinoNotification* instance, AutoString action)
+	{
+		instance->AddAction(action);
+	}
+
+	EXPORTED void PhotinoNotification_SetImagePath(PhotinoNotification* instance, AutoString imagePath)
+	{
+		instance->SetImagePath(imagePath);
+	}
+
+	EXPORTED void PhotinoNotification_SetType(PhotinoNotification* instance, PhotinoNotificationType type)
+	{
+		instance->SetType(type);
+	}
+
+	EXPORTED void PhotinoNotification_Show(PhotinoNotification* instance) 
+	{
+		instance->Show();
+	}
+
+	EXPORTED void PhotinoNotification_SetActionCallback(PhotinoNotification* instance, ActionCallback callback)
+	{
+		instance->SetActionCallback(callback);
+	}
+
+	EXPORTED void PhotinoNotification_SetActivatedCallback(PhotinoNotification* instance, ActivatedCallback callback) 
+	{
+		instance->SetActivatedCallback(callback);
+	}
+
+	EXPORTED void PhotinoNotification_SetDismissedCallback(PhotinoNotification* instance, DismissedCallback callback) 
+	{
+		instance->SetDismissedCallback(callback);
 	}
 }

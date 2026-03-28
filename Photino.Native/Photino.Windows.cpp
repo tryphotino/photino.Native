@@ -300,9 +300,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 		if (_notificationRegistrationId != NULL)
 			WinToast::instance()->setAppUserModelId(_notificationRegistrationId);
 
-		this->_toastHandler = new WinToastHandler(this);
 		WinToast::instance()->initialize();
-
 	}
 
 	_dialog = new PhotinoDialog(this);
@@ -855,23 +853,6 @@ void Photino::SetZoom(int zoom)
 	//wchar_t msg[50];
 	//swprintf(msg, 50, L"newZoom: %f", newZoom);
 	//MessageBox(nullptr, msg, L"Setter", MB_OK);
-}
-
-
-
-void Photino::ShowNotification(AutoString title, AutoString body)
-{
-	title = ToUTF16String(title);
-	body = ToUTF16String(body);
-	if (_notificationsEnabled && WinToast::isCompatible())
-	{
-		WinToastTemplate toast = WinToastTemplate(WinToastTemplate::ImageAndText02);
-		toast.setTextField(title, WinToastTemplate::FirstLine);
-		toast.setTextField(body, WinToastTemplate::SecondLine);
-		if (this->_iconFileName != NULL)
-			toast.setImagePath(this->_iconFileName);
-		WinToast::instance()->showToast(toast, _toastHandler);
-	}
 }
 
 void Photino::WaitForExit()

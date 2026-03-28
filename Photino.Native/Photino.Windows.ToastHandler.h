@@ -1,42 +1,34 @@
+#ifdef _WIN32
 #ifndef TOASTHANDLER_H
 #define TOASTHANDLER_H
+
 #include "Photino.h"
+#include <vector>
 #include "Dependencies/wintoastlib.h"
 #include <WinUser.h>
 
 using namespace WinToastLib;
 
-class WinToastHandler : public IWinToastHandler
+class PhotinoNotification;
+
+class PhotinoWinToastHandler : public WinToastLib::IWinToastHandler
 {
 private:
-    Photino* _window;
+    Photino* _window{};
+    PhotinoNotification* _notification{};
 
 public:
-    WinToastHandler(Photino* window)
+    explicit PhotinoWinToastHandler(Photino* window, PhotinoNotification* notification)
     {
-        this->_window = window;
+        _window = window;
+        _notification = notification;
     }
 
-    void toastActivated() const
-    {
-        ShowWindow(this->_window->getHwnd(), SW_SHOW);    // Make the window visible if it was hidden
-        ShowWindow(this->_window->getHwnd(), SW_RESTORE); // Next, restore it if it was minimized
-        SetForegroundWindow(this->_window->getHwnd());    // Finally, activate the window
-    }
-
-    void toastActivated(int actionIndex) const
-    {
-        //
-    }
-
-    void toastDismissed(WinToastDismissalReason state) const
-    {
-        //
-    }
-
-    void toastFailed() const
-    {
-        //
-    }
+    void toastActivated() const override;
+    void toastActivated(int actionIndex) const override;
+    void toastActivated(std::wstring response) const override;
+    void toastDismissed(WinToastDismissalReason state) const override;
+    void toastFailed() const override;
 };
+#endif
 #endif

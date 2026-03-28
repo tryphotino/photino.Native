@@ -30,15 +30,22 @@
 
   <ItemGroup>
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoDialogEnums.cs" Link="PhotinoDialogEnums.cs" />
-    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoDllImports.cs" Link="PhotinoDllImports.cs" />
+	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoDllImports.cs" Link="PhotinoDllImports.cs" />
+	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoNotificationDllImports.cs" Link="PhotinoNotificationDllImports.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoMonitorStruct.cs" Link="PhotinoMonitorStruct.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeDelegates.cs" Link="PhotinoNativeDelegates.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeParameters.cs" Link="PhotinoNativeParameters.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNetDelegates.cs" Link="PhotinoNetDelegates.cs" />
-    <Compile Include="..\..\photino.NET\Photino.NET\PhotinoWindow.NET.cs" Link="PhotinoWindow.NET.cs" />
+	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoWindow.NET.cs" Link="PhotinoWindow.NET.cs" />
+	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoNotification.cs" Link="PhotinoNotification.cs" />
+	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoNotificationType.cs" Link="PhotinoNotificationType.cs" />
+	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoNotificationDismissalReason.cs" Link="PhotinoNotificationDismissalReason.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="testImage.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="wwwroot\main.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -50,7 +57,7 @@
     </None>
   </ItemGroup>
 
-  <Target Name="CopyNativeLibs" AfterTargets="Build" Condition="$(Platform) == 'x64'" >
+  <Target Name="CopyNativeLibs" AfterTargets="Build" Condition="$(Platform) == 'x64'">
 	<Copy SourceFiles="..\Photino.Native\x64\Debug\Photino.Native.dll" DestinationFolder="$(TargetDir)" Condition="$(IsWindows) == 'true'" />
 	<Copy SourceFiles="..\Photino.Native\x64\Debug\WebView2Loader.dll" DestinationFolder="$(TargetDir)" Condition="$(IsWindows) == 'true'" />
     <Copy SourceFiles="../lib/x64/Photino.Native.dylib" DestinationFolder="$(TargetDir)" Condition="$(IsOSX) == 'true'" />
