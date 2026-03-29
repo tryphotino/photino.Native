@@ -857,6 +857,70 @@ void Photino::SetZoom(int zoom)
 	//MessageBox(nullptr, msg, L"Setter", MB_OK);
 }
 
+void Photino::SetFlash(bool state)
+{
+	FLASHWINFO f = { sizeof(FLASHWINFO) };
+
+	f.hwnd = _hWnd;
+
+	if (state)
+	{
+		f.dwFlags = FLASHW_TRAY | FLASHW_TIMERNOFG;
+	}
+	else
+	{
+		f.dwFlags = FLASHW_STOP;
+	}
+
+	FlashWindowEx(&f);
+}
+
+void Photino::SetProgress(ULONGLONG current, ULONGLONG total, PhotinoWindowProgressState state) 
+{
+	ITaskbarList3* p = nullptr;
+
+	TBPFLAG tbpfState = TBPF_NORMAL;
+
+	switch (state) 
+	{
+		case PhotinoWindowProgressState::Error:
+			tbpfState = TBPF_ERROR;
+			break;
+
+		case PhotinoWindowProgressState::Paused:
+			tbpfState = TBPF_PAUSED;
+			break;
+
+		case PhotinoWindowProgressState::Normal:
+			tbpfState = TBPF_NORMAL;
+			break;
+
+		case PhotinoWindowProgressState::Indeterminate:
+			tbpfState = TBPF_INDETERMINATE;
+			break;
+	}
+
+	if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&p)))) 
+	{
+		p->HrInit();
+		p->SetProgressState(_hWnd, tbpfState);
+		p->SetProgressValue(_hWnd, current, total);
+		p->Release();
+	}
+}
+
+void Photino::ClearProgress()
+{
+	ITaskbarList3* p = nullptr;
+
+	if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&p))))
+	{
+		p->HrInit();
+		p->SetProgressState(_hWnd, TBPF_NOPROGRESS);
+		p->Release();
+	}
+}
+
 
 
 void Photino::ShowNotification(AutoString title, AutoString body)

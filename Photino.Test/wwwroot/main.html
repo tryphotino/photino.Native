@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photino</title>
 
+    <style>
+        body {
+            color: white;
+        }
+    </style>
+
     <!--
     <script src="app://dynamic.js"></script>
     -->
@@ -136,6 +142,22 @@
 
         function SetMaxSize() {
             window.external.sendMessage('setMaxSize');
+        }
+
+        function SetProgress(state) {
+            window.external.sendMessage('setProgress-' + state + '-' + document.getElementById('progress-range').value);
+        }
+
+        function SetProgressIndeterminate() {
+            window.external.sendMessage('setProgress-indeterminate');
+        }
+
+        function ClearProgress() {
+            window.external.sendMessage('clearProgress');
+        }
+
+        function SetFlash(state) {
+            window.external.sendMessage('setFlash-' + state);
         }
 
         (() => {
@@ -302,6 +324,19 @@
     <button onclick="ShowSaveFile()">Save File Dialog</button>
     <button onclick="ShowSaveFileAsync()">Save File Dialog (async)</button>
     <br>
+    <b>Progress</b><br />
+    <div>
+        <button onclick="SetProgress('error')">Error</button>
+        <button onclick="SetProgress('normal')">Normal</button>
+        <button onclick="SetProgress('paused')">Paused</button>
+        <button onclick="SetProgressIndeterminate()">Indeterminate</button>
+        <button onclick="ClearProgress()">Clear</button>
+        <div>
+            <input type="range" id="progress-range" min="0" max="100" value="50" />
+        </div>
+        <button onclick="SetFlash(true)">Start Flash</button>
+        <button onclick="SetFlash(false)">Stop Flash</button>
+    </div>
     <b>Misc</b><br>
     <a href="https://www.google.com">Google</a>
     <button onclick="ShowState()">Show State</button>

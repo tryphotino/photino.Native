@@ -36,6 +36,7 @@
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNativeParameters.cs" Link="PhotinoNativeParameters.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoNetDelegates.cs" Link="PhotinoNetDelegates.cs" />
     <Compile Include="..\..\photino.NET\Photino.NET\PhotinoWindow.NET.cs" Link="PhotinoWindow.NET.cs" />
+	<Compile Include="..\..\photino.NET\Photino.NET\PhotinoWindowEnums.cs" Link="PhotinoWindowEnums.cs" />
   </ItemGroup>
 
   <ItemGroup>

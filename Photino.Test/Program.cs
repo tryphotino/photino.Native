@@ -70,7 +70,7 @@ namespace Photino.NET
                 //.LoadRawString("<h1>Hello Photino!</h1>")
 
                 //Window settings
-                //.SetIconFile(iconFile)
+                .SetIconFile(iconFile)
                 //.SetTitle($"My Photino Window {_windowNumber++}")
                 //.SetChromeless(true)
                 //.SetTransparent(true)
@@ -80,6 +80,8 @@ namespace Photino.NET
                 //.SetMinimized(true)
                 .SetMinHeight(480)
                 .SetMinWidth(640)
+                .SetHeight(480)
+                .SetWidth(640)
                 //.SetMinSize(320, 240)
                 //.SetResizable(false)
                 //.SetTopMost(true)
@@ -475,6 +477,43 @@ namespace Photino.NET
             else if (string.Compare(message, "showMessage", true) == 0)
             {
                 var result = currentWindow.ShowMessage("Title", "Testing... 🤖");
+            }
+            else if (string.Compare(message, "setFlash-true", true) == 0)
+            {
+                currentWindow.SetFlash(true);
+            }
+            else if (string.Compare(message, "setFlash-false", true) == 0)
+            {
+                currentWindow.SetFlash(false);
+            }
+            else if (message.StartsWith("setProgress-normal-"))
+            {
+                var parts = message.Split('-');
+
+                if (ulong.TryParse(parts.Last(), out ulong progress))
+                    currentWindow.SetProgress(progress, 100, PhotinoWindowProgressState.Normal);
+            }
+            else if (message.StartsWith("setProgress-error-"))
+            {
+                var parts = message.Split('-');
+
+                if (ulong.TryParse(parts.Last(), out ulong progress))
+                    currentWindow.SetProgress(progress, 100, PhotinoWindowProgressState.Error);
+            }
+            else if (message.StartsWith("setProgress-paused-"))
+            {
+                var parts = message.Split('-');
+
+                if (ulong.TryParse(parts.Last(), out ulong progress))
+                    currentWindow.SetProgress(progress, 100, PhotinoWindowProgressState.Paused);
+            }
+            else if (string.Compare(message, "setProgress-indeterminate", true) == 0)
+            {
+                currentWindow.SetProgress(100, 100, PhotinoWindowProgressState.Indeterminate);
+            }
+            else if (string.Compare(message, "clearProgress", true) == 0)
+            {
+                currentWindow.ClearProgress();
             }
             else
                 throw new Exception($"Unknown message '{message}'");

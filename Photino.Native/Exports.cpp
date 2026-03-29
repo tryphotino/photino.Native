@@ -265,6 +265,21 @@ extern "C"
 	{
 		instance->SetZoom(zoom);
 	}
+
+	EXPORTED void Photino_SetFlash(Photino* instance, bool state)
+	{
+		instance->SetFlash(state);
+	}
+
+	EXPORTED void Photino_SetProgress(Photino* instance, ULONGLONG current, ULONGLONG total, PhotinoWindowProgressState state)
+	{
+		instance->SetProgress(current, total, state);
+	}
+
+	EXPORTED void Photino_ClearProgress(Photino* instance)
+	{
+		instance->ClearProgress();
+	}
 	
 	EXPORTED void Photino_ShowNotification(Photino* instance, AutoString title, AutoString body)
 	{

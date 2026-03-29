@@ -40,6 +40,14 @@ struct Monitor
 	double scale;
 };
 
+enum class PhotinoWindowProgressState 
+{
+	Error,
+	Paused,
+	Normal,
+	Indeterminate,
+};
+
 typedef void (*ACTION)();
 typedef void (*WebMessageReceivedCallback)(AutoString message);
 typedef void *(*WebResourceRequestedCallback)(AutoString url, int *outNumBytes, AutoString *outContentType);
@@ -290,6 +298,9 @@ public:
 	void SetTitle(AutoString title);
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
+	void SetFlash(bool state);
+	void SetProgress(ULONGLONG current, ULONGLONG total, PhotinoWindowProgressState state);
+	void ClearProgress();
 
 	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();
