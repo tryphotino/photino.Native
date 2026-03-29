@@ -1251,6 +1251,7 @@ void Photino::SetWebView2RuntimePath(AutoString pathToWebView2)
 {
 	if (pathToWebView2 != NULL)
 	{
+        pathToWebView2 = ToUTF16String(pathToWebView2);
 		wcsncpy(_webview2RuntimePath, pathToWebView2, _countof(_webview2RuntimePath));
 	}
 }
