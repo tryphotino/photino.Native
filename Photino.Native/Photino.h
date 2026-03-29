@@ -40,6 +40,18 @@ struct Monitor
 	double scale;
 };
 
+enum class PhotinoWindowHitTestCode 
+{
+	Left,
+	Right,
+	Top,
+	Bottom,
+	TopLeft,
+	TopRight,
+	BottomLeft,
+	BottomRight,
+};
+
 typedef void (*ACTION)();
 typedef void (*WebMessageReceivedCallback)(AutoString message);
 typedef void *(*WebResourceRequestedCallback)(AutoString url, int *outNumBytes, AutoString *outContentType);
@@ -290,6 +302,10 @@ public:
 	void SetTitle(AutoString title);
 	void SetTopmost(bool topmost);
 	void SetZoom(int zoom);
+
+	// Window manipulation
+	void StartDragging();
+	void StartResizing(PhotinoWindowHitTestCode hitTest);
 
 	void ShowNotification(AutoString title, AutoString message);
 	void WaitForExit();

@@ -858,6 +858,58 @@ void Photino::SetZoom(int zoom)
 }
 
 
+void Photino::StartDragging() 
+{
+	ReleaseCapture();
+	SendMessage(_hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+}
+
+void Photino::StartResizing(PhotinoWindowHitTestCode hitTestCode)
+{
+	int winHitTestCode = 0;
+
+	switch (hitTestCode)
+	{
+	case PhotinoWindowHitTestCode::Left:
+		winHitTestCode = HTLEFT;
+		break;
+
+	case PhotinoWindowHitTestCode::Right:
+		winHitTestCode = HTRIGHT;
+		break;
+
+	case PhotinoWindowHitTestCode::Top:
+		winHitTestCode = HTTOP;
+		break;
+
+	case PhotinoWindowHitTestCode::Bottom:
+		winHitTestCode = HTBOTTOM;
+		break;
+
+	case PhotinoWindowHitTestCode::TopLeft:
+		winHitTestCode = HTTOPLEFT;
+		break;
+
+	case PhotinoWindowHitTestCode::TopRight:
+		winHitTestCode = HTTOPRIGHT;
+		break;
+
+	case PhotinoWindowHitTestCode::BottomLeft:
+		winHitTestCode = HTBOTTOMLEFT;
+		break;
+
+	case PhotinoWindowHitTestCode::BottomRight:
+		winHitTestCode = HTBOTTOMRIGHT;
+		break;
+	}
+
+	if (winHitTestCode != 0)
+	{
+		ReleaseCapture();
+		SendMessage(_hWnd, WM_NCLBUTTONDOWN, winHitTestCode, 0);
+	}
+}
+
 
 void Photino::ShowNotification(AutoString title, AutoString body)
 {

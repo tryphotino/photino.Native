@@ -476,6 +476,42 @@ namespace Photino.NET
             {
                 var result = currentWindow.ShowMessage("Title", "Testing... 🤖");
             }
+            else if (string.Compare(message, "startDragging", true) == 0)
+            {
+                currentWindow.StartDragging();
+            }
+            else if (string.Compare(message, "startResizing-left", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.Left);
+            }
+            else if (string.Compare(message, "startResizing-topLeft", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.TopLeft);
+            }
+            else if (string.Compare(message, "startResizing-top", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.Top);
+            }
+            else if (string.Compare(message, "startResizing-topRight", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.TopRight);
+            }
+            else if (string.Compare(message, "startResizing-right", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.Right);
+            }
+            else if (string.Compare(message, "startResizing-bottomRight", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.BottomRight);
+            }
+            else if (string.Compare(message, "startResizing-bottom", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.Bottom);
+            }
+            else if (string.Compare(message, "startResizing-bottomLeft", true) == 0)
+            {
+                currentWindow.StartResizing(PhotinoWindowHitTestCode.BottomLeft);
+            }
             else
                 throw new Exception($"Unknown message '{message}'");
         }

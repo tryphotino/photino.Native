@@ -138,6 +138,14 @@
             window.external.sendMessage('setMaxSize');
         }
 
+        function StartDragging() {
+            window.external.sendMessage('startDragging');
+        }
+
+        function StartResizing(hitTest) {
+            window.external.sendMessage('startResizing-' + hitTest);
+        }
+
         (() => {
   // The width and height of the captured photo. We will set the
   // width to the value defined here, but the height will be
@@ -278,6 +286,7 @@
     <button onclick="SetTransparent()">Transparent</button>
     <button onclick="SetFullScreen()">Kiosk</button>
     <button onclick="Close()">Close</button>
+    <button onmousedown="StartDragging()">Start Dragging</button>
     <br>
     <b>Size</b><br>
     <button onclick="Minimize()">Minimize</button>
@@ -336,5 +345,80 @@
     </span>
 
     <canvas id="canvas" style="visibility:hidden">required to render the photo, but not visible</canvas>
+
+    <button class="resize resize-left" onmousedown="StartResizing('left')"></button>
+    <button class="resize resize-top-left" onmousedown="StartResizing('topLeft')"></button>
+    <button class="resize resize-top" onmousedown="StartResizing('top')"></button>
+    <button class="resize resize-top-right" onmousedown="StartResizing('topRight')"></button>
+    <button class="resize resize-right" onmousedown="StartResizing('right')"></button>
+    <button class="resize resize-bottom-right" onmousedown="StartResizing('bottomRight')"></button>
+    <button class="resize resize-bottom" onmousedown="StartResizing('bottom')"></button>
+    <button class="resize resize-bottom-left" onmousedown="StartResizing('bottomLeft')"></button>
+
+    <style>
+        body {
+            padding: 10px
+        }
+
+        .resize {
+            position: fixed;
+        }
+
+        .resize-left {
+            width: 10px;
+            top: 10px;
+            left: 0px;
+            bottom: 10px;
+        }
+
+        .resize-top-left {
+            width: 10px;
+            height: 10px;
+            top: 0;
+            left: 0;
+        }
+
+        .resize-top {
+            height: 10px;
+            top: 0;
+            left: 10px;
+            right: 10px;
+        }
+
+        .resize-top-right {
+            width: 10px;
+            height: 10px;
+            top: 0px;
+            right: 0px;
+        }
+
+        .resize-right {
+            width: 10px;
+            top: 10px;
+            right: 0px;
+            bottom: 10px;
+        }
+
+        .resize-bottom-right {
+            width: 10px;
+            height: 10px;
+            right: 0px;
+            bottom: 0px;
+        }
+
+        .resize-bottom {
+            height: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 0px;
+        }
+
+        .resize-bottom-left {
+            width: 10px;
+            height: 10px;
+            left: 0px;
+            bottom: 0px;
+        }
+    </style>
 </body>
 </html>
