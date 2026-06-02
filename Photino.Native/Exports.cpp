@@ -34,6 +34,11 @@ extern "C"
 	{
 		Photino::Register();
 	}
+#elif __linux__
+	EXPORTED void* Photino_getGtkWindow_linux(Photino* instance)
+	{
+		return instance->_window;
+	}
 #endif
 
 	EXPORTED Photino* Photino_ctor(PhotinoInitParams* initParams)
