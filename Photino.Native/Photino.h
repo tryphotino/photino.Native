@@ -52,6 +52,7 @@ typedef void (*MovedCallback)(int x, int y);
 typedef bool (*ClosingCallback)();
 typedef void (*FocusInCallback)();
 typedef void (*FocusOutCallback)();
+typedef bool (*PopupRequestedCallback)(AutoString url, AutoString name, int x, int y, int width, int height);
 
 class PhotinoDialog;
 class Photino;
@@ -78,6 +79,7 @@ struct PhotinoInitParams
 	MinimizedCallback *MinimizedHandler;
 	MovedCallback *MovedHandler;
 	WebMessageReceivedCallback *WebMessageReceivedHandler;
+	PopupRequestedCallback *PopupRequestedHandler;
 	AutoString CustomSchemeNames[16];
 	WebResourceRequestedCallback *CustomSchemeHandler;
 
@@ -128,6 +130,7 @@ private:
 	ClosingCallback _closingCallback;
 	FocusInCallback _focusInCallback;
 	FocusOutCallback _focusOutCallback;
+	PopupRequestedCallback _popupRequestedCallback;
 	std::vector<AutoString> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
 
@@ -272,6 +275,11 @@ public:
 
 	void NavigateToString(AutoString content);
 	void NavigateToUrl(AutoString url);
+	bool ExecuteScript(AutoString script);
+	bool InvokePopupRequested(AutoString url, AutoString name, int x, int y, int width, int height)
+	{
+		return _popupRequestedCallback && _popupRequestedCallback(url, name, x, y, width, height);
+	}
 	void Restore(); // required anymore?backward compat?
 	void SendWebMessage(AutoString message);
 

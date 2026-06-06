@@ -7,6 +7,7 @@
     NSWindow * window;
     Photino * photino;
     WebMessageReceivedCallback webMessageReceivedCallback;
+    PopupRequestedCallback popupRequestedCallback;
 }
 @end
 #endif

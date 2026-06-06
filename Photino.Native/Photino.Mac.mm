@@ -149,6 +149,7 @@ Photino::Photino(PhotinoInitParams* initParams)
     _maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
 	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
+    _popupRequestedCallback = (PopupRequestedCallback)initParams->PopupRequestedHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
     
 
@@ -497,6 +498,15 @@ void Photino::NavigateToUrl(AutoString url)
     NSURL *nsurl= [NSURL URLWithString: nsurlstring];
     NSURLRequest *nsrequest= [NSURLRequest requestWithURL: nsurl];
     [_webview loadRequest: nsrequest];
+}
+
+bool Photino::ExecuteScript(AutoString script)
+{
+    if (!_webview)
+        return false;
+
+    [_webview evaluateJavaScript: [NSString stringWithUTF8String: script] completionHandler: nil];
+    return true;
 }
 
 void Photino::Restore()
@@ -907,6 +917,7 @@ void Photino::AttachWebView()
     uiDelegate->photino = this;
     uiDelegate->window = _window;
     uiDelegate->webMessageReceivedCallback = _webMessageReceivedCallback;
+    uiDelegate->popupRequestedCallback = _popupRequestedCallback;
 
     NavigationDelegate *navDelegate = [[[NavigationDelegate alloc] init] autorelease];
     navDelegate->photino = this;

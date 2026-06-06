@@ -181,6 +181,11 @@ extern "C"
 		instance->NavigateToUrl(url);
 	}
 
+	EXPORTED bool Photino_ExecuteScript(Photino* instance, AutoString script)
+	{
+		return instance && instance->ExecuteScript(script);
+	}
+
 	EXPORTED void Photino_Restore(Photino* instance)
 	{
 		instance->Restore();

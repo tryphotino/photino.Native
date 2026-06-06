@@ -96,6 +96,23 @@
     photino->GetGrantBrowserPermissions(&grantPermissions);
     decisionHandler(grantPermissions ? WKPermissionDecisionGrant : WKPermissionDecisionPrompt);
 }
+
+- (WKWebView *)webView:(WKWebView *)webView
+        createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration
+        forNavigationAction:(WKNavigationAction *)navigationAction
+        windowFeatures:(WKWindowFeatures *)windowFeatures
+{
+    NSString *url = navigationAction.request.URL.absoluteString ?: @"";
+    int x = windowFeatures.x ? [windowFeatures.x intValue] : -1;
+    int y = windowFeatures.y ? [windowFeatures.y intValue] : -1;
+    int width = windowFeatures.width ? [windowFeatures.width intValue] : -1;
+    int height = windowFeatures.height ? [windowFeatures.height intValue] : -1;
+
+    if (popupRequestedCallback && popupRequestedCallback((char *)[url UTF8String], (char *)"", x, y, width, height))
+        return nil;
+
+    return nil;
+}
 @end
 
 #endif

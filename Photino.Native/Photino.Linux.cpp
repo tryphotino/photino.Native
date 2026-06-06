@@ -150,6 +150,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
 	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
+	_popupRequestedCallback = (PopupRequestedCallback)initParams->PopupRequestedHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	// copy strings from the fixed size array passed, but only if they have a value.
@@ -506,6 +507,15 @@ void Photino::NavigateToUrl(AutoString url)
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(_webview), url);
 }
 
+bool Photino::ExecuteScript(AutoString script)
+{
+	if (!_webview)
+		return false;
+
+	webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(_webview), script, NULL, NULL, NULL);
+	return true;
+}
+
 void Photino::Restore()
 {
 	gtk_window_present(GTK_WINDOW(_window));
@@ -777,6 +787,18 @@ void HandleWebMessage(WebKitUserContentManager *contentManager, WebKitJavascript
 	webkit_javascript_result_unref(jsResult);
 }
 
+WebKitWebView *HandleCreateWebView(WebKitWebView *webView, WebKitNavigationAction *navigationAction, gpointer arg)
+{
+	Photino *photino = (Photino *)arg;
+	WebKitURIRequest *request = webkit_navigation_action_get_request(navigationAction);
+	const gchar *uri = request ? webkit_uri_request_get_uri(request) : "";
+
+	if (photino && photino->InvokePopupRequested((AutoString)uri, (AutoString)"", -1, -1, -1, -1))
+		return NULL;
+
+	return NULL;
+}
+
 void Photino::Show(bool isAlreadyShown)
 {
 	if (!_webview)
@@ -813,6 +835,7 @@ void Photino::Show(bool isAlreadyShown)
 		g_signal_connect(contentManager, "script-message-received::Photinointerop",
 						 G_CALLBACK(HandleWebMessage), (void *)_webMessageReceivedCallback);
 		webkit_user_content_manager_register_script_message_handler(contentManager, "Photinointerop");
+		g_signal_connect(_webview, "create", G_CALLBACK(HandleCreateWebView), this);
 
 		if (_startUrl != NULL)
 			Photino::NavigateToUrl(_startUrl);

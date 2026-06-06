@@ -195,6 +195,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_closingCallback = (ClosingCallback)initParams->ClosingHandler;
 	_focusInCallback = (FocusInCallback)initParams->FocusInHandler;
 	_focusOutCallback = (FocusOutCallback)initParams->FocusOutHandler;
+	_popupRequestedCallback = (PopupRequestedCallback)initParams->PopupRequestedHandler;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	//copy strings from the fixed size array passed, but only if they have a value.
@@ -688,6 +689,19 @@ void Photino::NavigateToUrl(AutoString url)
 	_webviewWindow->Navigate(url);
 }
 
+bool Photino::ExecuteScript(AutoString script)
+{
+	if (!_webviewWindow)
+		return false;
+
+	script = ToUTF16String(script);
+	return SUCCEEDED(_webviewWindow->ExecuteScript(script, Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+		[](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT
+		{
+			return S_OK;
+		}).Get()));
+}
+
 void Photino::Restore()
 {
 	ShowWindow(_hWnd, SW_RESTORE);
@@ -1043,6 +1057,55 @@ void Photino::AttachWebView()
 								_webMessageReceivedCallback(message.get());
 								return S_OK;
 							}).Get(), &webMessageToken);
+
+						EventRegistrationToken newWindowToken;
+						_webviewWindow->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+							[&](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
+								wil::unique_cotaskmem_string uri;
+								args->get_Uri(&uri);
+
+								wil::unique_cotaskmem_string name;
+								auto args2 = wil::com_ptr<ICoreWebView2NewWindowRequestedEventArgs>(args).try_query<ICoreWebView2NewWindowRequestedEventArgs2>();
+								if (args2)
+									args2->get_Name(&name);
+
+								int x = -1;
+								int y = -1;
+								int width = -1;
+								int height = -1;
+
+								wil::com_ptr<ICoreWebView2WindowFeatures> features;
+								args->get_WindowFeatures(&features);
+								if (features)
+								{
+									BOOL hasPosition = FALSE;
+									if (SUCCEEDED(features->get_HasPosition(&hasPosition)) && hasPosition)
+									{
+										UINT32 left = 0;
+										UINT32 top = 0;
+										features->get_Left(&left);
+										features->get_Top(&top);
+										x = (int)left;
+										y = (int)top;
+									}
+
+									BOOL hasSize = FALSE;
+									if (SUCCEEDED(features->get_HasSize(&hasSize)) && hasSize)
+									{
+										UINT32 featureWidth = 0;
+										UINT32 featureHeight = 0;
+										features->get_Width(&featureWidth);
+										features->get_Height(&featureHeight);
+										width = (int)featureWidth;
+										height = (int)featureHeight;
+									}
+								}
+
+								if (InvokePopupRequested(uri.get(), name.get(), x, y, width, height))
+									args->put_Handled(TRUE);
+
+								return S_OK;
+							}).Get(), &newWindowToken);
 
 						EventRegistrationToken webResourceRequestedToken;
 						_webviewWindow->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
