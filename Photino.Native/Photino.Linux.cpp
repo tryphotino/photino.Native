@@ -52,6 +52,7 @@ gboolean on_webview_context_menu(WebKitWebView *web_view,
 								 gboolean triggered_with_keyboard,
 								 gpointer user_data);
 gboolean on_permission_request(WebKitWebView *web_view, WebKitPermissionRequest *request, gpointer user_data);
+gboolean HandleScriptDialog(WebKitWebView *webView, WebKitScriptDialog *dialog, gpointer arg);
 
 Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 {
@@ -150,6 +151,8 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
 	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
+	_inputDialogRequestedCallback = (InputDialogRequestedCallback)initParams->InputDialogRequestedHandler;
+	_inputDialogInterceptionEnabled = false;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
 
 	// copy strings from the fixed size array passed, but only if they have a value.
@@ -555,6 +558,61 @@ std::string escape_json(const std::string &s)
 	return o.str();
 }
 
+const int InputDialogKindAlert = 0;
+const int InputDialogKindConfirm = 1;
+const int InputDialogKindPrompt = 2;
+const int InputDialogResultHandled = 1;
+const int InputDialogResultDismissed = 2;
+const int InputDialogResultConfirmed = 4;
+const int InputDialogResponseLength = 32768;
+
+gboolean HandleScriptDialog(WebKitWebView *webView, WebKitScriptDialog *dialog, gpointer arg)
+{
+	Photino *photino = (Photino *)arg;
+	if (!photino || !photino->GetInputDialogInterceptionEnabled())
+		return FALSE;
+
+	int kind;
+	AutoString defaultInput = (AutoString)"";
+
+	switch (webkit_script_dialog_get_dialog_type(dialog))
+	{
+		case WEBKIT_SCRIPT_DIALOG_ALERT:
+			kind = InputDialogKindAlert;
+			break;
+		case WEBKIT_SCRIPT_DIALOG_CONFIRM:
+			kind = InputDialogKindConfirm;
+			break;
+		case WEBKIT_SCRIPT_DIALOG_PROMPT:
+			kind = InputDialogKindPrompt;
+			defaultInput = (AutoString)webkit_script_dialog_prompt_get_default_text(dialog);
+			if (!defaultInput)
+				defaultInput = (AutoString)"";
+			break;
+		default:
+			return FALSE;
+	}
+
+	char response[InputDialogResponseLength] = {};
+	AutoString message = (AutoString)webkit_script_dialog_get_message(dialog);
+	int inputResult = photino->InvokeInputDialogRequested(
+		kind,
+		message ? message : (AutoString)"",
+		defaultInput,
+		response,
+		InputDialogResponseLength);
+
+	if (!(inputResult & InputDialogResultHandled))
+		return FALSE;
+
+	if (kind == InputDialogKindConfirm)
+		webkit_script_dialog_confirm_set_confirmed(dialog, !(inputResult & InputDialogResultDismissed) && (inputResult & InputDialogResultConfirmed));
+	else if (kind == InputDialogKindPrompt && !(inputResult & InputDialogResultDismissed))
+		webkit_script_dialog_prompt_set_text(dialog, response);
+
+	return TRUE;
+}
+
 static void webview_eval_finished(GObject *object, GAsyncResult *result, gpointer userdata)
 {
 	InvokeJSWaitInfo *waitInfo = (InvokeJSWaitInfo *)userdata;
@@ -589,6 +647,11 @@ void Photino::SetDevToolsEnabled(bool enabled)
 	_devToolsEnabled = enabled;
 	WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(_webview));
 	webkit_settings_set_enable_developer_extras(settings, _devToolsEnabled);
+}
+
+void Photino::SetInputDialogInterceptionEnabled(bool enabled)
+{
+	_inputDialogInterceptionEnabled = enabled;
 }
 
 void Photino::SetFullScreen(bool fullScreen)
@@ -813,6 +876,7 @@ void Photino::Show(bool isAlreadyShown)
 		g_signal_connect(contentManager, "script-message-received::Photinointerop",
 						 G_CALLBACK(HandleWebMessage), (void *)_webMessageReceivedCallback);
 		webkit_user_content_manager_register_script_message_handler(contentManager, "Photinointerop");
+		g_signal_connect(_webview, "script-dialog", G_CALLBACK(HandleScriptDialog), this);
 
 		if (_startUrl != NULL)
 			Photino::NavigateToUrl(_startUrl);

@@ -149,6 +149,8 @@ Photino::Photino(PhotinoInitParams* initParams)
     _maximizedCallback = (MaximizedCallback)initParams->MaximizedHandler;
 	_minimizedCallback = (MinimizedCallback)initParams->MinimizedHandler;
 	_restoredCallback = (RestoredCallback)initParams->RestoredHandler;
+	_inputDialogRequestedCallback = (InputDialogRequestedCallback)initParams->InputDialogRequestedHandler;
+	_inputDialogInterceptionEnabled = false;
 	_customSchemeCallback = (WebResourceRequestedCallback)initParams->CustomSchemeHandler;
     
 
@@ -606,6 +608,11 @@ void Photino::SetTransparentEnabled(bool enabled)
 void Photino::SetContextMenuEnabled(bool enabled)
 {
     //! Not supported on macOS
+}
+
+void Photino::SetInputDialogInterceptionEnabled(bool enabled)
+{
+    _inputDialogInterceptionEnabled = enabled;
 }
 
 void Photino::SetIconFile(AutoString filename)

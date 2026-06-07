@@ -52,6 +52,7 @@ typedef void (*MovedCallback)(int x, int y);
 typedef bool (*ClosingCallback)();
 typedef void (*FocusInCallback)();
 typedef void (*FocusOutCallback)();
+typedef int (*InputDialogRequestedCallback)(int kind, AutoString message, AutoString defaultInput, AutoString response, int responseLength);
 
 class PhotinoDialog;
 class Photino;
@@ -78,6 +79,7 @@ struct PhotinoInitParams
 	MinimizedCallback *MinimizedHandler;
 	MovedCallback *MovedHandler;
 	WebMessageReceivedCallback *WebMessageReceivedHandler;
+	InputDialogRequestedCallback *InputDialogRequestedHandler;
 	AutoString CustomSchemeNames[16];
 	WebResourceRequestedCallback *CustomSchemeHandler;
 
@@ -128,6 +130,8 @@ private:
 	ClosingCallback _closingCallback;
 	FocusInCallback _focusInCallback;
 	FocusOutCallback _focusOutCallback;
+	InputDialogRequestedCallback _inputDialogRequestedCallback;
+	bool _inputDialogInterceptionEnabled;
 	std::vector<AutoString> _customSchemeNames;
 	WebResourceRequestedCallback _customSchemeCallback;
 
@@ -164,9 +168,12 @@ private:
 	wil::com_ptr<ICoreWebView2Environment> _webviewEnvironment;
 	wil::com_ptr<ICoreWebView2> _webviewWindow;
 	wil::com_ptr<ICoreWebView2Controller> _webviewController;
+	EventRegistrationToken _scriptDialogOpeningToken = {};
+	bool _scriptDialogOpeningRegistered;
 	bool EnsureWebViewIsInstalled();
 	bool InstallWebView2();
 	void AttachWebView();
+	void UpdateScriptDialogOpeningHandler();
 	bool ToWide(PhotinoInitParams* params);
 	
 #elif __linux__
@@ -269,15 +276,21 @@ public:
 	void GetTopmost(bool *topmost);
 	void GetZoom(int *zoom);
 	void GetIgnoreCertificateErrorsEnabled(bool* enabled);
+	bool GetInputDialogInterceptionEnabled() { return _inputDialogInterceptionEnabled; }
 
 	void NavigateToString(AutoString content);
 	void NavigateToUrl(AutoString url);
+	int InvokeInputDialogRequested(int kind, AutoString message, AutoString defaultInput, AutoString response, int responseLength)
+	{
+		return _inputDialogRequestedCallback ? _inputDialogRequestedCallback(kind, message, defaultInput, response, responseLength) : 0;
+	}
 	void Restore(); // required anymore?backward compat?
 	void SendWebMessage(AutoString message);
 
 	void SetTransparentEnabled(bool enabled);
 	void SetContextMenuEnabled(bool enabled);
 	void SetDevToolsEnabled(bool enabled);
+	void SetInputDialogInterceptionEnabled(bool enabled);
 	void SetIconFile(AutoString filename);
 	void SetFullScreen(bool fullScreen);
 	void SetMaximized(bool maximized);

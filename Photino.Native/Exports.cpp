@@ -201,6 +201,11 @@ extern "C"
 		instance->SetContextMenuEnabled(enabled);
 	}
 
+	EXPORTED void Photino_SetInputDialogInterceptionEnabled(Photino* instance, bool enabled)
+	{
+		instance->SetInputDialogInterceptionEnabled(enabled);
+	}
+
 	EXPORTED void Photino_SetDevToolsEnabled(Photino* instance, bool enabled)
 	{
 		instance->SetDevToolsEnabled(enabled);

@@ -1,6 +1,28 @@
 #ifdef __APPLE__
 #import "Photino.Mac.UiDelegate.h"
 
+const int InputDialogKindAlert = 0;
+const int InputDialogKindConfirm = 1;
+const int InputDialogKindPrompt = 2;
+const int InputDialogResultHandled = 1;
+const int InputDialogResultDismissed = 2;
+const int InputDialogResultConfirmed = 4;
+const int InputDialogResponseLength = 32768;
+
+static int InvokeInputDialog(Photino *photino, int kind, NSString *message, NSString *defaultInput, char *response)
+{
+    if (!photino || !photino->GetInputDialogInterceptionEnabled())
+        return 0;
+
+    response[0] = 0;
+    return photino->InvokeInputDialogRequested(
+        kind,
+        (char *)[(message ?: @"") UTF8String],
+        (char *)[(defaultInput ?: @"") UTF8String],
+        response,
+        InputDialogResponseLength);
+}
+
 @implementation UiDelegate : NSObject
 - (void)userContentController:(WKUserContentController *)userContentController
         didReceiveScriptMessage:(WKScriptMessage *)message
@@ -14,6 +36,14 @@
         initiatedByFrame:(WKFrameInfo *)frame
         completionHandler:(void (^)(void))completionHandler
 {
+    char response[InputDialogResponseLength] = {};
+    int inputResult = InvokeInputDialog(photino, InputDialogKindAlert, message, @"", response);
+    if (inputResult & InputDialogResultHandled)
+    {
+        completionHandler();
+        return;
+    }
+
     NSAlert* alert = [[NSAlert alloc] init];
 
     [alert setMessageText: @"Alert"];
@@ -31,6 +61,14 @@
         initiatedByFrame:(WKFrameInfo *)frame
         completionHandler:(void (^)(BOOL result))completionHandler
 {
+    char response[InputDialogResponseLength] = {};
+    int inputResult = InvokeInputDialog(photino, InputDialogKindConfirm, message, @"", response);
+    if (inputResult & InputDialogResultHandled)
+    {
+        completionHandler(!(inputResult & InputDialogResultDismissed) && (inputResult & InputDialogResultConfirmed));
+        return;
+    }
+
     NSAlert* alert = [[NSAlert alloc] init];
 
     [alert setMessageText: @"Confirm"];
@@ -51,6 +89,14 @@
         initiatedByFrame:(WKFrameInfo *)frame
         completionHandler:(void (^)(NSString *result))completionHandler
 {
+    char response[InputDialogResponseLength] = {};
+    int inputResult = InvokeInputDialog(photino, InputDialogKindPrompt, prompt, defaultText, response);
+    if (inputResult & InputDialogResultHandled)
+    {
+        completionHandler(inputResult & InputDialogResultDismissed ? nil : [NSString stringWithUTF8String:response]);
+        return;
+    }
+
     NSAlert* alert = [[NSAlert alloc] init];
 
     [alert setMessageText: @"Prompt"];
