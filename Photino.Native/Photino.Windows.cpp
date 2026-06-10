@@ -111,22 +111,26 @@ Photino::Photino(PhotinoInitParams* initParams)
 	_startUrl = NULL;
 	if (initParams->StartUrl != NULL)
 	{
-		_startUrl = new wchar_t[2048];
+		// StartUrl arrives as a UTF-8 byte buffer (the managed side marshals it as LPUTF8Str) and is
+		// converted to UTF-16 later in NavigateToUrl (via ToUTF16String). Keep the bytes as-is here and
+		// duplicate them with NARROW routines. wcslen/wcscpy would scan/copy 16 bits at a time looking
+		// for a wide 0x0000, walking past the single trailing 0x00 of the UTF-8 buffer -> heap over-read
+		// (intermittent STATUS_HEAP_CORRUPTION). The fixed 2048 cap is also gone (sized to the content).
+		size_t startUrlLen = strlen((char*)initParams->StartUrl);
+		_startUrl = (AutoString)new char[startUrlLen + 1];
 		if (_startUrl == NULL) exit(0);
-		//AutoString wStartUrl = ToUTF16String(initParams->StartUrl);	//Conversion is done in Navigate method. Don't do it twice
-		//wcscpy(_startUrl, wStartUrl);
-		wcscpy(_startUrl, initParams->StartUrl);
+		strcpy((char*)_startUrl, (char*)initParams->StartUrl);
 	}
 
 	_startString = NULL;
 	if (initParams->StartString != NULL)
 	{
-		//AutoString wStartString = ToUTF16String(initParams->StartString);	//Conversion is done in Navigate method. Don't do it twice
-		//_startString = new wchar_t[wcslen(wStartString) + 1];
-		_startString = new wchar_t[wcslen(initParams->StartString) + 1];
+		// StartString is also a UTF-8 byte buffer; NavigateToString converts it later. Same reason as
+		// StartUrl: measure/copy with strlen/strcpy, never wcslen/wcscpy over a UTF-8 buffer.
+		size_t startStringLen = strlen((char*)initParams->StartString);
+		_startString = (AutoString)new char[startStringLen + 1];
 		if (_startString == NULL) exit(0);
-		//wcscpy(_startString, wStartString);
-		wcscpy(_startString, initParams->StartString);
+		strcpy((char*)_startString, (char*)initParams->StartString);
 	}
 
 	_temporaryFilesPath = NULL;
@@ -313,8 +317,8 @@ Photino::Photino(PhotinoInitParams* initParams)
 
 Photino::~Photino()
 {
-	if (_startUrl != NULL) delete[]_startUrl;
-	if (_startString != NULL) delete[]_startString;
+	if (_startUrl != NULL) delete[](char*)_startUrl;		// allocated as char[] (UTF-8); free as char[]
+	if (_startString != NULL) delete[](char*)_startString;
 	if (_temporaryFilesPath != NULL) delete[]_temporaryFilesPath;
 	if (_windowTitle != NULL) delete[]_windowTitle;
 	if (_notificationsEnabled && _toastHandler != NULL) delete _toastHandler;
