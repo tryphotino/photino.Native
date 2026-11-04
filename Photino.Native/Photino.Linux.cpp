@@ -11,6 +11,13 @@
 #include <libnotify/notify.h>
 #include <dlfcn.h>	//for dynamically calling functions from shared libraries
 #include "json.hpp"
+// Optional GDK entry points that only exist in GDK builds with Wayland support:
+// gdk_wayland_display_get_type() since GDK 3.10 and gdk_wayland_display_prefers_ssd()
+// since GDK 3.22. They are declared weak, so they resolve to NULL when the GDK
+// the library runs against does not provide them. This keeps a single binary
+// working on X11 and on Wayland, and on GDK builds without a Wayland backend.
+extern "C" GType gdk_wayland_display_get_type(void) __attribute__((weak));
+extern "C" gboolean gdk_wayland_display_prefers_ssd(GdkDisplay *display) __attribute__((weak));
 using json = nlohmann::json;
 
 /* --- PRINTF_BINARY_FORMAT macro's --- */
@@ -52,6 +59,42 @@ gboolean on_webview_context_menu(WebKitWebView *web_view,
 								 gboolean triggered_with_keyboard,
 								 gpointer user_data);
 gboolean on_permission_request(WebKitWebView *web_view, WebKitPermissionRequest *request, gpointer user_data);
+
+// On Wayland, the "decorated" window property has no effect on the compositor:
+// the Wayland backend's gdk_window_set_decorations() is a no-op, and GTK3 asks
+// the compositor for server-side decorations unless the window provides
+// client-side decorations. Supplying an (empty) title bar switches GTK3 to
+// client-side decorations, so the compositor stops drawing a window frame.
+// Compositors that do not implement the KDE server-decoration protocol (e.g.
+// Mutter) ignore that request, so a title bar is only used where it helps.
+static void EnableClientSideDecorations(GtkWidget *window)
+{
+	GdkDisplay *display = gdk_display_get_default();
+	if (display == NULL)
+		return;
+
+	// GDK without Wayland support, or older than GDK 3.22.
+	if (gdk_wayland_display_get_type == NULL || gdk_wayland_display_prefers_ssd == NULL)
+		return;
+
+	// Not a Wayland display.
+	GType waylandDisplayType = gdk_wayland_display_get_type();
+	if (waylandDisplayType == 0 || !G_TYPE_CHECK_INSTANCE_TYPE(display, waylandDisplayType))
+		return;
+
+	// This is only true when the compositor implements the KDE server-decoration
+	// protocol and prefers server-side decorations, i.e. when it is able to
+	// switch the window to client-side decorations on request.
+	if (!gdk_wayland_display_prefers_ssd(display))
+		return;
+
+	GtkWidget *titleBar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_size_request(titleBar, 0, 0);
+	gtk_window_set_titlebar(GTK_WINDOW(window), titleBar);
+
+	// Skip the client-side shadow, which would inset the window content.
+	gtk_style_context_add_class(gtk_widget_get_style_context(window), "solid-csd");
+}
 
 Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 {
@@ -133,6 +176,7 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	_smoothScrollingEnabled = initParams->SmoothScrollingEnabled;
 	_ignoreCertificateErrorsEnabled = initParams->IgnoreCertificateErrorsEnabled;
 	_isFullScreen = initParams->FullScreen;
+	_chromeless = initParams->Chromeless;
 
 	_zoom = initParams->Zoom;
 	_minWidth = initParams->MinWidth;
@@ -197,7 +241,10 @@ Photino::Photino(PhotinoInitParams *initParams) : _webview(nullptr)
 	SetTitle(_windowTitle);
 
 	if (initParams->Chromeless)
+	{
 		gtk_window_set_decorated(GTK_WINDOW(_window), false);
+		EnableClientSideDecorations(_window);
+	}
 
 	if (initParams->WindowIconFile != NULL && strlen(initParams->WindowIconFile) > 0)
 		Photino::SetIconFile(initParams->WindowIconFile);
@@ -672,6 +719,13 @@ void Photino::SetTopmost(bool topmost)
 	gtk_window_set_keep_above(GTK_WINDOW(_window), topmost);
 }
 
+// The window chrome is only controlled by the chromeless setting. Transparency
+// and other window options must not add or remove the window decorations.
+void Photino::UpdateWindowDecorations()
+{
+	gtk_window_set_decorated(GTK_WINDOW(_window), !_chromeless);
+}
+
 void Photino::SetZoom(int zoom)
 {
 	double newZoom = zoom / 100.0;
@@ -682,7 +736,9 @@ void Photino::SetTransparentEnabled(bool enabled)
 {
 	_transparentEnabled = enabled;
 
-	gtk_window_set_decorated(GTK_WINDOW(_window), !enabled);	//hide/show window chrome
+	//Transparency and window decoration are independent states. The window
+	//chrome is controlled by the chromeless setting only.
+	UpdateWindowDecorations();
 
 	GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(_window));
 	GdkVisual* rgba_visual = gdk_screen_get_rgba_visual(screen);
