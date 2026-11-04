@@ -175,6 +175,7 @@ private:
 	GdkGeometry _hints;
 	void AddCustomSchemeHandlers();
 	bool _isFullScreen;
+	bool _chromeless;
 #elif __APPLE__
 	NSWindow *_window;
 	WKWebView *_webview;
@@ -224,6 +225,7 @@ public:
 #elif __linux__
 	void set_webkit_settings();
 	void set_webkit_customsettings(WebKitSettings* settings);
+	void UpdateWindowDecorations();
 	GtkWidget *_window;
 	int _lastHeight;
 	int _lastWidth;
